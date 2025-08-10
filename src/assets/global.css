@@ -1,0 +1,225 @@
+/* ===== VARIABLES CSS GLOBALES - OVERWORKOUT ===== */
+:root {
+  /* Colores principales */
+  --color-primary: #ff8f38; /* Naranja del logo */
+  --color-secondary: #212529; /* Color principal oscuro */
+  --color-accent: #38b2ac; /* Turquesa */
+
+  /* Colores adicionales */
+  --color-sidebar-bg: #212529; /* Fondo sidebar */
+  --color-sidebar-dark: #181c1f; /* Oscuro para elementos del sidebar */
+  --color-sidebar-text: #ffffff; /* Texto en sidebar */
+  --color-title-text: #dee2e6; /* Títulos */
+  --color-light-bg: #f8f9fa; /* Fondo claro */
+  --color-border: #2c3236; /* Bordes */
+
+  /* Colores semánticos */
+  --color-dark: #181c1f; /* Oscuro general */
+  --color-positive: #21ba45; /* Verde éxito */
+  --color-negative: #c10015; /* Rojo error */
+  --color-info: #31ccec; /* Azul información */
+  --color-warning: #f2c037; /* Amarillo advertencia */
+
+  /* Variables de diseño */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 25px;
+
+  /* Espaciado */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 48px;
+}
+
+/* ===== ESTILOS BASE GLOBALES ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--color-dark);
+  color: white;
+}
+
+/* ===== CLASES UTILITARIAS GLOBALES ===== */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-secondary);
+}
+.text-white {
+  color: white;
+}
+.text-muted {
+  color: var(--color-sidebar-text);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+.bg-dark {
+  background-color: var(--color-dark);
+}
+
+/* ===== CORRECCIÓN DE COLORES QUASAR ===== */
+
+/* Sidebar - Fondo oscuro con máxima especificidad */
+.q-layout .q-drawer .q-drawer__content {
+  background-color: var(--color-sidebar-bg) !important;
+}
+
+.q-layout .q-drawer .q-drawer__content .q-list {
+  background-color: transparent !important;
+}
+
+.admin-sidebar .q-drawer__content {
+  background-color: var(--color-sidebar-bg) !important;
+}
+
+.admin-sidebar .q-list {
+  background-color: transparent !important;
+}
+
+/* Elementos del sidebar con máxima especificidad */
+.q-layout .q-drawer .q-item {
+  color: var(--color-sidebar-text) !important;
+}
+
+.q-layout .q-drawer .q-item__label {
+  color: var(--color-sidebar-text) !important;
+}
+
+.admin-sidebar .q-item {
+  color: var(--color-sidebar-text) !important;
+}
+
+.admin-sidebar .q-item__label {
+  color: var(--color-sidebar-text) !important;
+}
+
+/* Elemento activo del sidebar - NARANJA en lugar de azul */
+.admin-sidebar .q-item--active {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+.admin-sidebar .q-item--active .q-item__label {
+  color: white !important;
+}
+
+.admin-sidebar .q-item--active .q-icon {
+  color: white !important;
+}
+
+/* Hover del sidebar */
+.admin-sidebar .q-item:hover {
+  background-color: rgba(255, 143, 56, 0.1) !important;
+}
+
+/* Iconos del sidebar con máxima especificidad */
+.q-layout .q-drawer .q-icon {
+  color: var(--color-sidebar-text) !important;
+}
+
+.admin-sidebar .q-icon {
+  color: var(--color-sidebar-text) !important;
+}
+
+/* Clase personalizada para elementos activos */
+.active-item {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+.active-item .q-item__label {
+  color: white !important;
+}
+
+.active-item .q-icon {
+  color: white !important;
+}
+
+/* ===== CORRECCIÓN DEL NAVBAR/HEADER ===== */
+
+/* Header con fondo oscuro */
+.q-layout .q-header {
+  background-color: var(--color-dark) !important;
+}
+
+.q-layout .q-toolbar {
+  background-color: var(--color-dark) !important;
+}
+
+/* Botón del menú hamburguesa */
+.q-layout .q-header .q-btn {
+  color: white !important;
+}
+
+/* Input de búsqueda en el header */
+.q-layout .q-header .q-field {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.q-layout .q-header .q-field .q-field__control {
+  color: white !important;
+}
+
+.q-layout .q-header .q-field .q-field__native {
+  color: white !important;
+}
+
+/* Iconos del header (notificaciones, avatar, etc.) */
+.q-layout .q-header .q-icon {
+  color: white !important;
+}
+
+/* Badge de notificaciones */
+.q-layout .q-header .q-badge {
+  background-color: var(--color-primary) !important;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+
+/* Fondo del contenido principal */
+.main-content-bg {
+  background-color: var(--color-dark);
+}
+
+/* ===== CHECKBOX PERSONALIZADO ===== */
+
+/* Checkbox con colores OverWorkout */
+.q-checkbox__inner {
+  color: var(--color-primary);
+}
+
+.q-checkbox__inner--active {
+  color: var(--color-primary);
+}
+
+.q-checkbox__bg {
+  border-color: var(--color-border);
+  transition: all 0.3s ease;
+}
+
+.q-checkbox__inner--active .q-checkbox__bg {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.q-checkbox__inner--active .q-checkbox__svg {
+  color: white !important;
+}
+
+.q-checkbox:hover .q-checkbox__bg {
+  border-color: var(--color-primary);
+}
