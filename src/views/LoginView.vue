@@ -36,20 +36,29 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const showPassword = ref(false)
 
-const handlelogin = () => {
-  console.log('login attempt:', { email: email.value, password: password.value })
+const handlelogin = async () => {
+  try {
+    await authStore.login({
+      email: email.value,
+      password: password.value
+    })
 
-  router.push()
+    router.push({ name: 'admin-dashboard' })
+  } catch (error) {
+    console.error('Error de login: ', error.message)
+  }
 }
 
 </script>
