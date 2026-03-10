@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   USERS: {
     LIST: '/api/users',
     SHOW: '/api/user/{id}',
+    CREATE: '/register',  // Usamos el endpoint de registro para crear usuarios
     UPDATE: '/api/user/{id}',
     DELETE: '/api/user/{id}'
   },

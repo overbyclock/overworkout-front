@@ -1,2 +1,6 @@
 export { default as apiClient } from './api'
 export { authService } from './auth'
+export { exerciseService } from './exercises'
+export { trainingService } from './trainings'
+export { equipmentService } from './equipments'
+export { userService } from './users'

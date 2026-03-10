@@ -1,19 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
 import adminRoutes from './admin-routes'
 import userRoutes from './user-routes'
+
+import { authGuard, guestOnlyGuard, roleRedirectGuard } from './guards'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/login',
+      name: 'home',
+      beforeEnter: roleRedirectGuard,
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: () => import('@/views/LoginView.vue'),
+      beforeEnter: guestOnlyGuard,
     },
     // Importamos las rutas desde archivos separados
     ...adminRoutes,
@@ -21,4 +24,5 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach(authGuard)
 export default router

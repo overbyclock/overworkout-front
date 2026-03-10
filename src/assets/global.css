@@ -47,6 +47,36 @@ body {
   color: white;
 }
 
+/* ===== FORZAR TEMA OSCURO EN MENÚS DE QUASAR ===== */
+.q-menu {
+  background: linear-gradient(145deg, #1c2128 0%, #161b22 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #c9d1d9 !important;
+}
+
+.q-menu .q-list {
+  background: transparent !important;
+}
+
+.q-menu .q-item {
+  color: #c9d1d9 !important;
+}
+
+.q-menu .q-item:hover,
+.q-menu .q-item.q-hoverable:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.q-menu .q-separator {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Estilos específicos para el menú de usuario */
+.user-dropdown {
+  background: transparent !important;
+}
+
 /* ===== CLASES UTILITARIAS GLOBALES ===== */
 .text-primary {
   color: var(--color-primary);
