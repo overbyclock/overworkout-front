@@ -135,8 +135,27 @@
           </div>
         </div>
 
+        <!-- Sort Options -->
+        <div class="sort-section">
+          <span class="sort-label">
+            <q-icon name="sort" size="16px" />
+            Ordenar por:
+          </span>
+          <div class="sort-pills">
+            <button 
+              v-for="option in sortOptions" 
+              :key="option.value"
+              class="sort-pill"
+              :class="{ 'active': sortBy === option.value }"
+              @click="sortBy = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- Active Filters -->
-        <div v-if="hasActiveFilters" class="active-filters">
+        <div v-if="hasActiveFilters || sortBy !== 'difficulty_asc'" class="active-filters">
           <span class="active-filters-label">Filtros activos:</span>
           <div class="active-filter-chips">
             <q-chip
@@ -179,6 +198,17 @@
               @remove="disciplineFilter = 'all'"
             >
               {{ getDisciplineLabel(disciplineFilter) }}
+            </q-chip>
+            <q-chip
+              v-if="sortBy !== 'difficulty_asc'"
+              removable
+              dense
+              color="blue"
+              text-color="white"
+              @remove="sortBy = 'difficulty_asc'"
+            >
+              <q-icon name="sort" size="14px" left />
+              {{ getSortLabel(sortBy) }}
             </q-chip>
             <q-btn
               flat
@@ -512,6 +542,23 @@ const itemsPerPageLabel = computed(() => {
   return `${itemsPerPage.value}`
 })
 
+// Sorting
+const sortBy = ref('difficulty_asc')
+
+const sortOptions = [
+  { label: 'Dificultad ↑', value: 'difficulty_asc' },
+  { label: 'Dificultad ↓', value: 'difficulty_desc' },
+  { label: 'Nombre A-Z', value: 'name_asc' },
+  { label: 'Nombre Z-A', value: 'name_desc' },
+  { label: 'Músculo', value: 'muscle' },
+  { label: 'Nivel', value: 'level' },
+]
+
+const getSortLabel = (value) => {
+  const option = sortOptions.find(o => o.value === value)
+  return option ? option.label : value
+}
+
 // Disciplinas
 const disciplineOptions = [
   { label: 'Todas', value: 'all', color: 'default' },
@@ -559,7 +606,7 @@ const muscleOptions = [
 
 // Filtros activos
 const hasActiveFilters = computed(() => {
-  return searchQuery.value || muscleFilter.value !== 'all' || levelFilter.value !== 'all' || disciplineFilter.value !== 'all'
+  return searchQuery.value || muscleFilter.value !== 'all' || levelFilter.value !== 'all' || disciplineFilter.value !== 'all' || sortBy.value !== 'difficulty_asc'
 })
 
 const getMuscleColor = (muscle) => {
@@ -595,6 +642,7 @@ const clearAllFilters = () => {
   muscleFilter.value = 'all'
   levelFilter.value = 'all'
   disciplineFilter.value = 'all'
+  sortBy.value = 'difficulty_asc'
 }
 
 const filteredExercises = computed(() => {
@@ -626,11 +674,25 @@ const filteredExercises = computed(() => {
     )
   }
 
-  // Ordenar por dificultad (1 fuego primero, luego 2, luego 3)
+  // Ordenar según la opción seleccionada
   result = result.sort((a, b) => {
-    const ratingA = a.difficultyRating || 1
-    const ratingB = b.difficultyRating || 1
-    return ratingA - ratingB
+    switch (sortBy.value) {
+      case 'difficulty_asc':
+        return (a.difficultyRating || 1) - (b.difficultyRating || 1)
+      case 'difficulty_desc':
+        return (b.difficultyRating || 1) - (a.difficultyRating || 1)
+      case 'name_asc':
+        return (a.name || '').localeCompare(b.name || '')
+      case 'name_desc':
+        return (b.name || '').localeCompare(a.name || '')
+      case 'muscle':
+        return (a.primaryMuscleGroup || '').localeCompare(b.primaryMuscleGroup || '')
+      case 'level':
+        const levelOrder = { 'beginner': 1, 'intermediate': 2, 'expert': 3, 'nolevel': 4 }
+        return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99)
+      default:
+        return 0
+    }
   })
 
   return result
@@ -1092,6 +1154,58 @@ onMounted(() => {
   border-color: transparent;
   font-weight: 600;
   box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5);
+}
+
+/* Sort section styles */
+.sort-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 12px;
+}
+
+.sort-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  min-width: 100px;
+}
+
+.sort-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.sort-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0d1117;
+  color: #8b949e;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sort-pill:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.sort-pill.active {
+  background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
 }
 
 .filter-pill.level {

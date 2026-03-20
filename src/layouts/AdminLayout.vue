@@ -147,6 +147,22 @@
             </router-link>
           </nav>
         </div>
+
+        <div class="nav-section">
+          <div class="nav-section-header">
+            <span class="nav-section-title">Entrenamientos</span>
+          </div>
+          <nav class="nav-menu">
+            <router-link v-for="item in trainingNavItems" :key="item.name" :to="{ name: item.route }"
+              class="nav-link" :class="{ active: isActiveRoute(item.route) }">
+              <div class="nav-link-icon">
+                <q-icon :name="item.icon" size="22px" />
+              </div>
+              <span class="nav-link-label">{{ item.label }}</span>
+              <div v-if="isActiveRoute(item.route)" class="active-indicator"></div>
+            </router-link>
+          </nav>
+        </div>
       </q-scroll-area>
 
       <!-- Sidebar Footer -->
@@ -203,8 +219,14 @@ const mainNavItems = [
 
 const contentNavItems = [
   { label: 'Ejercicios', icon: 'fitness_center', route: 'admin-exercises' },
-  { label: 'Entrenamientos', icon: 'schedule', route: 'admin-trainings' },
   { label: 'Equipamiento', icon: 'sports_gymnastics', route: 'admin-equipments' },
+  { label: 'Programas', icon: 'school', route: 'admin-training-programs' },
+]
+
+const trainingNavItems = [
+  { label: 'Skills', icon: 'emoji_events', route: 'admin-training-skills' },
+  { label: 'Logros', icon: 'military_tech', route: 'admin-achievements' },
+  { label: 'Progreso Usuarios', icon: 'trending_up', route: 'admin-user-progress' },
 ]
 
 // Computed
