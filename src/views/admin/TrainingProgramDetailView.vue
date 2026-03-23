@@ -110,30 +110,143 @@
               <q-btn color="primary" icon="add" label="Añadir Nivel" @click="addLevel" />
             </div>
             
-            <div class="levels-timeline">
+            <div class="levels-list">
               <div 
                 v-for="(level, index) in program.levels" 
                 :key="level.id"
-                class="level-item"
-                :class="{ 'locked': level.isLockedByDefault, 'unlocked': !level.isLockedByDefault }"
+                class="level-wrapper"
+                :class="{ 'expanded': expandedLevel === level.id }"
               >
-                <div class="level-number">{{ level.levelNumber }}</div>
-                <div class="level-card" @click="viewLevel(level)">
-                  <div class="level-info">
-                    <h4>{{ level.name }}</h4>
-                    <p>{{ level.description || 'Sin descripción' }}</p>
-                    <div class="level-meta">
-                      <span><q-icon name="checklist" size="16px" /> {{ level.requirements?.length || 0 }} requisitos</span>
-                      <span v-if="level.isLockedByDefault"><q-icon name="lock" size="16px" /> Bloqueado por defecto</span>
+                <!-- Tarjeta compacta del nivel -->
+                <div 
+                  class="level-card-compact"
+                  :class="{ 'locked': level.isLockedByDefault }"
+                  @click="toggleLevel(level)"
+                >
+                  <div class="level-main">
+                    <div class="level-num">{{ level.levelNumber }}</div>
+                    <div class="level-content">
+                      <h4>{{ level.name }}</h4>
+                      <div class="level-badges">
+                        <q-badge v-if="level.requirements?.length" color="grey-8" class="q-mr-sm">
+                          <q-icon name="checklist" size="12px" class="q-mr-xs" />
+                          {{ level.requirements.length }} requisitos
+                        </q-badge>
+                        <q-badge v-if="level.isLockedByDefault" color="orange" class="q-mr-sm">
+                          <q-icon name="lock" size="12px" class="q-mr-xs" />
+                          Bloqueado
+                        </q-badge>
+                        <q-badge v-if="level.levelNumber === 1" color="primary">
+                          <q-icon name="fitness_center" size="12px" class="q-mr-xs" />
+                          Entrenamiento completo
+                        </q-badge>
+                      </div>
                     </div>
                   </div>
-                  <div class="level-actions">
-                    <q-btn flat round icon="edit" size="sm" @click.stop="editLevel(level)">
+                  <div class="level-actions-compact">
+                    <q-btn 
+                      flat 
+                      round 
+                      dense
+                      :icon="expandedLevel === level.id ? 'expand_less' : 'expand_more'" 
+                      color="grey-5"
+                    />
+                    <q-btn flat round dense icon="edit" color="primary" @click.stop="editLevel(level)">
                       <q-tooltip>Editar</q-tooltip>
                     </q-btn>
-                    <q-btn flat round icon="visibility" size="sm" @click.stop="viewLevel(level)">
-                      <q-tooltip>Ver</q-tooltip>
-                    </q-btn>
+                  </div>
+                </div>
+                
+                <!-- Entrenamiento expandible (debajo) -->
+                <div v-if="expandedLevel === level.id && level.levelNumber === 1" class="training-expanded">
+                  <!-- Header del entrenamiento -->
+                  <div class="training-header-compact">
+                    <div class="training-title-row">
+                      <h3>{{ nivel1Data.name }}</h3>
+                      <div class="training-badges">
+                        <q-badge color="primary">{{ nivel1Data.durationWeeks }} semanas</q-badge>
+                        <q-badge color="secondary">{{ nivel1Data.sessionsPerWeek }} sesiones/semana</q-badge>
+                        <q-badge color="accent">{{ nivel1Data.difficulty }}</q-badge>
+                      </div>
+                    </div>
+                    <p class="training-desc">{{ nivel1Data.description }}</p>
+                  </div>
+                  
+                  <!-- Tabs de semanas -->
+                  <div class="weeks-container">
+                    <q-tabs v-model="selectedWeek" dense dark class="week-tabs-compact">
+                      <q-tab name="week1" label="SEMANA 1" />
+                      <q-tab name="week2" label="SEMANA 2" />
+                      <q-tab name="week3" label="SEMANA 3" />
+                      <q-tab name="week4" label="TESTS" />
+                    </q-tabs>
+                    
+                    <q-tab-panels v-model="selectedWeek" dark animated class="week-panels-compact">
+                      <!-- Semanas 1-3 -->
+                      <q-tab-panel v-for="weekNum in [1,2,3]" :key="weekNum" :name="`week${weekNum}`">
+                        <div class="week-info-compact">
+                          <h4>{{ nivel1Data.trainingWeeks[weekNum-1]?.focus }}</h4>
+                          <p class="week-tip">{{ nivel1Data.progression[`week${weekNum}`] }}</p>
+                        </div>
+                        
+                        <div class="sessions-compact">
+                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_fullbody']" :key="sessionKey" class="session-box">
+                            <div class="session-header-compact">
+                              <span class="session-name">{{ nivel1Data.sessions[sessionKey]?.name }}</span>
+                              <span class="session-time">{{ nivel1Data.sessions[sessionKey]?.duration }}</span>
+                            </div>
+                            <div class="muscle-tags">
+                              <span v-for="mg in nivel1Data.sessions[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                            </div>
+                            <div class="exercises-compact">
+                              <div v-for="(ex, exIdx) in nivel1Data.sessions[sessionKey]?.exercises" :key="exIdx" class="exercise-row">
+                                <div class="exercise-info">
+                                  <span class="exercise-name-compact">{{ ex.name }}</span>
+                                  <span class="exercise-stats">{{ ex.sets }}x{{ ex.reps }} • {{ ex.rest }}</span>
+                                </div>
+                                <q-btn flat round dense icon="play_circle" size="xs" color="grey-6" @click="searchVideo(ex.videoSearch)">
+                                  <q-tooltip>Ver video</q-tooltip>
+                                </q-btn>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </q-tab-panel>
+                      
+                      <!-- Semana 4: Tests -->
+                      <q-tab-panel name="week4">
+                        <div class="tests-compact">
+                          <h4>{{ nivel1Data.testWeek.name }}</h4>
+                          <p class="tests-desc">{{ nivel1Data.testWeek.tests.description }}</p>
+                          
+                          <div class="tests-list">
+                            <div v-for="(test, idx) in nivel1Data.testWeek.tests.requirements" :key="idx" class="test-item">
+                              <div class="test-info">
+                                <span class="test-name-compact">{{ test.name }}</span>
+                                <span class="test-minimum">Mín: {{ test.minimum }} {{ test.unit }}</span>
+                              </div>
+                              <span class="test-target">Obj: {{ test.target }} {{ test.unit }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </q-tab-panel>
+                    </q-tab-panels>
+                  </div>
+                  
+                  <!-- Tips -->
+                  <div class="tips-compact">
+                    <h5>💡 Consejos</h5>
+                    <ul>
+                      <li v-for="(tip, idx) in nivel1Data.tips" :key="idx">{{ tip }}</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <!-- Mensaje para otros niveles -->
+                <div v-else-if="expandedLevel === level.id" class="level-simple-detail">
+                  <p>{{ level.description || 'Sin descripción detallada' }}</p>
+                  <div class="simple-actions">
+                    <q-btn flat color="primary" icon="edit" label="Editar nivel" @click="editLevel(level)" />
                   </div>
                 </div>
               </div>
@@ -375,6 +488,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import nivel1Fundamentos from '@/data/calistenia-master-program'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -385,6 +499,9 @@ const program = ref(null)
 const activeTab = ref('levels')
 const userSearch = ref('')
 const timeRange = ref('Últimos 6 meses')
+const expandedLevel = ref(null)
+const selectedWeek = ref('week1')
+const nivel1Data = ref(nivel1Fundamentos)
 
 const tabs = [
   { id: 'levels', label: 'Niveles', icon: 'stairs', count: 12 },
@@ -541,6 +658,19 @@ const goBack = () => router.push('/admin/training-programs')
 const editProgram = () => router.push(`/admin/training-programs/${program.value.id}/edit`)
 const viewLevel = (level) => router.push(`/admin/training-levels/${level.id}/edit`)
 const editLevel = (level) => router.push(`/admin/training-levels/${level.id}/edit`)
+
+const toggleLevel = (level) => {
+  if (expandedLevel.value === level.id) {
+    expandedLevel.value = null
+  } else {
+    expandedLevel.value = level.id
+  }
+}
+
+const searchVideo = (query) => {
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+  window.open(url, '_blank')
+}
 const viewSkill = (skill) => router.push(`/admin/training-skills/${skill.id}`)
 const viewUser = (user) => router.push(`/admin/user-progress/${user.id}`)
 const editUser = (user) => router.push(`/admin/users/${user.id}/edit`)
@@ -1193,6 +1323,345 @@ onMounted(fetchProgram)
   }
 }
 
+/* Nuevo diseño compacto de niveles */
+.levels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.level-wrapper {
+  background: #1c2128;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.level-wrapper:hover {
+  border-color: rgba(255, 143, 56, 0.3);
+}
+
+.level-wrapper.expanded {
+  border-color: #ff8f38;
+}
+
+/* Tarjeta compacta del nivel */
+.level-card-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.level-card-compact:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.level-card-compact.locked {
+  opacity: 0.7;
+}
+
+.level-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.level-num {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.level-card-compact.locked .level-num {
+  background: #21262d;
+  color: #8b949e;
+}
+
+.level-content h4 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.level-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.level-actions-compact {
+  display: flex;
+  gap: 8px;
+}
+
+/* Entrenamiento expandido (debajo) */
+.training-expanded {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d1117;
+}
+
+.training-header-compact {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.training-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.training-title-row h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.training-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.training-desc {
+  color: #8b949e;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Tabs de semanas */
+.weeks-container {
+  padding: 20px;
+}
+
+.week-tabs-compact {
+  background: #161b22;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.week-tabs-compact .q-tab {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.week-panels-compact {
+  background: transparent;
+}
+
+.week-panels-compact .q-tab-panel {
+  padding: 0;
+}
+
+.week-info-compact {
+  margin-bottom: 16px;
+}
+
+.week-info-compact h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.week-tip {
+  color: #8b949e;
+  font-size: 13px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Sesiones compactas */
+.sessions-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.session-box {
+  background: #1c2128;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.session-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.session-name {
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
+}
+
+.session-time {
+  font-size: 12px;
+  color: #8b949e;
+  background: rgba(255, 143, 56, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.muscle-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.muscle-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #8b949e;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.exercises-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exercise-name-compact {
+  font-size: 13px;
+  color: #c9d1d9;
+}
+
+.exercise-stats {
+  font-size: 11px;
+  color: #6e7681;
+}
+
+/* Tests compactos */
+.tests-compact {
+  padding: 4px;
+}
+
+.tests-compact h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.tests-desc {
+  color: #8b949e;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.tests-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.test-item {
+  background: #1c2128;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.test-name-compact {
+  font-weight: 600;
+  color: #fff;
+  font-size: 13px;
+}
+
+.test-minimum {
+  font-size: 11px;
+  color: #ff8f38;
+}
+
+.test-target {
+  font-size: 12px;
+  color: #3fb950;
+  font-weight: 500;
+}
+
+/* Tips compactos */
+.tips-compact {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 143, 56, 0.03);
+}
+
+.tips-compact h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 10px;
+}
+
+.tips-compact ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #8b949e;
+  font-size: 13px;
+}
+
+.tips-compact li {
+  margin-bottom: 6px;
+}
+
+/* Detalle simple para otros niveles */
+.level-simple-detail {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: #8b949e;
+}
+
+.simple-actions {
+  margin-top: 12px;
+}
+
 @media (max-width: 768px) {
   .tabs-header {
     overflow-x: auto;
@@ -1210,6 +1679,19 @@ onMounted(fetchProgram)
   }
   
   .completion-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .level-training-detail {
+    margin-left: 0;
+  }
+  
+  .sessions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .prep-sessions,
+  .tests-grid {
     grid-template-columns: 1fr;
   }
 }

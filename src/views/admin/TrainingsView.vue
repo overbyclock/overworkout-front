@@ -184,16 +184,29 @@
                     <q-select v-model="trainingForm.difficulty" :options="difficultyOptions" outlined dark dense
                       emit-value map-options />
                   </div>
-                  <div class="form-group">
+                  <div class="form-group color-picker-wrapper">
                     <label>Color</label>
-                    <div class="color-picker">
-                      <div v-for="color in colorOptions" :key="color"
-                        class="color-option"
-                        :class="{ active: trainingForm.color === color }"
-                        :style="{ background: color }"
-                        @click="trainingForm.color = color"
-                      />
+                    <div class="color-preview-row">
+                      <div class="color-preview" :style="{ background: trainingForm.color }">
+                        <q-icon name="palette" size="16px" color="white" />
+                      </div>
+                      <q-input v-model="trainingForm.color" outlined dark dense style="flex: 1" placeholder="#ff8f38" />
                     </div>
+                    <q-color
+                      v-model="trainingForm.color"
+                      dark
+                      default-view="palette"
+                      :palette="[
+                        '#ff8f38', '#ff6b6b', '#ff6b9d', '#c44569',
+                        '#38b2ac', '#4299e1', '#667eea', '#764ba2',
+                        '#a371f7', '#9f7aea', '#ed64a6', '#f687b3',
+                        '#3fb950', '#48bb78', '#68d391', '#9ae6b4',
+                        '#ecc94b', '#f6e05e', '#fbd38d', '#faf089',
+                        '#f56565', '#fc8181', '#feb2b2', '#fed7d7',
+                        '#4a5568', '#718096', '#a0aec0', '#cbd5e0'
+                      ]"
+                      class="color-picker-dropdown"
+                    />
                   </div>
                 </div>
                 <div class="form-group">
@@ -999,6 +1012,33 @@ onMounted(() => {
 .color-option.active {
   border-color: #ffffff;
   transform: scale(1.1);
+}
+
+.color-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.color-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-preview {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.color-picker-dropdown {
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .add-exercise-btn {

@@ -91,6 +91,12 @@ export default [
         component: () => import('@/views/admin/UserProgressView.vue'),
         meta: { title: 'Progreso de Usuarios' },
       },
+      {
+        path: 'benchmarks',
+        name: 'admin-benchmarks',
+        component: () => import('@/views/admin/BenchmarksView.vue'),
+        meta: { title: 'Benchmarks CrossFit' },
+      },
     ],
   },
 ]

@@ -21,7 +21,33 @@
               <q-input v-model="form.name" label="Nombre del nivel *" outlined dark hint="Ej: Novato Absoluto" />
               <q-input v-model="form.title" label="Título *" outlined dark hint="Ej: Los Fundamentos" />
               <q-input v-model="form.objective" label="Objetivo principal" type="textarea" outlined dark rows="3" />
-              <q-input v-model="form.color" label="Color" outlined dark hint="Hex color (ej: #ff8f38)" />
+              
+              <!-- Selector de Color -->
+              <div class="color-picker-wrapper">
+                <label class="color-label">Color del nivel</label>
+                <div class="color-preview-row">
+                  <div class="color-preview" :style="{ background: form.color }">
+                    <q-icon name="palette" size="20px" color="white" />
+                  </div>
+                  <q-input v-model="form.color" outlined dark dense style="flex: 1" placeholder="#ff8f38" />
+                </div>
+                <q-color
+                  v-model="form.color"
+                  dark
+                  default-view="palette"
+                  :palette="[
+                    '#ff8f38', '#ff6b6b', '#ff6b9d', '#c44569',
+                    '#38b2ac', '#4299e1', '#667eea', '#764ba2',
+                    '#a371f7', '#9f7aea', '#ed64a6', '#f687b3',
+                    '#3fb950', '#48bb78', '#68d391', '#9ae6b4',
+                    '#ecc94b', '#f6e05e', '#fbd38d', '#faf089',
+                    '#f56565', '#fc8181', '#feb2b2', '#fed7d7',
+                    '#4a5568', '#718096', '#a0aec0', '#cbd5e0'
+                  ]"
+                  class="color-picker"
+                />
+              </div>
+              
               <q-input v-model="form.icon" label="Icono/Emoji" outlined dark hint="Ej: 🎯" />
               <q-toggle v-model="form.isLockedByDefault" label="Bloqueado por defecto" color="primary" dark left-label />
             </div>
@@ -211,6 +237,44 @@ onMounted(fetchLevel)
 
 .flex-1 {
   flex: 1;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.color-label {
+  font-size: 14px;
+  color: #8b949e;
+}
+
+.color-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.color-picker {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.color-picker .q-color-picker {
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 1024px) {

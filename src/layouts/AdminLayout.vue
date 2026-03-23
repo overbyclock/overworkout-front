@@ -225,6 +225,7 @@ const contentNavItems = [
 
 const trainingNavItems = [
   { label: 'Skills', icon: 'emoji_events', route: 'admin-training-skills' },
+  { label: 'Benchmarks', icon: 'timer', route: 'admin-benchmarks' },
   { label: 'Logros', icon: 'military_tech', route: 'admin-achievements' },
   { label: 'Progreso Usuarios', icon: 'trending_up', route: 'admin-user-progress' },
 ]

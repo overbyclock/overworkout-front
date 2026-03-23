@@ -21,6 +21,33 @@
             <q-input v-model="form.description" label="Descripción" type="textarea" outlined dark class="col-span-2" rows="4" />
             <q-input v-model.number="form.totalLevels" label="Número total de niveles" type="number" outlined dark />
             <q-input v-model.number="form.estimatedDurationWeeks" label="Duración estimada (semanas)" type="number" outlined dark />
+            
+            <!-- Selector de Color -->
+            <div class="color-picker-wrapper">
+              <label class="color-label">Color del programa</label>
+              <div class="color-preview-row">
+                <div class="color-preview" :style="{ background: form.color }">
+                  <q-icon name="palette" size="24px" color="white" />
+                </div>
+                <q-input v-model="form.color" outlined dark dense style="flex: 1" placeholder="#ff8f38" />
+              </div>
+              <q-color
+                v-model="form.color"
+                dark
+                default-view="palette"
+                :palette="[
+                  '#ff8f38', '#ff6b6b', '#ff6b9d', '#c44569',
+                  '#38b2ac', '#4299e1', '#667eea', '#764ba2',
+                  '#a371f7', '#9f7aea', '#ed64a6', '#f687b3',
+                  '#3fb950', '#48bb78', '#68d391', '#9ae6b4',
+                  '#ecc94b', '#f6e05e', '#fbd38d', '#faf089',
+                  '#f56565', '#fc8181', '#feb2b2', '#fed7d7',
+                  '#4a5568', '#718096', '#a0aec0', '#cbd5e0'
+                ]"
+                class="color-picker"
+              />
+            </div>
+            
             <div class="col-span-2">
               <q-toggle v-model="form.isActive" label="Programa activo" color="primary" dark left-label />
             </div>
@@ -51,6 +78,7 @@ const form = ref({
   description: '',
   totalLevels: 12,
   estimatedDurationWeeks: 144,
+  color: '#ff8f38',
   isActive: true
 })
 
@@ -74,6 +102,7 @@ const fetchProgram = async () => {
       description: 'Programa completo de calistenia desde cero hasta nivel experto.',
       totalLevels: 12,
       estimatedDurationWeeks: 144,
+      color: '#ff8f38',
       isActive: true
     }
     form.value = { ...program.value }
@@ -129,6 +158,45 @@ onMounted(fetchProgram)
 
 .col-span-2 {
   grid-column: span 2;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.color-label {
+  font-size: 14px;
+  color: #8b949e;
+  margin-bottom: 4px;
+}
+
+.color-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.color-picker {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.color-picker .q-color-picker {
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 768px) {

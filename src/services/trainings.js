@@ -43,6 +43,13 @@ export const trainingService = {
     await apiClient.delete(API_ENDPOINTS.TRAININGS.DELETE.replace('{id}', id))
   },
 
+  async getBenchmarks() {
+    const response = await apiClient.get(API_ENDPOINTS.TRAININGS.LIST, { 
+      params: { isBenchmark: true } 
+    })
+    return response.data
+  },
+
   handleError(error) {
     if (error.response) {
       const message = error.response.data?.message || 'Error en el servidor'
