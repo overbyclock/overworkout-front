@@ -1,17 +1,24 @@
 // Calistenia Master - Nivel 1: Fundamentos
-// Estructura: 4 semanas (3 semanas entreno + 1 semana tests)
+// Estructura: 5 semanas (1 semana adaptación + 3 semanas entreno + 1 semana tests)
 // Frecuencia: 4 sesiones por semana (usuario elige sus días)
+// NOTA: Todos los ejercicios están vinculados a IDs reales de la BBDD
 
 export const nivel1Fundamentos = {
   id: 'nivel-1-fundamentos',
   name: 'Nivel 1: Fundamentos',
   description: 'Construye la base de fuerza y técnica necesaria para tu progresión en calistenia',
-  durationWeeks: 4,
+  durationWeeks: 5,
   sessionsPerWeek: 4,
   difficulty: 'beginner',
   
-  // Semanas 1-3: Entrenamiento
+  // Semanas 0-3: Entrenamiento (4 semanas + tests)
   trainingWeeks: [
+    {
+      week: 0,
+      focus: 'Semana de Adaptación',
+      sessions: ['Día 1: Push Básico', 'Día 2: Pull Básico', 'Día 3: Legs Básico', 'Día 4: Core Básico'],
+      note: 'Aprende los movimientos sin presión, mitad de repeticiones'
+    },
     {
       week: 1,
       focus: 'Adaptación técnica',
@@ -29,52 +36,66 @@ export const nivel1Fundamentos = {
     }
   ],
   
-  // Sesiones detalladas
+  // Progresión semanal
+  progression: {
+    week0: 'Aprende la técnica, haz solo la mitad de repeticiones, sin presión',
+    week1: 'Enfoque en técnica perfecta, rango bajo-moderado de repeticiones',
+    week2: 'Aumenta 1-2 repeticiones por ejercicio si la técnica es buena',
+    week3: 'Busca el rango alto de repeticiones, mantén buena forma'
+  },
+  
+  // Sesiones detalladas con ejercicios reales de la BBDD
   sessions: {
     day1_push: {
       name: 'Día 1: Push',
       muscleGroups: ['chest', 'shoulders', 'triceps'],
       duration: '45-60 min',
+      isCircuit: true,
+      circuitConfig: {
+        rounds: 3,
+        restBetweenRounds: '2 min',
+        restBetweenExercises: '30s'
+      },
       exercises: [
         {
-          name: 'Push-ups asistidos (rodillas)',
-          sets: 4,
-          reps: '8-12',
-          rest: '90s',
-          notes: 'Controla la bajada, pecho casi toca el suelo. Mantén el core apretado.',
+          id: 10, // Wall Push Up (más fácil que knee push up)
+          name: 'Wall Push Up',
+          reps: '10-15',
+          difficulty: 1, // 🔥
+          notes: 'Manos en la pared, cuerpo inclinado. Controla todo el movimiento.',
+          videoSearch: 'wall push up beginner'
+        },
+        {
+          id: 11, // Knee Push Up
+          name: 'Knee Push Up',
+          reps: '6-10',
+          difficulty: 1, // 🔥
+          notes: 'Rodillas en el suelo, controla la bajada, pecho casi toca.',
           videoSearch: 'knee push up technique'
         },
         {
-          name: 'Pike push-ups',
-          sets: 3,
-          reps: '6-10',
-          rest: '90s',
-          notes: 'Cadera alta, cabeza toca el suelo entre manos. Preparación para handstand push-ups.',
-          videoSearch: 'pike push up calisthenics'
-        },
-        {
-          name: 'Diamond push-ups asistidos',
-          sets: 3,
-          reps: '5-8',
-          rest: '90s',
-          notes: 'Manos en forma de diamante, codos pegados al cuerpo. Foco en tríceps.',
-          videoSearch: 'diamond push up beginner'
-        },
-        {
-          name: 'Dips en banco',
-          sets: 3,
+          id: 13, // Incline Push Up (más fácil que close grip)
+          name: 'Incline Push Up',
           reps: '8-12',
-          rest: '90s',
-          notes: 'Manos detrás, baja controlado hasta 90° de codo. No descanses arriba.',
+          difficulty: 1, // 🔥
+          notes: 'Manos en banco elevado, cuerpo recto. Excelente para empezar.',
+          videoSearch: 'incline push up beginner'
+        },
+        {
+          id: 232, // Bench Dips
+          name: 'Bench Dips',
+          reps: '6-10',
+          difficulty: 1, // 🔥
+          notes: 'Manos detrás en banco, baja controlado, codos hacia atrás.',
           videoSearch: 'bench dips proper form'
         },
         {
-          name: 'Plank to push-up',
-          sets: 3,
-          reps: '6-10',
-          rest: '60s',
-          notes: 'Desde plank pasa a push-up posición alternando brazos. Core siempre activo.',
-          videoSearch: 'plank push up transition'
+          id: 286, // Plank (sustituye wall handstand - más básico)
+          name: 'Plank',
+          reps: '20-30s',
+          difficulty: 1, // 🔥
+          notes: 'Apoyo en antebrazos, cuerpo recto como tabla. Respira normal.',
+          videoSearch: 'plank proper form beginner'
         }
       ]
     },
@@ -83,46 +104,52 @@ export const nivel1Fundamentos = {
       name: 'Día 2: Pull',
       muscleGroups: ['back', 'biceps', 'forearms'],
       duration: '45-60 min',
+      isCircuit: true,
+      circuitConfig: {
+        rounds: 3,
+        restBetweenRounds: '2 min',
+        restBetweenExercises: '30s'
+      },
       exercises: [
         {
-          name: 'Australian pull-ups (barra baja)',
-          sets: 4,
+          id: 42, // Australian Pull Up - Wide (más fácil)
+          name: 'Australian Pull Up - Wide Grip',
           reps: '8-12',
-          rest: '90s',
-          notes: 'Agarre prono, pecho a la barra. Cuerpo recto como tabla.',
-          videoSearch: 'australian pull up inverted row'
+          difficulty: 1, // 🔥
+          notes: 'Barra baja, agarre ancho, pecho a la barra. Cuerpo recto.',
+          videoSearch: 'australian pull up wide beginner'
         },
         {
-          name: 'Flexiones inversas (remo inverso)',
-          sets: 3,
-          reps: '8-10',
-          rest: '90s',
-          notes: 'Boca arriba, empuja con codos hacia el suelo. Entre mesa o banco bajo.',
-          videoSearch: 'reverse push up back exercise'
+          id: 273, // Dead Hang (básico)
+          name: 'Dead Hang',
+          reps: '15-20s',
+          difficulty: 1, // 🔥
+          notes: 'Simplemente cuelga de la barra. Agarre cómodo, relaja hombros.',
+          videoSearch: 'dead hang beginner'
         },
         {
-          name: 'Dead hang (colgado)',
-          sets: 3,
-          reps: '20-30s',
-          rest: '60s',
-          notes: 'Colgado activo, hombros alejados de orejas. Construye fuerza de agarre.',
-          videoSearch: 'dead hang proper form'
+          id: 20, // Australian Pull Up - Normal
+          name: 'Australian Pull Up',
+          reps: '6-10',
+          difficulty: 1, // 🔥
+          notes: 'Agarre normal, pecho a la barra, codos cerca del cuerpo.',
+          videoSearch: 'australian pull up beginner'
         },
         {
-          name: 'Scapular pull-ups',
-          sets: 3,
-          reps: '8-10',
-          rest: '60s',
-          notes: 'Desde colgado activo, baja omóplatos sin doblar brazos. Movimiento escápula.',
-          videoSearch: 'scapular pull up activation'
+          id: 298, // Superman Hold (más fácil que negative pull up)
+          name: 'Superman Hold',
+          reps: '15-20s',
+          difficulty: 1, // 🔥
+          notes: 'Boca abajo, eleva pecho y piernas ligeramente. Espalda baja.',
+          videoSearch: 'superman hold beginner'
         },
         {
-          name: 'Hollow body hold',
-          sets: 3,
-          reps: '20-30s',
-          rest: '60s',
-          notes: 'Lumbar pegado al suelo, piernas y hombros elevados. Core fuerte.',
-          videoSearch: 'hollow body hold gymnastics'
+          id: 294, // Dead Bug
+          name: 'Dead Bug',
+          reps: '6-8',
+          difficulty: 1, // 🔥
+          notes: 'Boca arriba, baja brazo y pierna opuestos lentamente.',
+          videoSearch: 'dead bug exercise beginner'
         }
       ]
     },
@@ -131,46 +158,52 @@ export const nivel1Fundamentos = {
       name: 'Día 3: Legs',
       muscleGroups: ['legs', 'glutes', 'calves'],
       duration: '45-60 min',
+      isCircuit: true,
+      circuitConfig: {
+        rounds: 3,
+        restBetweenRounds: '2 min',
+        restBetweenExercises: '30s'
+      },
       exercises: [
         {
-          name: 'Sentadillas bodyweight',
-          sets: 4,
+          id: 148, // Sit To Stand (más fácil que air squat)
+          name: 'Sit To Stand',
+          reps: '10-12',
+          difficulty: 1, // 🔥
+          notes: 'Desde una silla, levántate sin impulso, vuelve a sentarte controlado.',
+          videoSearch: 'sit to stand exercise beginner'
+        },
+        {
+          id: 147, // Box Squat
+          name: 'Box Squat',
+          reps: '8-12',
+          difficulty: 1, // 🔥
+          notes: 'Sentadilla hasta una caja/silla, apoya glúteos, sube sin impulso.',
+          videoSearch: 'box squat beginner proper form'
+        },
+        {
+          id: 107, // Glute Bridge (más fácil que hip thrust)
+          name: 'Glute Bridge',
           reps: '12-15',
-          rest: '90s',
-          notes: 'Caderas abajo de las rodillas, espalda recta, talones en el suelo.',
-          videoSearch: 'bodyweight squat proper form'
+          difficulty: 1, // 🔥
+          notes: 'Espalda en el suelo, eleva caderas apretando glúteos.',
+          videoSearch: 'glute bridge beginner'
         },
         {
-          name: 'Bulgarian split squat asistida',
-          sets: 3,
-          reps: '8-10',
-          rest: '90s',
-          notes: 'Pie trasero en silla/banco bajo. Baja controlado, rodilla casi toca suelo.',
-          videoSearch: 'bulgarian split squat beginner'
-        },
-        {
-          name: 'Hip thrust',
-          sets: 3,
+          id: 188, // Standing Calf Raise
+          name: 'Standing Calf Raise',
           reps: '12-15',
-          rest: '90s',
-          notes: 'Espalda en banco, eleva caderas contrayendo glúteos. Pausa arriba 1s.',
-          videoSearch: 'bodyweight hip thrust'
+          difficulty: 1, // 🔥
+          notes: 'De pie, sube en puntas, bája controlado. Puedes usar pared para apoyo.',
+          videoSearch: 'standing calf raise beginner'
         },
         {
-          name: 'Elevación de talones (calf raises)',
-          sets: 4,
-          reps: '15-20',
-          rest: '60s',
-          notes: 'Borde de escalón, baja talones por debajo, sube lo máximo posible.',
-          videoSearch: 'calf raises bodyweight'
-        },
-        {
-          name: 'Plank lateral',
-          sets: 3,
-          reps: '20s',
-          rest: '60s',
-          notes: 'Por cada lado. Codo debajo de hombro, caderas alineadas.',
-          videoSearch: 'side plank proper form'
+          id: 108, // Single Leg Glute Bridge (versión más fácil que side plank)
+          name: 'Single Leg Glute Bridge',
+          reps: '6-8',
+          difficulty: 1, // 🔥
+          notes: 'Glute bridge con una pierna estirada. Alterna piernas.',
+          videoSearch: 'single leg glute bridge beginner'
         }
       ]
     },
@@ -179,46 +212,52 @@ export const nivel1Fundamentos = {
       name: 'Día 4: Full Body + Core',
       muscleGroups: ['full_body', 'core'],
       duration: '40-50 min',
+      isCircuit: true,
+      circuitConfig: {
+        rounds: 3,
+        restBetweenRounds: '2 min',
+        restBetweenExercises: '30s'
+      },
       exercises: [
         {
-          name: 'Burpees sin salto',
-          sets: 3,
+          id: 319, // Jumping Jack (más fácil que half burpee)
+          name: 'Jumping Jack',
+          reps: '30s',
+          difficulty: 1, // 🔥
+          notes: 'Salto abriendo piernas y brazos, vuelve. Ritmo cómodo.',
+          videoSearch: 'jumping jack beginner'
+        },
+        {
+          id: 320, // High Knees (más suave que mountain climbers)
+          name: 'High Knees',
+          reps: '20s',
+          difficulty: 1, // 🔥
+          notes: 'Marcha en el sitio llevando rodillas altas. Sin impacto fuerte.',
+          videoSearch: 'high knees beginner exercise'
+        },
+        {
+          id: 298, // Superman Hold
+          name: 'Superman Hold',
+          reps: '15-20s',
+          difficulty: 1, // 🔥
+          notes: 'Boca abajo, eleva pecho y piernas ligeramente. Espalda baja.',
+          videoSearch: 'superman hold beginner'
+        },
+        {
+          id: 288, // Reverse Plank (más fácil que plank normal)
+          name: 'Reverse Plank',
+          reps: '15-20s',
+          difficulty: 1, // 🔥
+          notes: 'Apoyo en manos mirando hacia arriba, eleva caderas.',
+          videoSearch: 'reverse plank beginner'
+        },
+        {
+          id: 290, // Plank with Leg Raise (más fácil que L-Sit)
+          name: 'Plank with Leg Raise',
           reps: '6-8',
-          rest: '90s',
-          notes: 'Desde pie, manos al suelo, pies atrás, flexión, volver, subir sin saltar.',
-          videoSearch: 'burpees no jump beginner'
-        },
-        {
-          name: 'Mountain climbers',
-          sets: 3,
-          reps: '20-30s',
-          rest: '60s',
-          notes: 'Posición plank, rodillas alternas a pecho rápido. Core apretado.',
-          videoSearch: 'mountain climbers exercise'
-        },
-        {
-          name: 'Supermans',
-          sets: 3,
-          reps: '12-15',
-          rest: '60s',
-          notes: 'Boca abajo, eleva pecho y piernas simultáneamente. Espalda baja.',
-          videoSearch: 'superman exercise back'
-        },
-        {
-          name: 'Dead bug',
-          sets: 3,
-          reps: '8-10',
-          rest: '60s',
-          notes: 'Boca arriba, brazos y piernas arriba. Baja brazo y pierna opuestos sin arquear lumbar.',
-          videoSearch: 'dead bug exercise core'
-        },
-        {
-          name: 'L-sit tuck',
-          sets: 3,
-          reps: '10-15s',
-          rest: '60s',
-          notes: 'En paralelas o bancos, eleva rodillas al pecho. Mantén brazos rectos.',
-          videoSearch: 'l sit tuck progression'
+          difficulty: 1, // 🔥
+          notes: 'En plank, levanta una pierna ligeramente. Alterna.',
+          videoSearch: 'plank leg raise beginner'
         }
       ]
     }
@@ -236,8 +275,8 @@ export const nivel1Fundamentos = {
         focus: 'Movilidad y técnica',
         activities: [
           'Movilidad general 20 minutos',
-          'Push-ups técnicas 3x5 (fácil)',
-          'Pull-ups asistidos 3x5 (fácil)',
+          'Knee Push Up 3x5 (fácil)',
+          'Australian Pull Up 3x5 (fácil)',
           'Estiramientos específicos'
         ]
       },
@@ -246,9 +285,9 @@ export const nivel1Fundamentos = {
         focus: 'Activación específica',
         activities: [
           'Calentamiento 10 minutos',
-          'Push-ups 3x5 (ritmo normal)',
-          'Australian pull-ups 3x5',
-          'Core suave: plank 2x20s'
+          'Knee Push Up 3x5 (ritmo normal)',
+          'Australian Pull Up 3x5',
+          'Core suave: Plank 2x20s'
         ]
       }
     ],
@@ -272,18 +311,18 @@ export const nivel1Fundamentos = {
           form: 'Pecho a la barra, cuerpo recto'
         },
         {
-          name: 'Sentadillas Bodyweight',
+          name: 'Air Squats',
           minimum: 20,
-          target: 30,
+          target: 25,
           unit: 'repeticiones',
-          form: 'Cadera debajo de rodilla, lumbar recto'
+          form: 'Caderas abajo de rodillas, sin perder lumbar'
         },
         {
           name: 'Plank',
           minimum: 45,
           target: 60,
           unit: 'segundos',
-          form: 'Cuerpo recto, sin caer cadera'
+          form: 'Cuerpo recto, sin hundir caderas'
         },
         {
           name: 'Hollow Body Hold',
@@ -293,35 +332,19 @@ export const nivel1Fundamentos = {
           form: 'Lumbar pegado, piernas y hombros elevados'
         }
       ]
-    },
-    
-    nextLevel: {
-      name: 'Nivel 2: Fuerza Base',
-      unlocks: [
-        'Acceso a ejercicios más avanzados',
-        'Skill: Hollow Body Hold (logrado)',
-        'Mayor volumen de entrenamiento'
-      ]
     }
   },
   
-  // Progresión semanal
-  progression: {
-    week1: 'Aprende la técnica correcta. No busques velocidad, busca calidad.',
-    week2: 'Aumenta 1-2 repeticiones por serie si puedes hacerlo con buena forma.',
-    week3: 'Última semana dura antes de tests. Mantén la intensidad.',
-    week4: 'Descansa adecuadamente entre tests. No entrenes duro esta semana.'
-  },
-  
-  // Consejos generales
+  // Consejos para el nivel
   tips: [
-    'Descansa 48h entre sesiones del mismo grupo muscular',
-    'Prioriza la técnica sobre las repeticiones',
-    'Si fallas en un ejercicio, descansa 2 minutos e intenta la serie de nuevo',
-    'Mantén un diario de entrenamiento anotando tus repeticiones',
-    'Duerme 7-8 horas para recuperación óptima',
-    'Hidrátate bien durante el entrenamiento'
+    'Prioriza la técnica sobre la cantidad de repeticiones',
+    'Descansa al menos 48h entre sesiones de la misma musculatura',
+    'Si no puedes completar las rondas, reduce repeticiones pero mantén forma',
+    'Hidratación y sueño son clave para la recuperación',
+    'Graba tus ejercicios para revisar tu técnica',
+    'No compares tu progreso con otros, cada cuerpo es diferente'
   ]
 }
 
+// Export default para poder importar directamente
 export default nivel1Fundamentos
