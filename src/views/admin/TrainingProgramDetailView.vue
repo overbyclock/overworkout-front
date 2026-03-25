@@ -167,7 +167,8 @@
                         <q-badge color="primary">{{ nivel1Data.durationWeeks }} semanas <span class="text-caption">(incl. Semana 0)</span></q-badge>
                         <q-badge color="secondary">{{ nivel1Data.sessionsPerWeek }} sesiones/semana</q-badge>
                         <q-badge color="accent">{{ nivel1Data.difficulty }}</q-badge>
-                        <q-badge color="positive">🔥 Todo nivel principiante</q-badge>
+                        <q-badge color="positive" icon="timer">Tiempo: ejercicios + descansos</q-badge>
+                        <q-tooltip>Los tiempos indicados son solo de ejercicios y descansos entre series/rondas. El calentamiento y estiramientos son opcionales y se añadirán como herramienta separada.</q-tooltip>
                       </div>
                     </div>
                     <p class="training-desc">{{ nivel1Data.description }}</p>
@@ -184,12 +185,16 @@
                     </q-tabs>
                     
                     <q-tab-panels v-model="selectedWeek" dark animated class="week-panels-compact">
-                      <!-- Semanas 0-3 -->
-                      <q-tab-panel name="week0">
+                      <!-- Semanas 0 y 1: Mismos entrenamientos (weeks01) -->
+                      <q-tab-panel v-for="weekNum in [0,1]" :key="weekNum" :name="`week${weekNum}`">
                         <div class="week-info-compact">
-                          <h4>🌱 {{ nivel1Data.trainingWeeks[0]?.focus }}</h4>
-                          <p class="week-tip">{{ nivel1Data.progression.week0 }}</p>
-                          <q-banner class="bg-amber-9 text-white q-mt-sm" dense rounded>
+                          <h4>
+                            <span v-if="weekNum === 0">🌱</span>
+                            <span v-else>📚</span>
+                            {{ nivel1Data.trainingWeeks[weekNum]?.name }}
+                          </h4>
+                          <p class="week-tip">{{ nivel1Data.progression?.[`week${weekNum}`] || '' }}</p>
+                          <q-banner v-if="weekNum === 0" class="bg-amber-9 text-white q-mt-sm" dense rounded>
                             <template v-slot:avatar>
                               <q-icon name="info" />
                             </template>
@@ -198,34 +203,44 @@
                         </div>
                         
                         <div class="sessions-compact">
-                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_fullbody']" :key="sessionKey" class="session-box">
+                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_core']" :key="sessionKey" class="session-box">
                             <div class="session-header-compact">
-                              <span class="session-name">{{ nivel1Data.sessions[sessionKey]?.name }} <span class="text-caption text-grey-6">(50% esfuerzo)</span></span>
-                              <span class="session-time">{{ nivel1Data.sessions[sessionKey]?.duration }}</span>
+                              <span class="session-name">
+                                {{ nivel1Data.weeks01[sessionKey]?.name }}
+                                <span v-if="weekNum === 0" class="text-caption text-amber">→ 50% reps</span>
+                              </span>
+                              <span class="session-time">{{ nivel1Data.weeks01[sessionKey]?.duration }}</span>
                             </div>
                             <div class="muscle-tags">
-                              <span v-for="mg in nivel1Data.sessions[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                              <span v-for="mg in nivel1Data.weeks01[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                            </div>
+                            
+                            <!-- Meta del día -->
+                            <div class="session-goal q-mb-sm">
+                              <q-chip size="sm" color="primary" text-color="white" icon="sports">
+                                {{ nivel1Data.weeks01[sessionKey]?.goal }}
+                              </q-chip>
                             </div>
                             
                             <!-- CIRCUIT FORMAT: Rondas -->
-                            <div v-if="nivel1Data.sessions[sessionKey]?.isCircuit" class="circuit-info">
+                            <div v-if="nivel1Data.weeks01[sessionKey]?.isCircuit" class="circuit-info">
                               <div class="circuit-badge">
                                 <q-icon name="repeat" size="18px" class="q-mr-sm" />
-                                {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.rounds }} RONDAS
+                                {{ nivel1Data.weeks01[sessionKey]?.circuitConfig?.rounds }} RONDAS
                               </div>
                               <div class="circuit-rest">
-                                <span>⏱️ {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.restBetweenExercises }} entre ejercicios</span>
-                                <span>• {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.restBetweenRounds }} entre rondas</span>
+                                <span>⏱️ {{ nivel1Data.weeks01[sessionKey]?.circuitConfig?.restBetweenExercises }} entre ejercicios</span>
+                                <span>• {{ nivel1Data.weeks01[sessionKey]?.circuitConfig?.restBetweenRounds }} entre rondas</span>
                               </div>
                             </div>
                             
-                            <div class="exercises-compact" :class="{ 'circuit-flow': nivel1Data.sessions[sessionKey]?.isCircuit }">
-                              <div v-for="(ex, exIdx) in nivel1Data.sessions[sessionKey]?.exercises" :key="exIdx" class="exercise-row" :class="{ 'circuit-item': nivel1Data.sessions[sessionKey]?.isCircuit }">
+                            <div class="exercises-compact" :class="{ 'circuit-flow': nivel1Data.weeks01[sessionKey]?.isCircuit }">
+                              <div v-for="(ex, exIdx) in nivel1Data.weeks01[sessionKey]?.exercises" :key="exIdx" class="exercise-row" :class="{ 'circuit-item': nivel1Data.weeks01[sessionKey]?.isCircuit }">
                                 <div class="exercise-info">
                                   <div class="exercise-header-row">
                                     <!-- Flecha de flujo para circuito -->
-                                    <q-icon v-if="nivel1Data.sessions[sessionKey]?.isCircuit && exIdx > 0" name="arrow_downward" size="14px" color="primary" class="flow-arrow" />
-                                    <span class="exercise-number" v-if="nivel1Data.sessions[sessionKey]?.isCircuit">{{ exIdx + 1 }}.</span>
+                                    <q-icon v-if="nivel1Data.weeks01[sessionKey]?.isCircuit && exIdx > 0" name="arrow_downward" size="14px" color="primary" class="flow-arrow" />
+                                    <span class="exercise-number" v-if="nivel1Data.weeks01[sessionKey]?.isCircuit">{{ exIdx + 1 }}.</span>
                                     <span class="exercise-name-compact">{{ ex.name }}</span>
                                     <!-- Fuegos de dificultad -->
                                     <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
@@ -235,8 +250,7 @@
                                     <q-badge v-if="ex.id" color="grey-8" size="xs" class="q-ml-sm">ID:{{ ex.id }}</q-badge>
                                   </div>
                                   <!-- Stats según formato -->
-                                  <span v-if="nivel1Data.sessions[sessionKey]?.isCircuit" class="exercise-stats circuit-stats">{{ ex.reps }} <span class="text-caption text-amber">→ mitad reps Semana 0</span></span>
-                                  <span v-else class="exercise-stats">{{ ex.sets }}x{{ ex.reps }} • {{ ex.rest }}</span>
+                                  <span class="exercise-stats circuit-stats">{{ ex.reps }}</span>
                                 </div>
                                 <q-btn flat round dense icon="play_circle" size="xs" color="grey-6" @click="searchVideo(ex.videoSearch)">
                                   <q-tooltip>Ver video</q-tooltip>
@@ -247,53 +261,126 @@
                         </div>
                       </q-tab-panel>
                       
-                      <!-- Semanas 1-3 -->
-                      <q-tab-panel v-for="weekNum in [1,2,3]" :key="weekNum" :name="`week${weekNum}`">
+                      <!-- Semana 2: Progresión (week2) -->
+                      <q-tab-panel name="week2">
                         <div class="week-info-compact">
-                          <h4>{{ nivel1Data.trainingWeeks[weekNum]?.focus }}</h4>
-                          <p class="week-tip">{{ nivel1Data.progression[`week${weekNum}`] }}</p>
+                          <h4>📈 {{ nivel1Data.trainingWeeks[2]?.name }}</h4>
+                          <p class="week-tip">{{ nivel1Data.progression?.week2 || '' }}</p>
+                          <q-banner class="bg-blue-9 text-white q-mt-sm" dense rounded>
+                            <template v-slot:avatar>
+                              <q-icon name="trending_up" />
+                            </template>
+                            {{ nivel1Data.trainingWeeks[2]?.note }}
+                          </q-banner>
                         </div>
                         
                         <div class="sessions-compact">
-                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_fullbody']" :key="sessionKey" class="session-box">
+                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_core']" :key="sessionKey" class="session-box">
                             <div class="session-header-compact">
-                              <span class="session-name">{{ nivel1Data.sessions[sessionKey]?.name }}</span>
-                              <span class="session-time">{{ nivel1Data.sessions[sessionKey]?.duration }}</span>
+                              <span class="session-name">{{ nivel1Data.week2[sessionKey]?.name }}</span>
+                              <span class="session-time">{{ nivel1Data.week2[sessionKey]?.duration }}</span>
                             </div>
                             <div class="muscle-tags">
-                              <span v-for="mg in nivel1Data.sessions[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                              <span v-for="mg in nivel1Data.week2[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                            </div>
+                            
+                            <!-- Meta del día -->
+                            <div class="session-goal q-mb-sm">
+                              <q-chip size="sm" color="blue" text-color="white" icon="sports">
+                                {{ nivel1Data.week2[sessionKey]?.goal }}
+                              </q-chip>
                             </div>
                             
                             <!-- CIRCUIT FORMAT: Rondas -->
-                            <div v-if="nivel1Data.sessions[sessionKey]?.isCircuit" class="circuit-info">
+                            <div v-if="nivel1Data.week2[sessionKey]?.isCircuit" class="circuit-info">
                               <div class="circuit-badge">
                                 <q-icon name="repeat" size="18px" class="q-mr-sm" />
-                                {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.rounds }} RONDAS
+                                {{ nivel1Data.week2[sessionKey]?.circuitConfig?.rounds }} RONDAS
                               </div>
                               <div class="circuit-rest">
-                                <span>⏱️ {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.restBetweenExercises }} entre ejercicios</span>
-                                <span>• {{ nivel1Data.sessions[sessionKey]?.circuitConfig?.restBetweenRounds }} entre rondas</span>
+                                <span>⏱️ {{ nivel1Data.week2[sessionKey]?.circuitConfig?.restBetweenExercises }} entre ejercicios</span>
+                                <span>• {{ nivel1Data.week2[sessionKey]?.circuitConfig?.restBetweenRounds }} entre rondas</span>
                               </div>
                             </div>
                             
-                            <div class="exercises-compact" :class="{ 'circuit-flow': nivel1Data.sessions[sessionKey]?.isCircuit }">
-                              <div v-for="(ex, exIdx) in nivel1Data.sessions[sessionKey]?.exercises" :key="exIdx" class="exercise-row" :class="{ 'circuit-item': nivel1Data.sessions[sessionKey]?.isCircuit }">
+                            <div class="exercises-compact" :class="{ 'circuit-flow': nivel1Data.week2[sessionKey]?.isCircuit }">
+                              <div v-for="(ex, exIdx) in nivel1Data.week2[sessionKey]?.exercises" :key="exIdx" class="exercise-row" :class="{ 'circuit-item': nivel1Data.week2[sessionKey]?.isCircuit }">
                                 <div class="exercise-info">
                                   <div class="exercise-header-row">
-                                    <!-- Flecha de flujo para circuito -->
-                                    <q-icon v-if="nivel1Data.sessions[sessionKey]?.isCircuit && exIdx > 0" name="arrow_downward" size="14px" color="primary" class="flow-arrow" />
-                                    <span class="exercise-number" v-if="nivel1Data.sessions[sessionKey]?.isCircuit">{{ exIdx + 1 }}.</span>
+                                    <q-icon v-if="nivel1Data.week2[sessionKey]?.isCircuit && exIdx > 0" name="arrow_downward" size="14px" color="primary" class="flow-arrow" />
+                                    <span class="exercise-number" v-if="nivel1Data.week2[sessionKey]?.isCircuit">{{ exIdx + 1 }}.</span>
                                     <span class="exercise-name-compact">{{ ex.name }}</span>
-                                    <!-- Fuegos de dificultad -->
                                     <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
                                       <q-icon v-for="n in (ex.difficulty || 1)" :key="n" name="local_fire_department" size="12px" />
                                     </span>
-                                    <!-- Badge con ID de la BBDD -->
                                     <q-badge v-if="ex.id" color="grey-8" size="xs" class="q-ml-sm">ID:{{ ex.id }}</q-badge>
                                   </div>
-                                  <!-- Stats según formato -->
-                                  <span v-if="nivel1Data.sessions[sessionKey]?.isCircuit" class="exercise-stats circuit-stats">{{ ex.reps }}</span>
-                                  <span v-else class="exercise-stats">{{ ex.sets }}x{{ ex.reps }} • {{ ex.rest }}</span>
+                                  <span class="exercise-stats circuit-stats">{{ ex.reps }}</span>
+                                </div>
+                                <q-btn flat round dense icon="play_circle" size="xs" color="grey-6" @click="searchVideo(ex.videoSearch)">
+                                  <q-tooltip>Ver video</q-tooltip>
+                                </q-btn>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </q-tab-panel>
+                      
+                      <!-- Semana 3: Intensificación (week3) -->
+                      <q-tab-panel name="week3">
+                        <div class="week-info-compact">
+                          <h4>🔥 {{ nivel1Data.trainingWeeks[3]?.name }}</h4>
+                          <p class="week-tip">{{ nivel1Data.progression?.week3 || '' }}</p>
+                          <q-banner class="bg-red-9 text-white q-mt-sm" dense rounded>
+                            <template v-slot:avatar>
+                              <q-icon name="local_fire_department" />
+                            </template>
+                            {{ nivel1Data.trainingWeeks[3]?.note }}
+                          </q-banner>
+                        </div>
+                        
+                        <div class="sessions-compact">
+                          <div v-for="(sessionKey, idx) in ['day1_push', 'day2_pull', 'day3_legs', 'day4_core']" :key="sessionKey" class="session-box">
+                            <div class="session-header-compact">
+                              <span class="session-name">{{ nivel1Data.week3[sessionKey]?.name }}</span>
+                              <span class="session-time">{{ nivel1Data.week3[sessionKey]?.duration }}</span>
+                            </div>
+                            <div class="muscle-tags">
+                              <span v-for="mg in nivel1Data.week3[sessionKey]?.muscleGroups" :key="mg" class="muscle-tag">{{ mg }}</span>
+                            </div>
+                            
+                            <!-- Meta del día -->
+                            <div class="session-goal q-mb-sm">
+                              <q-chip size="sm" color="red" text-color="white" icon="sports">
+                                {{ nivel1Data.week3[sessionKey]?.goal }}
+                              </q-chip>
+                            </div>
+                            
+                            <!-- CIRCUIT FORMAT: Rondas -->
+                            <div v-if="nivel1Data.week3[sessionKey]?.isCircuit" class="circuit-info">
+                              <div class="circuit-badge">
+                                <q-icon name="repeat" size="18px" class="q-mr-sm" />
+                                {{ nivel1Data.week3[sessionKey]?.circuitConfig?.rounds }} RONDAS
+                              </div>
+                              <div class="circuit-rest">
+                                <span>⏱️ {{ nivel1Data.week3[sessionKey]?.circuitConfig?.restBetweenExercises }} entre ejercicios</span>
+                                <span>• {{ nivel1Data.week3[sessionKey]?.circuitConfig?.restBetweenRounds }} entre rondas</span>
+                              </div>
+                            </div>
+                            
+                            <div class="exercises-compact" :class="{ 'circuit-flow': nivel1Data.week3[sessionKey]?.isCircuit }">
+                              <div v-for="(ex, exIdx) in nivel1Data.week3[sessionKey]?.exercises" :key="exIdx" class="exercise-row" :class="{ 'circuit-item': nivel1Data.week3[sessionKey]?.isCircuit }">
+                                <div class="exercise-info">
+                                  <div class="exercise-header-row">
+                                    <q-icon v-if="nivel1Data.week3[sessionKey]?.isCircuit && exIdx > 0" name="arrow_downward" size="14px" color="primary" class="flow-arrow" />
+                                    <span class="exercise-number" v-if="nivel1Data.week3[sessionKey]?.isCircuit">{{ exIdx + 1 }}.</span>
+                                    <span class="exercise-name-compact">{{ ex.name }}</span>
+                                    <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
+                                      <q-icon v-for="n in (ex.difficulty || 1)" :key="n" name="local_fire_department" size="12px" />
+                                    </span>
+                                    <q-badge v-if="ex.id" color="grey-8" size="xs" class="q-ml-sm">ID:{{ ex.id }}</q-badge>
+                                  </div>
+                                  <span class="exercise-stats circuit-stats">{{ ex.reps }}</span>
                                 </div>
                                 <q-btn flat round dense icon="play_circle" size="xs" color="grey-6" @click="searchVideo(ex.videoSearch)">
                                   <q-tooltip>Ver video</q-tooltip>
@@ -1723,6 +1810,17 @@ onMounted(fetchProgram)
 .circuit-stats {
   color: #ff8f38;
   font-weight: 500;
+}
+
+/* Meta/objetivo de la sesión */
+.session-goal {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.session-goal .q-chip {
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* Badge de ID del ejercicio */
