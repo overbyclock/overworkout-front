@@ -149,6 +149,19 @@ export function useHelpers() {
       .toLowerCase()
   }
 
+  /**
+   * Normaliza un nombre (capitaliza palabras)
+   * @param {string} name - Nombre a normalizar
+   * @returns {string} Nombre normalizado
+   */
+  const normalizeName = (name) => {
+    if (!name) return ''
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
   return {
     // Formatters
     getInitials,
@@ -160,6 +173,7 @@ export function useHelpers() {
     formatNumber,
     capitalize,
     toKebabCase,
+    normalizeName,
   }
 }
 

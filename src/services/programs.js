@@ -1,6 +1,6 @@
 import apiClient from './api'
 
-const BASE_URL = '/api/training-programs'
+const BASE_URL = '/training-programs'
 
 export const programService = {
   async getAll(params = {}) {
