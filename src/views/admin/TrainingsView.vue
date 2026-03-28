@@ -2,45 +2,15 @@
   <q-page class="page-container">
     <div class="page-content">
       <!-- Header -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Entrenamientos</h1>
-          <p class="page-subtitle">Crea y gestiona rutinas de entrenamiento</p>
-        </div>
-        <q-btn color="primary" icon="add" label="Nuevo Entrenamiento" class="action-btn" no-caps
-          @click="openCreateDialog" />
-      </div>
+      <PageHeader
+        title="Entrenamientos"
+        subtitle="Crea y gestiona rutinas de entrenamiento"
+        action-label="Nuevo Entrenamiento"
+        @action="openCreateDialog"
+      />
 
       <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(147, 112, 219, 0.2)">
-            <q-icon name="schedule" color="accent" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ trainings.length }}</div>
-            <div class="stat-mini-label">Total Entrenamientos</div>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(63, 185, 80, 0.2)">
-            <q-icon name="public" color="positive" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ publicTrainings }}</div>
-            <div class="stat-mini-label">Públicos</div>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(255, 143, 56, 0.2)">
-            <q-icon name="fitness_center" color="primary" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ totalExercises }}</div>
-            <div class="stat-mini-label">Ejercicios Asignados</div>
-          </div>
-        </div>
-      </div>
+      <StatsCards :stats="stats" />
 
       <!-- Trainings List -->
       <div class="trainings-container">
@@ -50,16 +20,20 @@
             <input v-model="searchQuery" type="text" placeholder="Buscar entrenamientos..." class="search-input">
           </div>
           <div class="view-toggle">
-            <q-btn flat dense icon="view_list" :color="viewMode === 'list' ? 'primary' : 'grey-6'" @click="viewMode = 'list'" />
-            <q-btn flat dense icon="grid_view" :color="viewMode === 'grid' ? 'primary' : 'grey-6'" @click="viewMode = 'grid'" />
+            <q-btn flat dense icon="view_list" :color="viewMode === 'list' ? 'primary' : 'grey-6'"
+              @click="viewMode = 'list'" />
+            <q-btn flat dense icon="grid_view" :color="viewMode === 'grid' ? 'primary' : 'grey-6'"
+              @click="viewMode = 'grid'" />
           </div>
         </div>
 
         <!-- List View -->
         <div v-if="viewMode === 'list'" class="trainings-list">
-          <div v-if="loading" v-for="i in 5" :key="i" class="training-row skeleton">
-            <q-skeleton type="text" class="bg-grey-8" width="100%" />
-          </div>
+          <template v-if="loading">
+            <div v-for="i in 5" :key="`skeleton-${i}`" class="training-row skeleton">
+              <q-skeleton type="text" class="bg-grey-8" width="100%" />
+            </div>
+          </template>
 
           <div v-else-if="filteredTrainings.length === 0" class="empty-state">
             <q-icon name="schedule" size="64px" color="grey-6" />
@@ -68,11 +42,12 @@
             <q-btn color="primary" icon="add" label="Crear Entrenamiento" no-caps @click="openCreateDialog" />
           </div>
 
-          <div v-else v-for="training in filteredTrainings" :key="training.id" class="training-row">
+          <div v-for="training in filteredTrainings" v-else :key="training.id" class="training-row">
             <div class="training-color" :style="{ background: training.color || '#ff8f38' }"></div>
             <div class="training-content">
               <div class="training-main">
-                <div class="training-icon-wrapper" :style="{ background: training.color + '20' || 'rgba(255,143,56,0.1)' }">
+                <div class="training-icon-wrapper"
+                  :style="{ background: (training.color || '#ff8f38') + '20' }">
                   <q-icon name="sports_gymnastics" :style="{ color: training.color || '#ff8f38' }" size="24px" />
                 </div>
                 <div class="training-info">
@@ -112,9 +87,11 @@
 
         <!-- Grid View -->
         <div v-else class="trainings-grid">
-          <div v-if="loading" v-for="i in 6" :key="i" class="training-card skeleton">
-            <q-skeleton type="rect" class="skeleton-image bg-grey-8" />
-          </div>
+          <template v-if="loading">
+            <div v-for="i in 6" :key="`skeleton-${i}`" class="training-card skeleton">
+              <q-skeleton type="rect" class="skeleton-image bg-grey-8" />
+            </div>
+          </template>
 
           <div v-else-if="filteredTrainings.length === 0" class="empty-state grid-empty">
             <q-icon name="schedule" size="64px" color="grey-6" />
@@ -127,7 +104,7 @@
             <div class="card-color-bar" :style="{ background: training.color || '#ff8f38' }"></div>
             <div class="card-content">
               <div class="card-header-row">
-                <div class="card-icon" :style="{ background: training.color + '20' || 'rgba(255,143,56,0.1)' }">
+                <div class="card-icon" :style="{ background: (training.color || '#ff8f38') + '20' }">
                   <q-icon name="sports_gymnastics" :style="{ color: training.color || '#ff8f38' }" size="24px" />
                 </div>
                 <span class="card-visibility" :class="training.isPublic ? 'public' : 'private'">
@@ -190,23 +167,18 @@
                       <div class="color-preview" :style="{ background: trainingForm.color }">
                         <q-icon name="palette" size="16px" color="white" />
                       </div>
-                      <q-input v-model="trainingForm.color" outlined dark dense style="flex: 1" placeholder="#ff8f38" />
+                      <q-input v-model="trainingForm.color" outlined dark dense style="flex: 1"
+                        placeholder="#ff8f38" />
                     </div>
-                    <q-color
-                      v-model="trainingForm.color"
-                      dark
-                      default-view="palette"
-                      :palette="[
-                        '#ff8f38', '#ff6b6b', '#ff6b9d', '#c44569',
-                        '#38b2ac', '#4299e1', '#667eea', '#764ba2',
-                        '#a371f7', '#9f7aea', '#ed64a6', '#f687b3',
-                        '#3fb950', '#48bb78', '#68d391', '#9ae6b4',
-                        '#ecc94b', '#f6e05e', '#fbd38d', '#faf089',
-                        '#f56565', '#fc8181', '#feb2b2', '#fed7d7',
-                        '#4a5568', '#718096', '#a0aec0', '#cbd5e0'
-                      ]"
-                      class="color-picker-dropdown"
-                    />
+                    <q-color v-model="trainingForm.color" dark default-view="palette" :palette="[
+                      '#ff8f38', '#ff6b6b', '#ff6b9d', '#c44569',
+                      '#38b2ac', '#4299e1', '#667eea', '#764ba2',
+                      '#a371f7', '#9f7aea', '#ed64a6', '#f687b3',
+                      '#3fb950', '#48bb78', '#68d391', '#9ae6b4',
+                      '#ecc94b', '#f6e05e', '#fbd38d', '#faf089',
+                      '#f56565', '#fc8181', '#feb2b2', '#fed7d7',
+                      '#4a5568', '#718096', '#a0aec0', '#cbd5e0'
+                    ]" class="color-picker-dropdown" />
                   </div>
                 </div>
                 <div class="form-group">
@@ -225,14 +197,16 @@
                     <p>No hay ejercicios seleccionados</p>
                     <span>Añade ejercicios a esta rutina</span>
                   </div>
-                  <div v-else v-for="(ex, index) in trainingForm.exercises" :key="index" class="exercise-item">
+                  <div v-for="(ex, index) in trainingForm.exercises" v-else :key="index" class="exercise-item">
                     <div class="exercise-number">{{ index + 1 }}</div>
                     <div class="exercise-details">
                       <div class="exercise-name">{{ ex.name }}</div>
                       <div class="exercise-config">
-                        <q-input v-model.number="ex.sets" type="number" outlined dark dense label="Series" style="width: 80px" />
+                        <q-input v-model.number="ex.sets" type="number" outlined dark dense label="Series"
+                          style="width: 80px" />
                         <q-input v-model="ex.reps" outlined dark dense label="Reps" style="width: 100px" />
-                        <q-input v-model.number="ex.rest" type="number" outlined dark dense label="Descanso (s)" style="width: 100px" />
+                        <q-input v-model.number="ex.rest" type="number" outlined dark dense label="Descanso (s)"
+                          style="width: 100px" />
                       </div>
                     </div>
                     <q-btn flat round icon="delete" color="negative" size="sm" @click="removeExercise(index)" />
@@ -256,7 +230,7 @@
                       <span><q-icon name="fitness_center" /> {{ trainingForm.exercises?.length || 0 }} ejercicios</span>
                       <span><q-icon name="timer" /> {{ calculatePreviewDuration }} min</span>
                     </div>
-                    <div class="preview-exercises" v-if="trainingForm.exercises?.length">
+                    <div v-if="trainingForm.exercises?.length" class="preview-exercises">
                       <div v-for="(ex, idx) in trainingForm.exercises" :key="idx" class="preview-exercise-item">
                         <span class="ex-index">{{ idx + 1 }}</span>
                         <span class="ex-name">{{ ex.name }}</span>
@@ -281,7 +255,7 @@
         </q-card-section>
         <q-card-section class="selector-search">
           <q-input v-model="exerciseSearch" outlined dark dense placeholder="Buscar ejercicio..." class="search-field">
-            <template v-slot:prepend>
+            <template #prepend>
               <q-icon name="search" />
             </template>
           </q-input>
@@ -303,46 +277,41 @@
     </q-dialog>
 
     <!-- Delete Dialog -->
-    <q-dialog v-model="deleteDialog" persistent>
-      <q-card class="dialog-card delete-dialog">
-        <q-card-section class="dialog-header">
-          <div class="delete-icon">
-            <q-icon name="warning" color="negative" size="32px" />
-          </div>
-          <h3 class="dialog-title">Eliminar Entrenamiento</h3>
-          <p class="dialog-subtitle">¿Estás seguro de que quieres eliminar <strong>{{ trainingToDelete?.name }}</strong>?</p>
-        </q-card-section>
-        <q-card-section class="dialog-footer">
-          <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn label="Eliminar" color="negative" :loading="deleting" @click="deleteTraining" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <FormDialog v-model="deleteDialog" title="Eliminar Entrenamiento"
+      :subtitle="`¿Estás seguro de que quieres eliminar <strong>${trainingToDelete?.name}</strong>?`" is-delete
+      confirm-label="Eliminar" confirm-color="negative" :loading="deleting" @confirm="deleteTraining" />
   </q-page>
 </template>
 
 <script setup>
-import { exerciseService, trainingService } from '@/services'
-import { computed, onMounted, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useTrainingsStore } from '@/stores/trainings'
+import { useExercisesStore } from '@/stores/exercises'
+import PageHeader from '@/components/common/PageHeader.vue'
+import StatsCards from '@/components/common/StatsCards.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
 
 const $q = useQuasar()
+const trainingsStore = useTrainingsStore()
+const exercisesStore = useExercisesStore()
 
+// State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
-const trainings = ref([])
-const exercises = ref([])
 const searchQuery = ref('')
 const viewMode = ref('list')
 const showExerciseSelector = ref(false)
 const exerciseSearch = ref('')
 
+// Dialogs
 const trainingDialog = ref(false)
 const deleteDialog = ref(false)
 const isEditing = ref(false)
 const trainingToDelete = ref(null)
 
+// Form
 const trainingForm = ref({
   name: '',
   description: '',
@@ -352,18 +321,24 @@ const trainingForm = ref({
   exercises: []
 })
 
+// Options
 const difficultyOptions = [
   { label: 'Principiante', value: 'beginner' },
   { label: 'Intermedio', value: 'intermediate' },
   { label: 'Avanzado', value: 'advanced' },
 ]
 
-const colorOptions = ['#ff8f38', '#38b2ac', '#9370db', '#ff6b6b', '#3fb950', '#f59e0b', '#ec4899']
+// Computed
+const stats = computed(() => [
+  { value: trainingsStore.totalTrainings, label: 'Total Entrenamientos', icon: 'schedule', iconColor: 'accent' },
+  { value: trainingsStore.publicTrainings.length, label: 'Públicos', icon: 'public', iconColor: 'positive' },
+  { value: totalExercises.value, label: 'Ejercicios Asignados', icon: 'fitness_center' },
+])
 
 const filteredTrainings = computed(() => {
-  if (!searchQuery.value) return trainings.value
+  if (!searchQuery.value) return trainingsStore.trainings
   const query = searchQuery.value.toLowerCase()
-  return trainings.value.filter(t =>
+  return trainingsStore.trainings.filter(t =>
     t.name?.toLowerCase().includes(query) ||
     t.description?.toLowerCase().includes(query)
   )
@@ -371,7 +346,7 @@ const filteredTrainings = computed(() => {
 
 const filteredAvailableExercises = computed(() => {
   const selectedIds = trainingForm.value.exercises?.map(e => e.id) || []
-  let available = exercises.value.filter(e => !selectedIds.includes(e.id))
+  let available = exercisesStore.exercises.filter(e => !selectedIds.includes(e.id))
 
   if (exerciseSearch.value) {
     const query = exerciseSearch.value.toLowerCase()
@@ -381,38 +356,25 @@ const filteredAvailableExercises = computed(() => {
   return available
 })
 
-const publicTrainings = computed(() =>
-  trainings.value.filter(t => t.isPublic).length
-)
-
 const totalExercises = computed(() =>
-  trainings.value.reduce((sum, t) => sum + (t.exercises?.length || 0), 0)
+  trainingsStore.trainings.reduce((sum, t) => sum + (t.exercises?.length || 0), 0)
 )
 
 const calculatePreviewDuration = computed(() => {
   if (!trainingForm.value.exercises?.length) return 0
-  // Estimación: 45s por serie + descanso
   const totalSeconds = trainingForm.value.exercises.reduce((sum, ex) => {
     return sum + ((ex.sets || 3) * 45) + ((ex.rest || 60) * (ex.sets || 3))
   }, 0)
   return Math.round(totalSeconds / 60)
 })
 
+// Methods
 const fetchData = async () => {
   loading.value = true
   try {
-    const [trainingsRes, exercisesRes] = await Promise.all([
-      trainingService.getAll(),
-      exerciseService.getAll()
-    ])
-    trainings.value = Array.isArray(trainingsRes) ? trainingsRes : (trainingsRes.member || trainingsRes['hydra:member'] || [])
-    exercises.value = Array.isArray(exercisesRes) ? exercisesRes : (exercisesRes.member || exercisesRes['hydra:member'] || [])
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar datos',
-      position: 'top'
-    })
+    await Promise.all([trainingsStore.fetchTrainings(), exercisesStore.fetchExercises()])
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar datos', position: 'top' })
   } finally {
     loading.value = false
   }
@@ -433,23 +395,13 @@ const truncateText = (text, length) => {
 
 const openCreateDialog = () => {
   isEditing.value = false
-  trainingForm.value = {
-    name: '',
-    description: '',
-    difficulty: 'intermediate',
-    color: '#ff8f38',
-    isPublic: false,
-    exercises: []
-  }
+  trainingForm.value = { name: '', description: '', difficulty: 'intermediate', color: '#ff8f38', isPublic: false, exercises: [] }
   trainingDialog.value = true
 }
 
 const editTraining = (training) => {
   isEditing.value = true
-  trainingForm.value = {
-    ...training,
-    exercises: training.exercises?.map(e => ({ ...e })) || []
-  }
+  trainingForm.value = { ...training, exercises: training.exercises?.map(e => ({ ...e })) || [] }
   trainingDialog.value = true
 }
 
@@ -470,39 +422,20 @@ const removeExercise = (index) => {
 
 const saveTraining = async () => {
   if (!trainingForm.value.name) {
-    $q.notify({
-      type: 'warning',
-      message: 'El nombre es obligatorio',
-      position: 'top'
-    })
+    $q.notify({ type: 'warning', message: 'El nombre es obligatorio', position: 'top' })
     return
   }
 
   saving.value = true
   try {
     if (isEditing.value) {
-      await trainingService.update(trainingForm.value.id, trainingForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Entrenamiento actualizado',
-        position: 'top'
-      })
+      await trainingsStore.updateTraining(trainingForm.value.id, trainingForm.value)
     } else {
-      await trainingService.create(trainingForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Entrenamiento creado',
-        position: 'top'
-      })
+      await trainingsStore.createTraining(trainingForm.value)
     }
     trainingDialog.value = false
-    fetchData()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: isEditing.value ? 'Error al actualizar' : 'Error al crear',
-      position: 'top'
-    })
+  } catch {
+    // Error manejado por el store
   } finally {
     saving.value = false
   }
@@ -516,28 +449,16 @@ const confirmDelete = (training) => {
 const deleteTraining = async () => {
   deleting.value = true
   try {
-    await trainingService.delete(trainingToDelete.value.id)
-    $q.notify({
-      type: 'positive',
-      message: 'Entrenamiento eliminado',
-      position: 'top'
-    })
+    await trainingsStore.deleteTraining(trainingToDelete.value.id)
     deleteDialog.value = false
-    fetchData()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al eliminar',
-      position: 'top'
-    })
+  } catch {
+    // Error manejado por el store
   } finally {
     deleting.value = false
   }
 }
 
-onMounted(() => {
-  fetchData()
-})
+onMounted(fetchData)
 </script>
 
 <style scoped>
@@ -550,70 +471,6 @@ onMounted(() => {
   padding: 24px 32px;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-  font-size: 0.95rem;
-  color: #8b949e;
-  margin: 0;
-}
-
-.action-btn {
-  background: linear-gradient(135deg, #ff8f38 0%, #e67e2e 100%);
-  border-radius: 12px;
-  font-weight: 600;
-}
-
-/* Stats */
-.stats-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-mini {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 20px 24px;
-  flex: 1;
-}
-
-.stat-mini-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-mini-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.stat-mini-label {
-  font-size: 0.85rem;
-  color: #8b949e;
 }
 
 /* Container */
@@ -801,12 +658,18 @@ onMounted(() => {
 }
 
 .training-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(147, 112, 219, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .training-card.skeleton {
-  min-height: 250px;
+  padding: 0;
+}
+
+.skeleton-image {
+  height: 200px;
+  border-radius: 0;
 }
 
 .card-color-bar {
@@ -834,10 +697,10 @@ onMounted(() => {
 }
 
 .card-visibility {
+  font-size: 0.75rem;
+  font-weight: 600;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
 }
 
 .card-visibility.public {
@@ -868,22 +731,19 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #c9d1d9;
 }
 
 .card-stats span {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #c9d1d9;
-  font-size: 0.9rem;
 }
 
 .card-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 8px;
 }
 
 /* Empty State */
@@ -893,13 +753,13 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
 }
 
 .empty-state h3 {
   color: #ffffff;
-  margin: 16px 0 8px;
+  margin: 24px 0 8px;
   font-size: 1.5rem;
 }
 
@@ -908,23 +768,20 @@ onMounted(() => {
   margin: 0 0 24px;
 }
 
-.grid-empty {
-  min-height: 400px;
-}
-
-/* Dialog */
+/* Training Dialog */
 .training-dialog {
-  width: 100vw;
-  height: 100vh;
+  display: flex;
   background: #0f1419;
   border-radius: 0;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 .dialog-content {
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
 }
 
@@ -932,7 +789,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
+  padding: 20px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -956,11 +813,10 @@ onMounted(() => {
 }
 
 .form-panel {
-  width: 500px;
-  background: #1a1f2e;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 32px;
+  width: 50%;
+  padding: 24px;
   overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-section {
@@ -969,24 +825,10 @@ onMounted(() => {
 
 .section-title {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #8b949e;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
   font-size: 0.9rem;
-  font-weight: 500;
-  color: #c9d1d9;
-  margin-bottom: 8px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 16px;
 }
 
 .form-row {
@@ -995,56 +837,43 @@ onMounted(() => {
   gap: 16px;
 }
 
-.color-picker {
-  display: flex;
-  gap: 12px;
+.form-group {
+  margin-bottom: 16px;
 }
 
-.color-option {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.color-option.active {
-  border-color: #ffffff;
-  transform: scale(1.1);
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: #8b949e;
+  margin-bottom: 8px;
 }
 
 .color-picker-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .color-preview-row {
   display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 10px;
 }
 
 .color-preview {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .color-picker-dropdown {
-  border-radius: 8px;
-  overflow: hidden;
+  margin-top: 12px;
 }
 
 .add-exercise-btn {
-  width: 100%;
-  border-style: dashed;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .selected-exercises {
@@ -1054,13 +883,8 @@ onMounted(() => {
 }
 
 .no-exercises {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  text-align: center;
+  padding: 40px 20px;
   color: #8b949e;
 }
 
@@ -1077,23 +901,24 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
+  padding: 16px;
 }
 
 .exercise-number {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 143, 56, 0.2);
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  background: rgba(255, 143, 56, 0.2);
+  color: #ff8f38;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #ff8f38;
-  font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
 .exercise-details {
@@ -1101,7 +926,7 @@ onMounted(() => {
 }
 
 .exercise-name {
-  font-weight: 600;
+  font-weight: 500;
   color: #ffffff;
   margin-bottom: 8px;
 }
@@ -1111,29 +936,42 @@ onMounted(() => {
   gap: 12px;
 }
 
+/* Preview Panel */
 .preview-panel {
-  flex: 1;
-  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
-  padding: 32px;
-  overflow-y: auto;
+  width: 50%;
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .preview-header h4 {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #8b949e;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 24px 0;
+  margin: 0;
+}
+
+.preview-content {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
 }
 
 .training-preview-card {
+  width: 100%;
   max-width: 400px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
-  margin: 0 auto;
 }
 
 .preview-color-bar {
@@ -1145,22 +983,24 @@ onMounted(() => {
 }
 
 .preview-body h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #ffffff;
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
 }
 
 .preview-body p {
   color: #8b949e;
-  font-size: 0.95rem;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
 }
 
 .preview-meta {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .preview-meta span {
@@ -1175,41 +1015,38 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .preview-exercise-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .ex-index {
   width: 24px;
   height: 24px;
-  background: rgba(255, 143, 56, 0.2);
   border-radius: 50%;
+  background: rgba(255, 143, 56, 0.2);
+  color: #ff8f38;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #ff8f38;
 }
 
 .ex-name {
   flex: 1;
   color: #ffffff;
-  font-size: 0.9rem;
 }
 
 .ex-sets {
   color: #8b949e;
-  font-size: 0.85rem;
 }
 
 /* Exercise Selector */
@@ -1217,7 +1054,6 @@ onMounted(() => {
   width: 400px;
   height: 100vh;
   background: #1a1f2e;
-  border-radius: 0;
   display: flex;
   flex-direction: column;
 }
@@ -1226,7 +1062,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1238,42 +1074,35 @@ onMounted(() => {
 }
 
 .selector-search {
-  padding: 16px 24px;
-}
-
-.search-field :deep(.q-field__control) {
-  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .selector-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0 24px 24px;
+  padding: 8px;
 }
 
 .selector-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 12px;
+  padding: 12px;
   border-radius: 12px;
-  margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .selector-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 143, 56, 0.3);
 }
 
 .selector-item-icon {
   width: 40px;
   height: 40px;
-  background: rgba(255, 143, 56, 0.1);
   border-radius: 10px;
+  background: rgba(255, 143, 56, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1284,71 +1113,34 @@ onMounted(() => {
 }
 
 .selector-item-name {
-  font-weight: 600;
+  font-weight: 500;
   color: #ffffff;
   margin-bottom: 2px;
 }
 
 .selector-item-category {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #8b949e;
 }
 
-/* Delete Dialog */
-.dialog-card {
-  background: #1a1f2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  min-width: 400px;
-}
+@media (max-width: 1024px) {
+  .form-panel {
+    width: 100%;
+    border-right: none;
+  }
 
-.delete-dialog {
-  text-align: center;
-}
+  .preview-panel {
+    display: none;
+  }
 
-.dialog-header {
-  padding: 32px;
-}
-
-.delete-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(248, 81, 73, 0.15);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-}
-
-.dialog-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.dialog-subtitle {
-  color: #8b949e;
-  margin: 0;
-}
-
-.dialog-subtitle strong {
-  color: #ffffff;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .stats-row {
+  .dialog-body {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
   .training-content {
@@ -1358,18 +1150,6 @@ onMounted(() => {
 
   .training-stats {
     width: 100%;
-  }
-
-  .form-panel {
-    width: 100%;
-  }
-
-  .preview-panel {
-    display: none;
-  }
-
-  .selector-dialog {
-    width: 100vw;
   }
 }
 </style>

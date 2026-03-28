@@ -88,11 +88,13 @@
 
       <!-- Benchmarks Grid -->
       <div class="benchmarks-grid">
-        <div v-if="loading" v-for="i in 6" :key="i" class="benchmark-card skeleton">
-          <q-skeleton type="text" class="bg-grey-8" width="60%" />
-          <q-skeleton type="text" class="bg-grey-8" width="80%" />
-          <q-skeleton type="text" class="bg-grey-8" width="40%" />
-        </div>
+        <template v-if="loading">
+          <div v-for="i in 6" :key="i" class="benchmark-card skeleton">
+            <q-skeleton type="text" class="bg-grey-8" width="60%" />
+            <q-skeleton type="text" class="bg-grey-8" width="80%" />
+            <q-skeleton type="text" class="bg-grey-8" width="40%" />
+          </div>
+        </template>
 
         <div v-else-if="filteredBenchmarks.length === 0" class="empty-state">
           <q-icon name="timer" size="64px" color="grey-6" />
@@ -343,7 +345,7 @@ const fetchBenchmarks = async () => {
       beginnerTime: b.beginnerTime || b.beginner_time,
       isBenchmark: b.isBenchmark || b.is_benchmark
     }))
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar benchmarks' })
   } finally {
     loading.value = false
@@ -387,7 +389,7 @@ const saveBenchmark = async () => {
       $q.notify({ type: 'positive', message: 'Benchmark creado' })
     }
     benchmarkDialog.value = false
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al guardar' })
   } finally {
     saving.value = false

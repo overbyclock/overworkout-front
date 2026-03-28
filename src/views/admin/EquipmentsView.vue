@@ -2,53 +2,33 @@
   <q-page class="page-container">
     <div class="page-content">
       <!-- Header -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Equipamiento</h1>
-          <p class="page-subtitle">Gestiona el equipamiento para tus ejercicios</p>
-        </div>
-        <q-btn color="primary" icon="add" label="Nuevo Equipo" class="action-btn" no-caps @click="openCreateDialog" />
-      </div>
+      <PageHeader
+        title="Equipamiento"
+        subtitle="Gestiona el equipamiento para tus ejercicios"
+        action-label="Nuevo Equipo"
+        @action="openCreateDialog"
+      />
 
       <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(255, 107, 107, 0.2)">
-            <q-icon name="sports_gymnastics" color="red" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ equipments.length }}</div>
-            <div class="stat-mini-label">Total Equipos</div>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(255, 143, 56, 0.2)">
-            <q-icon name="fitness_center" color="primary" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ usedInExercisesCount }}</div>
-            <div class="stat-mini-label">En Uso</div>
-          </div>
-        </div>
-      </div>
+      <StatsCards :stats="stats" />
 
-      <!-- Modern Filters -->
+      <!-- Filters -->
       <div class="filters-container">
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Buscar equipamiento..." 
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar equipamiento..."
               class="search-input"
             >
-            <q-btn 
-              v-if="searchQuery" 
-              flat 
-              round 
-              dense 
-              icon="close" 
+            <q-btn
+              v-if="searchQuery"
+              flat
+              round
+              dense
+              icon="close"
               size="sm"
               class="clear-search"
               @click="searchQuery = ''"
@@ -57,24 +37,12 @@
         </div>
 
         <div class="filter-groups-modern">
-          <!-- Category Filter -->
-          <div class="filter-category">
-            <span class="filter-category-label">
-              <q-icon name="category" size="16px" />
-              Categoría
-            </span>
-            <div class="filter-pills">
-              <button 
-                v-for="category in categoryFilterOptions" 
-                :key="category.value"
-                class="filter-pill"
-                :class="{ 'active': categoryFilter === category.value, [category.color]: true }"
-                @click="categoryFilter = category.value"
-              >
-                {{ category.label }}
-              </button>
-            </div>
-          </div>
+          <FilterPills
+            v-model="categoryFilter"
+            label="Categoría"
+            icon="category"
+            :options="categoryFilterOptions"
+          />
         </div>
 
         <!-- Active Filters -->
@@ -117,11 +85,13 @@
 
       <!-- Equipments Grid -->
       <div class="equipments-grid">
-        <div v-if="loading" v-for="i in 8" :key="i" class="equipment-card skeleton">
-          <q-skeleton type="text" class="bg-grey-8" width="80%" />
-          <q-skeleton type="text" class="bg-grey-8" width="100%" />
-          <q-skeleton type="text" class="bg-grey-8" width="60%" />
-        </div>
+        <template v-if="loading">
+          <div v-for="i in 8" :key="`skeleton-${i}`" class="equipment-card skeleton">
+            <q-skeleton type="text" class="bg-grey-8" width="80%" />
+            <q-skeleton type="text" class="bg-grey-8" width="100%" />
+            <q-skeleton type="text" class="bg-grey-8" width="60%" />
+          </div>
+        </template>
 
         <div v-else-if="filteredEquipments.length === 0" class="empty-state">
           <q-icon name="sports_gymnastics" size="64px" color="grey-6" />
@@ -130,13 +100,17 @@
           <q-btn color="primary" icon="add" label="Añadir Equipo" no-caps @click="openCreateDialog" />
         </div>
 
-        <div v-for="equipment in paginatedEquipments" :key="equipment.id" class="equipment-card">
+        <div
+          v-for="equipment in paginatedEquipments"
+          :key="equipment.id"
+          class="equipment-card"
+        >
           <!-- Header -->
           <div class="equipment-header" :class="equipment.category">
             <h3 class="equipment-name">{{ equipment.name }}</h3>
             <p v-if="equipment.description" class="equipment-description">{{ equipment.description }}</p>
           </div>
-          
+
           <!-- Actions -->
           <div class="equipment-actions">
             <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps @click="searchEquipment(equipment, 'youtube')" />
@@ -144,7 +118,7 @@
             <q-btn flat dense icon="edit" label="Editar" color="primary" size="sm" no-caps @click="editEquipment(equipment)" />
             <q-btn flat dense icon="delete" label="Eliminar" color="negative" size="sm" no-caps @click="confirmDelete(equipment)" />
           </div>
-          
+
           <!-- Category & Weight -->
           <div class="equipment-meta">
             <div v-if="equipment.category && equipment.category !== 'general'" class="category-tag" :class="equipment.category">
@@ -157,7 +131,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Pagination -->
         <div v-if="totalPages > 1" class="pagination-wrapper">
           <div class="pagination-row">
@@ -193,83 +167,87 @@
     </div>
 
     <!-- Create/Edit Dialog -->
-    <q-dialog v-model="equipmentDialog" persistent>
-      <q-card class="dialog-card">
-        <q-card-section class="dialog-header">
-          <h3 class="dialog-title">{{ isEditing ? 'Editar Equipo' : 'Nuevo Equipo' }}</h3>
-          <q-btn flat round icon="close" color="grey-6" v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="dialog-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nombre *</label>
-              <q-input v-model="equipmentForm.name" outlined dark dense placeholder="Ej: Mancuernas"
-                :rules="[val => !!val || 'El nombre es obligatorio']" />
-            </div>
-            <div class="form-group">
-              <label>Categoría</label>
-              <q-select v-model="equipmentForm.category" :options="categoryOptions" outlined dark dense emit-value
-                map-options option-value="value" option-label="label" placeholder="Selecciona categoría" />
-            </div>
-            <div class="form-group full-width">
-              <label>Descripción</label>
-              <q-input v-model="equipmentForm.description" outlined dark dense type="textarea" rows="3"
-                placeholder="Describe el equipamiento..." />
-            </div>
-            <div class="form-group">
-              <label>Peso (kg) - Opcional</label>
-              <q-input v-model.number="equipmentForm.weight" outlined dark dense type="number" min="0" step="0.5"
-                placeholder="0.0" />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-section class="dialog-footer">
-          <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn color="primary" :label="isEditing ? 'Guardar Cambios' : 'Crear Equipo'" :loading="saving"
-            @click="saveEquipment" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <FormDialog
+      v-model="showFormDialog"
+      :title="isEditing ? 'Editar Equipo' : 'Nuevo Equipo'"
+      :confirm-label="isEditing ? 'Guardar Cambios' : 'Crear Equipo'"
+      :loading="saving"
+      @confirm="saveEquipment"
+    >
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <q-input v-model="equipmentForm.name" outlined dark dense placeholder="Ej: Mancuernas"
+            :rules="[val => !!val || 'El nombre es obligatorio']" />
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <q-select v-model="equipmentForm.category" :options="categoryOptions" outlined dark dense emit-value
+            map-options option-value="value" option-label="label" placeholder="Selecciona categoría" />
+        </div>
+        <div class="form-group full-width">
+          <label>Descripción</label>
+          <q-input v-model="equipmentForm.description" outlined dark dense type="textarea" rows="3"
+            placeholder="Describe el equipamiento..." />
+        </div>
+        <div class="form-group">
+          <label>Peso (kg) - Opcional</label>
+          <q-input v-model.number="equipmentForm.weight" outlined dark dense type="number" min="0" step="0.5"
+            placeholder="0.0" />
+        </div>
+      </div>
+    </FormDialog>
 
     <!-- Delete Dialog -->
-    <q-dialog v-model="deleteDialog" persistent>
-      <q-card class="dialog-card delete-dialog">
-        <q-card-section class="dialog-header">
-          <div class="delete-icon">
-            <q-icon name="warning" color="negative" size="32px" />
-          </div>
-          <h3 class="dialog-title">Eliminar Equipo</h3>
-          <p class="dialog-subtitle">¿Estás seguro de que quieres eliminar <strong>{{ equipmentToDelete?.name }}</strong>?</p>
-        </q-card-section>
-        <q-card-section class="dialog-footer">
-          <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn label="Eliminar" color="negative" :loading="deleting" @click="deleteEquipment" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <FormDialog
+      v-model="showDeleteDialog"
+      title="Eliminar Equipo"
+      :subtitle="`¿Estás seguro de que quieres eliminar <strong>${equipmentToDelete?.name}</strong>?`"
+      is-delete
+      confirm-label="Eliminar"
+      confirm-color="negative"
+      :loading="deleting"
+      @confirm="deleteEquipment"
+    />
   </q-page>
 </template>
 
 <script setup>
-import { equipmentService, exerciseService } from '@/services'
-import { computed, onMounted, ref, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useEquipmentsStore } from '@/stores/equipments'
+import PageHeader from '@/components/common/PageHeader.vue'
+import StatsCards from '@/components/common/StatsCards.vue'
+import FilterPills from '@/components/common/FilterPills.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
 
 const $q = useQuasar()
+const equipmentsStore = useEquipmentsStore()
 
+// State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
-const equipments = ref([])
-const exercises = ref([])
 const searchQuery = ref('')
-
-// Paginación
+const categoryFilter = ref('all')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
+// Dialogs
+const showFormDialog = ref(false)
+const showDeleteDialog = ref(false)
+const isEditing = ref(false)
+const equipmentToDelete = ref(null)
+
+// Form
+const equipmentForm = ref({
+  name: '',
+  description: '',
+  category: '',
+  weight: null
+})
+
+// Options
 const itemsPerPageOptions = [
   { label: '10', value: 10 },
   { label: '20', value: 20 },
@@ -277,9 +255,6 @@ const itemsPerPageOptions = [
   { label: '40', value: 40 },
   { label: '50', value: 50 }
 ]
-
-// Filtros
-const categoryFilter = ref('all')
 
 const categoryFilterOptions = [
   { label: 'Todas', value: 'all', color: 'default' },
@@ -290,18 +265,6 @@ const categoryFilterOptions = [
   { label: 'Máquinas', value: 'maquinas', color: 'green' },
 ]
 
-const equipmentDialog = ref(false)
-const deleteDialog = ref(false)
-const isEditing = ref(false)
-const equipmentToDelete = ref(null)
-
-const equipmentForm = ref({
-  name: '',
-  description: '',
-  category: '',
-  weight: null
-})
-
 const categoryOptions = [
   { label: 'Barras', value: 'barras' },
   { label: 'Pesos Libres', value: 'pesos_libres' },
@@ -310,20 +273,15 @@ const categoryOptions = [
   { label: 'Máquinas', value: 'maquinas' },
 ]
 
-const categoryColors = {
-  'weights': { bg: 'rgba(255, 143, 56, 0.2)', color: '#ff8f38' },
-  'cardio': { bg: 'rgba(255, 107, 107, 0.2)', color: '#ff6b6b' },
-  'calisthenics': { bg: 'rgba(56, 178, 172, 0.2)', color: '#38b2ac' },
-  'yoga': { bg: 'rgba(147, 112, 219, 0.2)', color: '#9370db' },
-  'accessories': { bg: 'rgba(255, 193, 7, 0.2)', color: '#ffc107' },
-  'machines': { bg: 'rgba(63, 185, 80, 0.2)', color: '#3fb950' },
-  'general': { bg: 'rgba(139, 148, 158, 0.2)', color: '#8b949e' },
-}
+// Computed
+const stats = computed(() => [
+  { value: equipmentsStore.totalEquipments, label: 'Total Equipos', icon: 'sports_gymnastics', bgColor: 'rgba(255, 107, 107, 0.2)', iconColor: 'red' },
+  { value: equipmentsStore.usedInExercisesCount, label: 'En Uso', icon: 'fitness_center', bgColor: 'rgba(255, 143, 56, 0.2)', iconColor: 'primary' },
+])
 
 const filteredEquipments = computed(() => {
-  let result = equipments.value
+  let result = equipmentsStore.equipments
 
-  // Filtro por búsqueda
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(eq =>
@@ -332,7 +290,6 @@ const filteredEquipments = computed(() => {
     )
   }
 
-  // Filtro por categoría
   if (categoryFilter.value !== 'all') {
     result = result.filter(eq => eq.category === categoryFilter.value)
   }
@@ -340,60 +297,24 @@ const filteredEquipments = computed(() => {
   return result
 })
 
-// Equipos paginados
 const paginatedEquipments = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
   return filteredEquipments.value.slice(start, end)
 })
 
-// Total de páginas
-const totalPages = computed(() => {
-  return Math.ceil(filteredEquipments.value.length / itemsPerPage.value)
-})
+const totalPages = computed(() => Math.ceil(filteredEquipments.value.length / itemsPerPage.value))
 
-const usedInExercisesCount = computed(() => {
-  // Obtener IDs únicos de equipos que están en uso
-  const usedEquipmentIds = new Set()
-  exercises.value.forEach(ex => {
-    if (ex.equipment?.id) {
-      usedEquipmentIds.add(ex.equipment.id)
-    }
-  })
-  return usedEquipmentIds.size
-})
-
+// Methods
 const fetchEquipments = async () => {
   loading.value = true
   try {
-    const [equipResponse, exerciseResponse] = await Promise.all([
-      equipmentService.getAll(),
-      exerciseService.getAll()
-    ])
-    equipments.value = Array.isArray(equipResponse) ? equipResponse : (equipResponse.member || equipResponse['hydra:member'] || [])
-    exercises.value = Array.isArray(exerciseResponse) ? exerciseResponse : (exerciseResponse.member || exerciseResponse['hydra:member'] || [])
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar datos',
-      position: 'top'
-    })
+    await equipmentsStore.fetchWithExercises()
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar datos', position: 'top' })
   } finally {
     loading.value = false
   }
-}
-
-const getIconBg = (category) => {
-  return categoryColors[category]?.bg || categoryColors.general.bg
-}
-
-const getIconColor = (category) => {
-  return categoryColors[category]?.color || categoryColors.general.color
-}
-
-const getCategoryBg = (category) => {
-  const color = categoryColors[category]?.bg || categoryColors.general.bg
-  return color.replace('0.2', '0.15')
 }
 
 const getCategoryLabel = (category) => {
@@ -424,76 +345,44 @@ const clearFilters = () => {
   currentPage.value = 1
 }
 
-const truncateText = (text, length) => {
-  if (!text) return ''
-  return text.length > length ? text.substring(0, length) + '...' : text
-}
-
 const openCreateDialog = () => {
   isEditing.value = false
-  equipmentForm.value = {
-    name: '',
-    description: '',
-    category: '',
-    weight: null
-  }
-  equipmentDialog.value = true
+  equipmentForm.value = { name: '', description: '', category: '', weight: null }
+  showFormDialog.value = true
 }
 
 const searchEquipment = (equipment, platform) => {
   const query = encodeURIComponent(`${equipment.name} ejercicio tutorial`)
-  let url = ''
-  
-  if (platform === 'youtube') {
-    url = `https://www.youtube.com/results?search_query=${query}`
-  } else {
-    url = `https://www.google.com/search?q=${query}&tbm=vid`
-  }
-  
+  const url = platform === 'youtube'
+    ? `https://www.youtube.com/results?search_query=${query}`
+    : `https://www.google.com/search?q=${query}&tbm=vid`
   window.open(url, '_blank')
 }
 
 const editEquipment = (equipment) => {
   isEditing.value = true
   equipmentForm.value = { ...equipment }
-  equipmentDialog.value = true
+  showFormDialog.value = true
 }
 
 const saveEquipment = async () => {
   if (!equipmentForm.value.name) {
-    $q.notify({
-      type: 'warning',
-      message: 'El nombre es obligatorio',
-      position: 'top'
-    })
+    $q.notify({ type: 'warning', message: 'El nombre es obligatorio', position: 'top' })
     return
   }
 
   saving.value = true
   try {
     if (isEditing.value) {
-      await equipmentService.update(equipmentForm.value.id, equipmentForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Equipo actualizado',
-        position: 'top'
-      })
+      await equipmentsStore.updateEquipment(equipmentForm.value.id, equipmentForm.value)
+      $q.notify({ type: 'positive', message: 'Equipo actualizado', position: 'top' })
     } else {
-      await equipmentService.create(equipmentForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Equipo creado',
-        position: 'top'
-      })
+      await equipmentsStore.createEquipment(equipmentForm.value)
+      $q.notify({ type: 'positive', message: 'Equipo creado', position: 'top' })
     }
-    equipmentDialog.value = false
-    fetchEquipments()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: isEditing.value ? 'Error al actualizar' : 'Error al crear',
-      position: 'top'
-    })
+    showFormDialog.value = false
+  } catch {
+    // Error manejado por el store
   } finally {
     saving.value = false
   }
@@ -501,26 +390,17 @@ const saveEquipment = async () => {
 
 const confirmDelete = (equipment) => {
   equipmentToDelete.value = equipment
-  deleteDialog.value = true
+  showDeleteDialog.value = true
 }
 
 const deleteEquipment = async () => {
   deleting.value = true
   try {
-    await equipmentService.delete(equipmentToDelete.value.id)
-    $q.notify({
-      type: 'positive',
-      message: 'Equipo eliminado',
-      position: 'top'
-    })
-    deleteDialog.value = false
-    fetchEquipments()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al eliminar',
-      position: 'top'
-    })
+    await equipmentsStore.deleteEquipment(equipmentToDelete.value.id)
+    $q.notify({ type: 'positive', message: 'Equipo eliminado', position: 'top' })
+    showDeleteDialog.value = false
+  } catch {
+    // Error manejado por el store
   } finally {
     deleting.value = false
   }
@@ -548,71 +428,7 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-  font-size: 0.95rem;
-  color: #8b949e;
-  margin: 0;
-}
-
-.action-btn {
-  background: linear-gradient(135deg, #ff8f38 0%, #e67e2e 100%);
-  border-radius: 12px;
-  font-weight: 600;
-}
-
-/* Stats */
-.stats-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-mini {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 20px 24px;
-  flex: 1;
-}
-
-.stat-mini-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-mini-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.stat-mini-label {
-  font-size: 0.85rem;
-  color: #8b949e;
-}
-
-/* Modern Filters */
+/* Filters */
 .filters-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -694,68 +510,6 @@ onMounted(() => {
   flex-direction: column;
   gap: 20px;
 }
-
-.filter-category {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.filter-category-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #8b949e;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-}
-
-.filter-category-label .q-icon {
-  opacity: 0.7;
-}
-
-.filter-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.filter-pill {
-  padding: 12px 24px;
-  border-radius: 50px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #c9d1d9;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-}
-
-.filter-pill:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.filter-pill.active {
-  background: linear-gradient(135deg, #ff8f38 0%, #ff6b35 100%);
-  color: #000000;
-  border-color: transparent;
-  font-weight: 600;
-  box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5);
-}
-
-/* Category colors */
-.filter-pill.blue.active { background: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%); box-shadow: 0 6px 20px rgba(88, 166, 255, 0.5); }
-.filter-pill.orange.active { background: linear-gradient(135deg, #ff8f38 0%, #ff6b35 100%); box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5); }
-.filter-pill.brown.active { background: linear-gradient(135deg, #a1886f 0%, #8d6e63 100%); box-shadow: 0 6px 20px rgba(161, 136, 111, 0.5); }
-.filter-pill.yellow.active { background: linear-gradient(135deg, #ffd700 0%, #ffc107 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
-.filter-pill.green.active { background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%); box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5); }
 
 /* Active Filters */
 .active-filters {
@@ -975,28 +729,6 @@ onMounted(() => {
   margin: 0 0 24px;
 }
 
-/* Empty State */
-.empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
-
-.empty-state h3 {
-  color: #ffffff;
-  margin: 24px 0 8px;
-  font-size: 1.5rem;
-}
-
-.empty-state p {
-  color: #8b949e;
-  margin: 0 0 24px;
-}
-
 /* Pagination */
 .pagination-wrapper {
   grid-column: 1 / -1;
@@ -1015,15 +747,6 @@ onMounted(() => {
   justify-content: space-between;
   width: 100%;
   gap: 20px;
-}
-
-.pagination-row .per-page-wrapper {
-  flex-shrink: 0;
-}
-
-.pagination-row .pagination-info {
-  flex-shrink: 0;
-  text-align: right;
 }
 
 .per-page-wrapper {
@@ -1073,34 +796,7 @@ onMounted(() => {
   color: #8b949e;
 }
 
-/* Dialog */
-.dialog-card {
-  background: #1a1f2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  min-width: 500px;
-  max-width: 90vw;
-}
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.dialog-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-}
-
-.dialog-body {
-  padding: 24px;
-}
-
+/* Form Grid */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1123,56 +819,8 @@ onMounted(() => {
   color: #c9d1d9;
 }
 
-.selected-icon {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Delete Dialog */
-.delete-dialog {
-  text-align: center;
-}
-
-.delete-dialog .dialog-header {
-  flex-direction: column;
-  gap: 16px;
-  text-align: center;
-}
-
-.delete-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(248, 81, 73, 0.15);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dialog-subtitle {
-  color: #8b949e;
-  margin: 0;
-}
-
-.dialog-subtitle strong {
-  color: #ffffff;
-}
-
 /* Responsive */
 @media (max-width: 900px) {
-  .stats-row {
-    flex-direction: column;
-  }
-
   .filters-container {
     padding: 20px 16px;
   }
@@ -1182,37 +830,14 @@ onMounted(() => {
     font-size: 1rem;
   }
 
-  .filter-pill {
-    padding: 10px 18px;
-    font-size: 0.9rem;
-  }
-
-  .filter-pills {
-    gap: 8px;
-  }
-
   .pagination-row {
     flex-direction: column;
     align-items: center;
     gap: 16px;
   }
 
-  .per-page-wrapper {
-    order: 1;
-  }
-
-  .pagination-info {
-    order: 2;
-    text-align: center;
-  }
-
   .form-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dialog-card {
-    min-width: auto;
-    width: 90vw;
   }
 }
 </style>

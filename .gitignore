@@ -1,4 +1,33 @@
-# Logs
+# ============================================
+# SECURITY - NEVER COMMIT THESE
+# ============================================
+
+# Environment variables (API keys, passwords, secrets)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# ============================================
+# DEPENDENCIES
+# ============================================
+node_modules
+.pnp
+.pnp.js
+
+# ============================================
+# BUILD OUTPUTS
+# ============================================
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
+# ============================================
+# LOGS
+# ============================================
 logs
 *.log
 npm-debug.log*
@@ -7,19 +36,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
-*.local
-
+# ============================================
+# TESTING
+# ============================================
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 /cypress/videos/
 /cypress/screenshots/
 
-# Editor directories and files
+# ============================================
+# IDE / EDITORS
+# ============================================
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 *.suo
 *.ntvs*
@@ -27,4 +59,16 @@ coverage
 *.sln
 *.sw?
 
-*.tsbuildinfo
+# ============================================
+# OS FILES
+# ============================================
+.DS_Store
+Thumbs.db
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+.cache
+.temp

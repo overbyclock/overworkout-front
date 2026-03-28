@@ -2,91 +2,30 @@
   <q-page class="page-container">
     <div class="page-content">
       <!-- Header -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Ejercicios</h1>
-          <p class="page-subtitle">Gestiona los ejercicios disponibles para los entrenamientos</p>
-        </div>
-        <q-btn color="primary" icon="add" label="Nuevo Ejercicio" class="action-btn" no-caps @click="openCreateDialog" />
-      </div>
+      <PageHeader
+        title="Ejercicios"
+        subtitle="Gestiona los ejercicios disponibles para los entrenamientos"
+        action-label="Nuevo Ejercicio"
+        @action="openCreateDialog"
+      />
 
       <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(255, 143, 56, 0.2)">
-            <q-icon name="fitness_center" color="primary" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ exercises.length }}</div>
-            <div class="stat-mini-label">Total Ejercicios</div>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(56, 178, 172, 0.2)">
-            <q-icon name="fitness_center" color="teal" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ muscleGroupsCount }}</div>
-            <div class="stat-mini-label">Grupos Musculares</div>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-icon" style="background: rgba(255, 107, 107, 0.2)">
-            <q-icon name="local_fire_department" color="red" size="20px" />
-          </div>
-          <div class="stat-mini-content">
-            <div class="stat-mini-value">{{ expertCount }}</div>
-            <div class="stat-mini-label">Expertos</div>
-          </div>
-        </div>
-      </div>
+      <StatsCards :stats="stats" />
 
-      <!-- Modern Filters -->
+      <!-- Filters -->
       <div class="filters-container">
-        <!-- Search Bar -->
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Buscar ejercicios..." 
-              class="search-input"
-            >
-            <q-btn 
-              v-if="searchQuery" 
-              flat 
-              round 
-              dense 
-              icon="close" 
-              size="sm"
-              class="clear-search"
-              @click="searchQuery = ''"
-            />
+            <input v-model="searchQuery" type="text" placeholder="Buscar ejercicios..." class="search-input">
+            <q-btn v-if="searchQuery" flat round dense icon="close" size="sm" class="clear-search"
+              @click="searchQuery = ''" />
           </div>
         </div>
 
-        <!-- Filter Groups -->
         <div class="filter-groups-modern">
-          <!-- Muscle Filter -->
-          <div class="filter-category">
-            <span class="filter-category-label">
-              <q-icon name="fitness_center" size="16px" />
-              Grupo muscular
-            </span>
-            <div class="filter-pills">
-              <button 
-                v-for="muscle in muscleOptions" 
-                :key="muscle.value"
-                class="filter-pill"
-                :class="{ 'active': muscleFilter === muscle.value, [muscle.color]: true }"
-                @click="muscleFilter = muscle.value"
-              >
-                {{ muscle.label }}
-              </button>
-            </div>
-          </div>
-
+          <FilterPills v-model="muscleFilter" label="Grupo muscular" icon="fitness_center" :options="muscleOptions" />
+          
           <!-- Level Filter -->
           <div class="filter-category">
             <span class="filter-category-label">
@@ -94,45 +33,16 @@
               Nivel
             </span>
             <div class="filter-pills">
-              <button 
-                v-for="level in levelOptions" 
-                :key="level.value"
-                class="filter-pill level"
-                :class="{ 
-                  'active': levelFilter === level.value,
-                  'beginner': level.value === 'beginner',
-                  'intermediate': level.value === 'intermediate',
-                  'expert': level.value === 'expert'
-                }"
-                @click="levelFilter = level.value"
-              >
+              <button v-for="level in levelOptions" :key="level.value" class="filter-pill level"
+                :class="{ 'active': levelFilter === level.value, [level.value]: levelFilter === level.value }"
+                @click="levelFilter = level.value">
                 <q-icon v-if="level.value !== 'all'" name="local_fire_department" size="12px" />
                 {{ level.label }}
               </button>
             </div>
           </div>
-          
-          <!-- Discipline Filter -->
-          <div class="filter-category">
-            <span class="filter-category-label">
-              <q-icon name="sports" size="16px" />
-              Disciplina
-            </span>
-            <div class="filter-pills">
-              <button 
-                v-for="discipline in disciplineOptions" 
-                :key="discipline.value"
-                class="filter-pill discipline"
-                :class="{ 
-                  'active': disciplineFilter === discipline.value,
-                  [discipline.color]: true
-                }"
-                @click="disciplineFilter = discipline.value"
-              >
-                {{ discipline.label }}
-              </button>
-            </div>
-          </div>
+
+          <FilterPills v-model="disciplineFilter" label="Disciplina" icon="sports" :options="disciplineOptions" />
         </div>
 
         <!-- Sort Options -->
@@ -142,98 +52,54 @@
             Ordenar por:
           </span>
           <div class="sort-pills">
-            <button 
-              v-for="option in sortOptions" 
-              :key="option.value"
-              class="sort-pill"
-              :class="{ 'active': sortBy === option.value }"
-              @click="sortBy = option.value"
-            >
+            <button v-for="option in sortOptions" :key="option.value" class="sort-pill"
+              :class="{ 'active': sortBy === option.value }" @click="sortBy = option.value">
               {{ option.label }}
             </button>
           </div>
         </div>
 
         <!-- Active Filters -->
-        <div v-if="hasActiveFilters || sortBy !== 'difficulty_asc'" class="active-filters">
+        <div v-if="hasActiveFilters" class="active-filters">
           <span class="active-filters-label">Filtros activos:</span>
           <div class="active-filter-chips">
-            <q-chip
-              v-if="searchQuery"
-              removable
-              dense
-              color="primary"
-              text-color="dark"
-              @remove="searchQuery = ''"
-            >
-              <q-icon name="search" size="14px" left />
-              {{ searchQuery }}
+            <q-chip v-if="searchQuery" removable dense color="primary" text-color="dark" @remove="searchQuery = ''">
+              <q-icon name="search" size="14px" left /> {{ searchQuery }}
             </q-chip>
-            <q-chip
-              v-if="muscleFilter !== 'all'"
-              removable
-              dense
-              :color="getMuscleColor(muscleFilter)"
-              text-color="white"
-              @remove="muscleFilter = 'all'"
-            >
+            <q-chip v-if="muscleFilter !== 'all'" removable dense :color="getMuscleColor(muscleFilter)"
+              text-color="white" @remove="muscleFilter = 'all'">
               {{ getMuscleGroupLabel(muscleFilter) }}
             </q-chip>
-            <q-chip
-              v-if="levelFilter !== 'all'"
-              removable
-              dense
-              :color="getLevelColor(levelFilter)"
-              text-color="white"
-              @remove="levelFilter = 'all'"
-            >
+            <q-chip v-if="levelFilter !== 'all'" removable dense :color="getLevelColor(levelFilter)"
+              text-color="white" @remove="levelFilter = 'all'">
               {{ getLevelLabel(levelFilter) }}
             </q-chip>
-            <q-chip
-              v-if="disciplineFilter !== 'all'"
-              removable
-              dense
-              color="deep-orange"
-              text-color="white"
-              @remove="disciplineFilter = 'all'"
-            >
+            <q-chip v-if="disciplineFilter !== 'all'" removable dense color="deep-orange" text-color="white"
+              @remove="disciplineFilter = 'all'">
               {{ getDisciplineLabel(disciplineFilter) }}
             </q-chip>
-            <q-chip
-              v-if="sortBy !== 'difficulty_asc'"
-              removable
-              dense
-              color="blue"
-              text-color="white"
-              @remove="sortBy = 'difficulty_asc'"
-            >
-              <q-icon name="sort" size="14px" left />
-              {{ getSortLabel(sortBy) }}
+            <q-chip v-if="sortBy !== 'difficulty_asc'" removable dense color="blue" text-color="white"
+              @remove="sortBy = 'difficulty_asc'">
+              <q-icon name="sort" size="14px" left /> {{ getSortLabel(sortBy) }}
             </q-chip>
-            <q-btn
-              flat
-              dense
-              no-caps
-              color="grey-6"
-              label="Limpiar todo"
-              size="sm"
-              @click="clearAllFilters"
-            />
+            <q-btn flat dense no-caps color="grey-6" label="Limpiar todo" size="sm" @click="clearAllFilters" />
           </div>
         </div>
       </div>
 
       <!-- Exercises Grid -->
       <div class="exercises-grid">
-        <div v-if="loading" v-for="i in 8" :key="i" class="exercise-card skeleton">
-          <q-skeleton type="text" class="bg-grey-8" width="80%" />
-          <q-skeleton type="text" class="bg-grey-8" width="40%" />
-          <div style="display: flex; gap: 8px;">
-            <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
-            <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
+        <template v-if="loading">
+          <div v-for="i in 8" :key="`skeleton-${i}`" class="exercise-card skeleton">
+            <q-skeleton type="text" class="bg-grey-8" width="80%" />
+            <q-skeleton type="text" class="bg-grey-8" width="40%" />
+            <div style="display: flex; gap: 8px;">
+              <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
+              <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
+            </div>
+            <q-skeleton type="text" class="bg-grey-8" width="50%" />
           </div>
-          <q-skeleton type="text" class="bg-grey-8" width="50%" />
-        </div>
+        </template>
 
         <div v-else-if="filteredExercises.length === 0" class="empty-state">
           <q-icon name="fitness_center" size="64px" color="grey-6" />
@@ -243,31 +109,31 @@
         </div>
 
         <div v-for="exercise in paginatedExercises" :key="exercise.id" class="exercise-card">
-          <!-- Header con nombre -->
           <div class="exercise-header" :class="exercise.level">
             <h3 class="exercise-name">{{ normalizeName(exercise.name) }}</h3>
             <p v-if="exercise.description" class="exercise-description">{{ exercise.description }}</p>
           </div>
-          
-          <!-- Acciones -->
+
           <div class="exercise-actions">
-            <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps @click="searchExercise(exercise, 'youtube')" />
-            <q-btn flat dense icon="search" label="Google" color="grey-5" size="sm" no-caps @click="searchExercise(exercise, 'google')" />
-            <q-btn flat dense icon="edit" label="Editar" color="primary" size="sm" no-caps @click="editExercise(exercise)" />
-            <q-btn flat dense icon="delete" label="Eliminar" color="negative" size="sm" no-caps @click="confirmDelete(exercise)" />
+            <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps
+              @click="searchExercise(exercise, 'youtube')" />
+            <q-btn flat dense icon="search" label="Google" color="grey-5" size="sm" no-caps
+              @click="searchExercise(exercise, 'google')" />
+            <q-btn flat dense icon="edit" label="Editar" color="primary" size="sm" no-caps
+              @click="editExercise(exercise)" />
+            <q-btn flat dense icon="delete" label="Eliminar" color="negative" size="sm" no-caps
+              @click="confirmDelete(exercise)" />
           </div>
-          
-          <!-- Dificultad con fuegos -->
+
           <div class="exercise-difficulty">
             <div class="fire-row">
-              <q-icon v-for="n in 3" :key="n" name="local_fire_department" 
-                :color="n <= (exercise.difficultyRating || 1) ? getFireColor(exercise.level, true) : 'grey-7'" 
+              <q-icon v-for="n in 3" :key="n" name="local_fire_department"
+                :color="n <= (exercise.difficultyRating || 1) ? getFireColor(exercise.level, true) : 'grey-7'"
                 size="20px" />
             </div>
             <span class="level-badge" :class="exercise.level">{{ getLevelLabel(exercise.level) }}</span>
           </div>
-          
-          <!-- Grupos musculares -->
+
           <div class="exercise-muscles">
             <div class="muscle-tag primary">
               <span>{{ getMuscleGroupLabel(exercise.primaryMuscleGroup) }}</span>
@@ -276,61 +142,38 @@
               <span>{{ getMuscleGroupLabel(exercise.secondaryMuscleGroup) }}</span>
             </div>
           </div>
-          
-          <!-- Disciplinas -->
+
           <div v-if="exercise.disciplines?.length" class="exercise-disciplines">
-            <div 
-              v-for="discipline in exercise.disciplines" 
-              :key="discipline"
-              class="discipline-tag"
-              :class="discipline"
-            >
+            <div v-for="discipline in exercise.disciplines" :key="discipline" class="discipline-tag"
+              :class="discipline">
               {{ getDisciplineLabel(discipline) }}
             </div>
           </div>
-          
-          <!-- Equipamiento -->
+
           <div class="exercise-equipment">
             <q-icon :name="exercise.equipment ? 'sports_gymnastics' : 'block'" size="14px" color="grey-5" />
             <span>{{ exercise.equipment ? exercise.equipment.name : 'Sin equipamiento' }}</span>
           </div>
         </div>
-        
+
         <!-- Pagination -->
         <div v-if="filteredExercises.length > 10" class="pagination-wrapper">
           <div class="pagination-row">
-            <!-- Items per page (left) -->
             <div class="per-page-wrapper">
               <span class="per-page-label">Mostrar:</span>
               <div class="per-page-pills">
-                <button
-                  v-for="option in itemsPerPageOptions"
-                  :key="option.value"
-                  class="per-page-pill"
-                  :class="{ 'active': itemsPerPage === option.value }"
-                  @click="itemsPerPage = option.value"
-                >
+                <button v-for="option in itemsPerPageOptions" :key="option.value" class="per-page-pill"
+                  :class="{ 'active': itemsPerPage === option.value }" @click="itemsPerPage = option.value">
                   {{ option.label }}
                 </button>
               </div>
             </div>
-            
-            <!-- Page info (right) -->
             <span class="pagination-info">
               {{ filteredExercises.length }} ejercicios | Página {{ currentPage }} de {{ totalPages }}
             </span>
           </div>
-          
-          <!-- Pagination (bottom center) -->
-          <q-pagination
-            v-model="currentPage"
-            :max="totalPages"
-            :max-pages="6"
-            boundary-numbers
-            direction-links
-            color="grey-6"
-            active-color="primary"
-          />
+          <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
+            color="grey-6" active-color="primary" />
         </div>
       </div>
     </div>
@@ -359,14 +202,14 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Músculo Principal *</label>
-                  <q-select v-model="exerciseForm.primaryMuscleGroup" :options="muscleGroupOptions" outlined dark dense 
-                    emit-value map-options placeholder="Selecciona" 
+                  <q-select v-model="exerciseForm.primaryMuscleGroup" :options="muscleGroupOptions" outlined dark dense
+                    emit-value map-options placeholder="Selecciona"
                     :rules="[val => !!val || 'El grupo muscular es obligatorio']" />
                 </div>
                 <div class="form-group">
                   <label>Músculo Secundario</label>
-                  <q-select v-model="exerciseForm.secondaryMuscleGroup" :options="muscleGroupOptions" outlined dark dense 
-                    emit-value map-options placeholder="Opcional" clearable />
+                  <q-select v-model="exerciseForm.secondaryMuscleGroup" :options="muscleGroupOptions" outlined dark
+                    dense emit-value map-options placeholder="Opcional" clearable />
                 </div>
               </div>
             </div>
@@ -382,10 +225,11 @@
                 <div class="form-group">
                   <label>Intensidad</label>
                   <div class="fire-rating">
-                    <q-btn v-for="n in 3" :key="n" flat dense 
+                    <q-btn v-for="n in 3" :key="n" flat dense
                       :class="{ 'fire-active': n <= exerciseForm.difficultyRating }"
                       @click="exerciseForm.difficultyRating = n">
-                      <q-icon name="local_fire_department" :color="getFireColor(exerciseForm.level, n <= exerciseForm.difficultyRating)" size="24px" />
+                      <q-icon name="local_fire_department"
+                        :color="getFireColor(exerciseForm.level, n <= exerciseForm.difficultyRating)" size="24px" />
                     </q-btn>
                   </div>
                 </div>
@@ -405,11 +249,10 @@
               <div class="form-group">
                 <label>Enlace a video (YouTube)</label>
                 <div class="video-input-row">
-                  <q-input v-model="exerciseForm.media" outlined dark dense placeholder="https://youtube.com/watch?v=..." 
-                    class="video-input" />
-                  <q-btn v-if="exerciseForm.name" flat icon="search" color="primary" 
-                    @click="searchExercise({ name: exerciseForm.name }, 'youtube')"
-                    label="Buscar" no-caps />
+                  <q-input v-model="exerciseForm.media" outlined dark dense
+                    placeholder="https://youtube.com/watch?v=..." class="video-input" />
+                  <q-btn v-if="exerciseForm.name" flat icon="search" color="primary"
+                    @click="searchExercise({ name: exerciseForm.name }, 'youtube')" label="Buscar" no-caps />
                 </div>
                 <div class="video-help">
                   <q-icon name="info" size="16px" color="grey-6" />
@@ -449,8 +292,8 @@
                   </span>
                 </div>
                 <div class="preview-fires" v-if="exerciseForm.level">
-                  <q-icon v-for="n in exerciseForm.difficultyRating" :key="n"
-                    name="local_fire_department" :color="getFireColor(exerciseForm.level, true)" size="20px" />
+                  <q-icon v-for="n in exerciseForm.difficultyRating" :key="n" name="local_fire_department"
+                    :color="getFireColor(exerciseForm.level, true)" size="20px" />
                 </div>
               </div>
             </div>
@@ -460,53 +303,70 @@
     </q-dialog>
 
     <!-- Delete Dialog -->
-    <q-dialog v-model="deleteDialog" persistent>
-      <q-card class="dialog-card delete-dialog">
-        <q-card-section class="dialog-header">
-          <div class="delete-icon">
-            <q-icon name="warning" color="negative" size="32px" />
-          </div>
-          <h3 class="dialog-title">Eliminar Ejercicio</h3>
-          <p class="dialog-subtitle">¿Estás seguro de que quieres eliminar <strong>{{ exerciseToDelete?.name }}</strong>?</p>
-        </q-card-section>
-        <q-card-section class="dialog-footer">
-          <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn label="Eliminar" color="negative" :loading="deleting" @click="deleteExercise" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <FormDialog v-model="deleteDialog" title="Eliminar Ejercicio"
+      :subtitle="`¿Estás seguro de que quieres eliminar <strong>${exerciseToDelete?.name}</strong>?`" is-delete
+      confirm-label="Eliminar" confirm-color="negative" :loading="deleting" @confirm="deleteExercise" />
   </q-page>
 </template>
 
 <script setup>
-import { equipmentService, exerciseService } from '@/services'
-import { computed, onMounted, ref, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useExercisesStore } from '@/stores/exercises'
+import { useEquipmentsStore } from '@/stores/equipments'
+import { useHelpers } from '@/composables/useHelpers'
+import { 
+  getMuscleGroupLabel,
+  getLevelLabel,
+  getDisciplineLabel,
+  getLevelColor,
+} from '@/constants'
+import PageHeader from '@/components/common/PageHeader.vue'
+import StatsCards from '@/components/common/StatsCards.vue'
+import FilterPills from '@/components/common/FilterPills.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
 
 const $q = useQuasar()
+const exercisesStore = useExercisesStore()
+const equipmentsStore = useEquipmentsStore()
 
+// State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
-const exercises = ref([])
 const searchQuery = ref('')
 const muscleFilter = ref('all')
 const levelFilter = ref('all')
+const disciplineFilter = ref('all')
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const sortBy = ref('difficulty_asc')
 
+// Dialogs
 const exerciseDialog = ref(false)
 const deleteDialog = ref(false)
 const isEditing = ref(false)
 const exerciseToDelete = ref(null)
 
+// Form
 const exerciseForm = ref({
   name: '',
   primaryMuscleGroup: '',
   secondaryMuscleGroup: '',
   level: 'beginner',
-  difficultyRating: 1, // 1-3 fuegos
+  difficultyRating: 1,
   equipment: null,
   media: ''
 })
+
+// Options
+const itemsPerPageOptions = [
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '30', value: 30 },
+  { label: '40', value: 40 },
+  { label: '50', value: 50 }
+]
 
 const muscleGroupOptions = [
   { label: 'Pecho', value: 'chest' },
@@ -532,19 +392,6 @@ const levelOptions = [
   { label: 'Experto', value: 'expert' },
 ]
 
-const equipments = ref([])
-
-// Paginación
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-
-const itemsPerPageLabel = computed(() => {
-  return `${itemsPerPage.value}`
-})
-
-// Sorting
-const sortBy = ref('difficulty_asc')
-
 const sortOptions = [
   { label: 'Dificultad ↑', value: 'difficulty_asc' },
   { label: 'Dificultad ↓', value: 'difficulty_desc' },
@@ -554,12 +401,6 @@ const sortOptions = [
   { label: 'Nivel', value: 'level' },
 ]
 
-const getSortLabel = (value) => {
-  const option = sortOptions.find(o => o.value === value)
-  return option ? option.label : value
-}
-
-// Disciplinas
 const disciplineOptions = [
   { label: 'Todas', value: 'all', color: 'default' },
   { label: 'Calistenia', value: 'calisthenics', color: 'orange' },
@@ -567,26 +408,6 @@ const disciplineOptions = [
   { label: 'Fitness', value: 'fitness', color: 'blue' },
 ]
 
-const disciplineFilter = ref('all')
-
-const getDisciplineLabel = (discipline) => {
-  const labels = {
-    'calisthenics': 'Calistenia',
-    'crossfit': 'CrossFit',
-    'fitness': 'Fitness',
-  }
-  return labels[discipline] || discipline
-}
-
-const itemsPerPageOptions = [
-  { label: '10', value: 10 },
-  { label: '20', value: 20 },
-  { label: '30', value: 30 },
-  { label: '40', value: 40 },
-  { label: '50', value: 50 }
-]
-
-// Opciones de filtros con colores
 const muscleOptions = [
   { label: 'Todos', value: 'all', color: 'default' },
   { label: 'Pecho', value: 'chest', color: 'orange' },
@@ -604,38 +425,92 @@ const muscleOptions = [
   { label: 'HIIT/Cardio', value: 'hiit', color: 'red' },
 ]
 
-// Filtros activos
-const hasActiveFilters = computed(() => {
-  return searchQuery.value || muscleFilter.value !== 'all' || levelFilter.value !== 'all' || disciplineFilter.value !== 'all' || sortBy.value !== 'difficulty_asc'
+// Computed
+const stats = computed(() => [
+  { value: exercisesStore.totalExercises, label: 'Total Ejercicios', icon: 'fitness_center' },
+  { value: muscleGroupsCount.value, label: 'Grupos Musculares', icon: 'fitness_center', iconColor: 'teal' },
+  { value: expertCount.value, label: 'Expertos', icon: 'local_fire_department', iconColor: 'red' },
+])
+
+const muscleGroupsCount = computed(() => {
+  const groups = new Set(exercisesStore.exercises.map(e => e.primaryMuscleGroup).filter(Boolean))
+  return groups.size
 })
 
-const getMuscleColor = (muscle) => {
-  const colors = {
-    'chest': 'orange',
-    'back': 'blue',
-    'legs': 'purple',
-    'glutes': 'pink',
-    'hamstrings': 'deep-purple',
-    'calves': 'teal',
-    'adductors': 'indigo',
-    'shoulders': 'cyan',
-    'biceps': 'green',
-    'triceps': 'pink',
-    'forearms': 'brown',
-    'core': 'yellow',
-    'hiit': 'red',
+const expertCount = computed(() => exercisesStore.exercises.filter(e => e.level === 'expert').length)
+
+const hasActiveFilters = computed(() =>
+  searchQuery.value || muscleFilter.value !== 'all' || levelFilter.value !== 'all' ||
+  disciplineFilter.value !== 'all' || sortBy.value !== 'difficulty_asc'
+)
+
+const filteredExercises = computed(() => {
+  let result = [...exercisesStore.exercises]
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(ex => ex.name?.toLowerCase().includes(query))
   }
-  return colors[muscle] || 'grey'
+
+  if (muscleFilter.value !== 'all') {
+    result = result.filter(ex => ex.primaryMuscleGroup === muscleFilter.value)
+  }
+
+  if (levelFilter.value !== 'all') {
+    result = result.filter(ex => ex.level === levelFilter.value)
+  }
+
+  if (disciplineFilter.value !== 'all') {
+    result = result.filter(ex => ex.disciplines?.includes(disciplineFilter.value))
+  }
+
+  result.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'difficulty_asc': return (a.difficultyRating || 1) - (b.difficultyRating || 1)
+      case 'difficulty_desc': return (b.difficultyRating || 1) - (a.difficultyRating || 1)
+      case 'name_asc': return (a.name || '').localeCompare(b.name || '')
+      case 'name_desc': return (b.name || '').localeCompare(a.name || '')
+      case 'muscle': return (a.primaryMuscleGroup || '').localeCompare(b.primaryMuscleGroup || '')
+      case 'level': {
+        const order = { 'beginner': 1, 'intermediate': 2, 'expert': 3 }
+        return (order[a.level] || 99) - (order[b.level] || 99)
+      }
+      default: return 0
+    }
+  })
+
+  return result
+})
+
+const paginatedExercises = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return filteredExercises.value.slice(start, start + itemsPerPage.value)
+})
+
+const totalPages = computed(() => Math.ceil(filteredExercises.value.length / itemsPerPage.value))
+
+const equipmentOptions = computed(() => [{ id: null, name: 'Ninguno' }, ...equipmentsStore.equipments])
+
+// Methods
+const fetchData = async () => {
+  loading.value = true
+  try {
+    await Promise.all([exercisesStore.fetchExercises(), equipmentsStore.fetchEquipments()])
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar datos', position: 'top' })
+  } finally {
+    loading.value = false
+  }
 }
 
-const getLevelColor = (level) => {
-  const colors = {
-    'beginner': 'positive',
-    'intermediate': 'warning',
-    'expert': 'negative',
-  }
-  return colors[level] || 'grey'
-}
+const getSortLabel = (value) => sortOptions.find(o => o.value === value)?.label || value
+
+const getMuscleColor = (muscle) => ({
+  'chest': 'orange', 'back': 'blue', 'legs': 'purple', 'glutes': 'pink',
+  'hamstrings': 'deep-purple', 'calves': 'teal', 'adductors': 'indigo',
+  'shoulders': 'cyan', 'biceps': 'green', 'triceps': 'pink',
+  'forearms': 'brown', 'core': 'yellow', 'hiit': 'red',
+}[muscle] || 'grey')
 
 const clearAllFilters = () => {
   searchQuery.value = ''
@@ -645,252 +520,50 @@ const clearAllFilters = () => {
   sortBy.value = 'difficulty_asc'
 }
 
-const filteredExercises = computed(() => {
-  let result = exercises.value
+const { normalizeName } = useHelpers()
 
-  // Filtro por búsqueda
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(ex =>
-      ex.name?.toLowerCase().includes(query) ||
-      ex.primaryMuscleGroup?.toLowerCase().includes(query)
-    )
-  }
-
-  // Filtro por músculo
-  if (muscleFilter.value !== 'all') {
-    result = result.filter(ex => ex.primaryMuscleGroup === muscleFilter.value)
-  }
-
-  // Filtro por nivel
-  if (levelFilter.value !== 'all') {
-    result = result.filter(ex => ex.level === levelFilter.value)
-  }
-
-  // Filtro por disciplina
-  if (disciplineFilter.value !== 'all') {
-    result = result.filter(ex => 
-      ex.disciplines?.includes(disciplineFilter.value)
-    )
-  }
-
-  // Ordenar según la opción seleccionada
-  result = result.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'difficulty_asc':
-        return (a.difficultyRating || 1) - (b.difficultyRating || 1)
-      case 'difficulty_desc':
-        return (b.difficultyRating || 1) - (a.difficultyRating || 1)
-      case 'name_asc':
-        return (a.name || '').localeCompare(b.name || '')
-      case 'name_desc':
-        return (b.name || '').localeCompare(a.name || '')
-      case 'muscle':
-        return (a.primaryMuscleGroup || '').localeCompare(b.primaryMuscleGroup || '')
-      case 'level':
-        const levelOrder = { 'beginner': 1, 'intermediate': 2, 'expert': 3, 'nolevel': 4 }
-        return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99)
-      default:
-        return 0
-    }
-  })
-
-  return result
-})
-
-// Ejercicios paginados
-const paginatedExercises = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredExercises.value.slice(start, end)
-})
-
-// Total de páginas
-const totalPages = computed(() => {
-  return Math.ceil(filteredExercises.value.length / itemsPerPage.value)
-})
-
-const muscleGroupsCount = computed(() => {
-  const groups = new Set(exercises.value.map(e => e.primaryMuscleGroup).filter(Boolean))
-  return groups.size
-})
-
-const expertCount = computed(() => {
-  return exercises.value.filter(e => e.level === 'expert').length
-})
-
-const fetchExercises = async () => {
-  loading.value = true
-  try {
-    const response = await exerciseService.getAll()
-    exercises.value = Array.isArray(response) ? response : (response.member || response['hydra:member'] || [])
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar ejercicios',
-      position: 'top'
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
-const fetchEquipments = async () => {
-  try {
-    const response = await equipmentService.getAll()
-    equipments.value = Array.isArray(response) ? response : (response.member || response['hydra:member'] || [])
-  } catch (error) {
-    console.error('Error al cargar equipamientos:', error)
-  }
-}
-
-const equipmentOptions = computed(() => {
-  return [{ id: null, name: 'Ninguno' }, ...equipments.value]
-})
-
-const getLevelLabel = (level) => {
-  const labels = {
-    'beginner': 'Principiante',
-    'intermediate': 'Intermedio',
-    'expert': 'Experto',
-    'nolevel': 'Sin nivel'
-  }
-  return labels[level] || level
-}
-
-const normalizeName = (name) => {
-  if (!name) return ''
-  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
-}
-
-const getFireColor = (level, isActive) => {
-  if (!isActive) return 'grey-6'
-  
-  const colors = {
-    'beginner': 'positive',      // Verde
-    'intermediate': 'warning',   // Naranja/Amarillo
-    'expert': 'negative'         // Rojo
-  }
-  return colors[level] || 'primary'
-}
-
-const renderFires = (level, rating) => {
-  const fires = []
-  for (let i = 0; i < 3; i++) {
-    fires.push({
-      active: i < rating,
-      color: getFireColor(level, i < rating)
-    })
-  }
-  return fires
-}
-
-const getMuscleGroupLabel = (group) => {
-  const labels = {
-    'chest': 'Pecho',
-    'back': 'Espalda',
-    'legs': 'Piernas',
-    'glutes': 'Glúteos',
-    'hamstrings': 'Isquiotibiales',
-    'calves': 'Gemelos',
-    'adductors': 'Aductores',
-    'shoulders': 'Hombros',
-    'biceps': 'Bíceps',
-    'triceps': 'Tríceps',
-    'forearms': 'Antebrazos',
-    'core': 'Core',
-    'hiit': 'HIIT/Cardio',
-    'none': 'Ninguno'
-  }
-  return labels[group] || group
-}
-
-const truncateText = (text, length) => {
-  if (!text) return ''
-  return text.length > length ? text.substring(0, length) + '...' : text
-}
+const getFireColor = (level, isActive) => getLevelColor(level, isActive)
 
 const openCreateDialog = () => {
   isEditing.value = false
-  exerciseForm.value = {
-    name: '',
-    primaryMuscleGroup: '',
-    secondaryMuscleGroup: '',
-    level: 'beginner',
-    difficultyRating: 1,
-    equipment: null,
-    media: ''
-  }
+  exerciseForm.value = { name: '', primaryMuscleGroup: '', secondaryMuscleGroup: '', level: 'beginner', difficultyRating: 1, equipment: null, media: '' }
   exerciseDialog.value = true
 }
 
 const editExercise = (exercise) => {
   isEditing.value = true
   exerciseForm.value = {
-    id: exercise.id,
-    name: exercise.name,
-    primaryMuscleGroup: exercise.primaryMuscleGroup,
-    secondaryMuscleGroup: exercise.secondaryMuscleGroup || '',
-    level: exercise.level,
-    equipment: exercise.equipment?.id || null,
-    media: exercise.media || ''
+    id: exercise.id, name: exercise.name, primaryMuscleGroup: exercise.primaryMuscleGroup,
+    secondaryMuscleGroup: exercise.secondaryMuscleGroup || '', level: exercise.level,
+    difficultyRating: exercise.difficultyRating || 1, equipment: exercise.equipment?.id || null, media: exercise.media || ''
   }
   exerciseDialog.value = true
 }
 
-const viewExercise = (exercise) => {
-  // TODO: Open detail view or modal
-  editExercise(exercise)
-}
-
 const searchExercise = (exercise, platform) => {
   const query = encodeURIComponent(`${exercise.name} exercise tutorial`)
-  let url = ''
-  
-  if (platform === 'youtube') {
-    url = `https://www.youtube.com/results?search_query=${query}`
-  } else {
-    url = `https://www.google.com/search?q=${query}&tbm=vid` // tbm=vid busca videos
-  }
-  
+  const url = platform === 'youtube'
+    ? `https://www.youtube.com/results?search_query=${query}`
+    : `https://www.google.com/search?q=${query}&tbm=vid`
   window.open(url, '_blank')
 }
 
 const saveExercise = async () => {
   if (!exerciseForm.value.name) {
-    $q.notify({
-      type: 'warning',
-      message: 'El nombre es obligatorio',
-      position: 'top'
-    })
+    $q.notify({ type: 'warning', message: 'El nombre es obligatorio', position: 'top' })
     return
   }
 
   saving.value = true
   try {
     if (isEditing.value) {
-      await exerciseService.update(exerciseForm.value.id, exerciseForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Ejercicio actualizado',
-        position: 'top'
-      })
+      await exercisesStore.updateExercise(exerciseForm.value.id, exerciseForm.value)
     } else {
-      await exerciseService.create(exerciseForm.value)
-      $q.notify({
-        type: 'positive',
-        message: 'Ejercicio creado',
-        position: 'top'
-      })
+      await exercisesStore.createExercise(exerciseForm.value)
     }
     exerciseDialog.value = false
-    fetchExercises()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: isEditing.value ? 'Error al actualizar' : 'Error al crear',
-      position: 'top'
-    })
+  } catch {
+    // Error manejado por el store
   } finally {
     saving.value = false
   }
@@ -904,39 +577,20 @@ const confirmDelete = (exercise) => {
 const deleteExercise = async () => {
   deleting.value = true
   try {
-    await exerciseService.delete(exerciseToDelete.value.id)
-    $q.notify({
-      type: 'positive',
-      message: 'Ejercicio eliminado',
-      position: 'top'
-    })
+    await exercisesStore.deleteExercise(exerciseToDelete.value.id)
     deleteDialog.value = false
-    fetchExercises()
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al eliminar',
-      position: 'top'
-    })
+  } catch {
+    // Error manejado por el store
   } finally {
     deleting.value = false
   }
 }
 
-// Resetear página cuando cambian los filtros
-watch([searchQuery, muscleFilter, levelFilter, disciplineFilter], () => {
-  currentPage.value = 1
-})
+// Watchers
+watch([searchQuery, muscleFilter, levelFilter, disciplineFilter], () => currentPage.value = 1)
+watch(itemsPerPage, () => currentPage.value = 1)
 
-// Resetear página cuando cambia items por página
-watch(itemsPerPage, () => {
-  currentPage.value = 1
-})
-
-onMounted(() => {
-  fetchExercises()
-  fetchEquipments()
-})
+onMounted(fetchData)
 </script>
 
 <style scoped>
@@ -951,72 +605,7 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-  font-size: 0.95rem;
-  color: #8b949e;
-  margin: 0;
-}
-
-.action-btn {
-  background: linear-gradient(135deg, #ff8f38 0%, #e67e2e 100%);
-  border-radius: 12px;
-  font-weight: 600;
-}
-
-/* Stats */
-.stats-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-mini {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 20px 24px;
-  flex: 1;
-}
-
-.stat-mini-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-mini-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.stat-mini-label {
-  font-size: 0.85rem;
-  color: #8b949e;
-}
-
 /* Filters */
-/* Modern Filters Container */
 .filters-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1027,7 +616,6 @@ onMounted(() => {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Modern Search Bar */
 .search-wrapper {
   display: flex;
   justify-content: center;
@@ -1094,11 +682,10 @@ onMounted(() => {
   transform: translateY(-50%) rotate(90deg);
 }
 
-/* Filter Groups Modern */
 .filter-groups-modern {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .filter-category {
@@ -1116,10 +703,6 @@ onMounted(() => {
   color: #8b949e;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-}
-
-.filter-category-label .q-icon {
-  opacity: 0.7;
 }
 
 .filter-pills {
@@ -1156,95 +739,60 @@ onMounted(() => {
   box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5);
 }
 
-/* Sort section styles */
+.filter-pill.beginner.active { background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%); box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5); }
+.filter-pill.intermediate.active { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
+.filter-pill.expert.active { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5); }
+
+/* Sort Section */
 .sort-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 0 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  margin-top: 12px;
+  gap: 16px;
+  padding-top: 20px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
 }
 
 .sort-label {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: #8b949e;
-  font-size: 13px;
-  font-weight: 600;
   text-transform: uppercase;
-  min-width: 100px;
+  letter-spacing: 1.5px;
 }
 
 .sort-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  flex: 1;
+  gap: 10px;
 }
 
 .sort-pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #0d1117;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: #8b949e;
-  font-size: 13px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .sort-pill:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .sort-pill.active {
-  background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
-  color: #fff;
-  border-color: transparent;
-  font-weight: 600;
-  box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
+  background: rgba(88, 166, 255, 0.2);
+  color: #58a6ff;
+  border-color: rgba(88, 166, 255, 0.3);
 }
-
-.filter-pill.level {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.filter-pill.level .q-icon {
-  opacity: 0.8;
-}
-
-/* Level specific colors */
-.filter-pill.level.beginner.active {
-  background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%);
-  box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5);
-}
-
-.filter-pill.level.intermediate.active {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
-}
-
-.filter-pill.level.expert.active {
-  background: linear-gradient(135deg, #f85149 0%, #da3633 100%);
-  box-shadow: 0 6px 20px rgba(248, 81, 73, 0.5);
-}
-
-/* Muscle specific colors */
-.filter-pill.orange.active { background: linear-gradient(135deg, #ff8f38 0%, #ff6b35 100%); }
-.filter-pill.blue.active { background: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%); box-shadow: 0 6px 20px rgba(88, 166, 255, 0.5); }
-.filter-pill.purple.active { background: linear-gradient(135deg, #a371f7 0%, #8957e5 100%); box-shadow: 0 6px 20px rgba(163, 113, 247, 0.5); }
-.filter-pill.cyan.active { background: linear-gradient(135deg, #39c5cf 0%, #22a6b3 100%); box-shadow: 0 6px 20px rgba(57, 197, 207, 0.5); }
-.filter-pill.green.active { background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%); box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5); }
-.filter-pill.pink.active { background: linear-gradient(135deg, #f778ba 0%, #db61a2 100%); box-shadow: 0 6px 20px rgba(247, 120, 186, 0.5); }
-.filter-pill.yellow.active { background: linear-gradient(135deg, #ffd700 0%, #ffc107 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
-
-/* Discipline pills */
-.filter-pill.discipline.red.active { background: linear-gradient(135deg, #f85149 0%, #da3633 100%); box-shadow: 0 6px 20px rgba(248, 81, 73, 0.5); }
 
 /* Active Filters */
 .active-filters {
@@ -1275,7 +823,7 @@ onMounted(() => {
 /* Exercises Grid */
 .exercises-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
 }
 
@@ -1288,6 +836,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 280px;
 }
 
 .exercise-card:hover {
@@ -1297,31 +846,11 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Header - Nombre y acciones */
-.exercise-header {
-  display: flex;
-  flex-direction: column;
+.exercise-card.skeleton {
   gap: 12px;
 }
 
-.exercise-name {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.2;
-  flex: 1;
-  letter-spacing: -0.3px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.exercise-description {
-  font-size: 0.9rem;
-  color: #8b949e;
-  line-height: 1.5;
-  margin: 8px 0 0 0;
-}
-
+/* Exercise Header */
 .exercise-header {
   position: relative;
   padding-top: 12px;
@@ -1332,23 +861,153 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 70%;
+  width: 50%;
   height: 4px;
   border-radius: 2px;
+  background: linear-gradient(90deg, #3fb950, #2ea043);
   transition: all 0.3s ease;
 }
 
-/* Colores de la línea según nivel */
-.exercise-header.beginner::before {
-  background: #3fb950;
+.exercise-header.beginner::before { background: linear-gradient(90deg, #3fb950, #2ea043); }
+.exercise-header.intermediate::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.exercise-header.expert::before { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+
+.exercise-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
 }
 
-.exercise-header.intermediate::before {
-  background: #ffc107;
+.exercise-description {
+  font-size: 0.9rem;
+  color: #8b949e;
+  margin: 8px 0 0 0;
+  line-height: 1.5;
 }
 
-.exercise-header.expert::before {
-  background: #f85149;
+/* Exercise Actions */
+.exercise-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.exercise-card:hover .exercise-actions {
+  opacity: 1;
+}
+
+.exercise-actions .q-btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Exercise Difficulty */
+.exercise-difficulty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fire-row {
+  display: flex;
+  gap: 4px;
+}
+
+.level-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.level-badge.beginner { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+.level-badge.intermediate { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.level-badge.expert { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+
+/* Exercise Muscles */
+.exercise-muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.muscle-tag {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.muscle-tag.primary {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+  border: 1px solid rgba(88, 166, 255, 0.3);
+}
+
+.muscle-tag.secondary {
+  background: rgba(139, 148, 158, 0.1);
+  color: #8b949e;
+  border: 1px solid rgba(139, 148, 158, 0.2);
+}
+
+/* Exercise Disciplines */
+.exercise-disciplines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.discipline-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.discipline-tag.calisthenics { background: rgba(255, 143, 56, 0.15); color: #ff8f38; }
+.discipline-tag.crossfit { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+.discipline-tag.fitness { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+
+/* Exercise Equipment */
+.exercise-equipment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+  color: #8b949e;
+  margin-top: auto;
+}
+
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  color: #ffffff;
+  margin: 24px 0 8px;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  color: #8b949e;
+  margin: 0 0 24px;
 }
 
 /* Pagination */
@@ -1369,15 +1028,6 @@ onMounted(() => {
   justify-content: space-between;
   width: 100%;
   gap: 20px;
-}
-
-.pagination-row .per-page-wrapper {
-  flex-shrink: 0;
-}
-
-.pagination-row .pagination-info {
-  flex-shrink: 0;
-  text-align: right;
 }
 
 .per-page-wrapper {
@@ -1407,7 +1057,6 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 36px;
 }
 
 .per-page-pill:hover {
@@ -1425,212 +1074,25 @@ onMounted(() => {
 .pagination-info {
   font-size: 0.85rem;
   color: #8b949e;
-  text-align: center;
-  flex: 1;
-}
-
-.exercise-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  margin-top: -8px;
-}
-
-.exercise-card:hover .exercise-actions {
-  opacity: 1;
-}
-
-.exercise-actions .q-btn {
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Dificultad - Fuegos y nivel */
-.exercise-difficulty {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.fire-row {
-  display: flex;
-  gap: 2px;
-}
-
-.level-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.level-badge.beginner {
-  background: rgba(63, 185, 80, 0.2);
-  color: #3fb950;
-}
-
-.level-badge.intermediate {
-  background: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
-}
-
-.level-badge.expert {
-  background: rgba(248, 81, 73, 0.2);
-  color: #f85149;
-}
-
-/* Grupos musculares */
-.exercise-muscles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.muscle-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-
-.muscle-tag.primary {
-  background: rgba(255, 143, 56, 0.15);
-  color: #ff8f38;
-  border: 1px solid rgba(255, 143, 56, 0.3);
-}
-
-.muscle-tag.secondary {
-  background: rgba(139, 148, 158, 0.1);
-  color: #8b949e;
-  border: 1px solid rgba(139, 148, 158, 0.2);
-}
-
-/* Disciplinas */
-.exercise-disciplines {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.discipline-tag {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.discipline-tag.calisthenics {
-  background: rgba(255, 143, 56, 0.2);
-  color: #ff8f38;
-  border: 1px solid rgba(255, 143, 56, 0.3);
-}
-
-.discipline-tag.crossfit {
-  background: rgba(248, 81, 73, 0.2);
-  color: #f85149;
-  border: 1px solid rgba(248, 81, 73, 0.3);
-}
-
-.discipline-tag.fitness {
-  background: rgba(88, 166, 255, 0.2);
-  color: #58a6ff;
-  border: 1px solid rgba(88, 166, 255, 0.3);
-}
-
-/* Equipamiento */
-.exercise-equipment {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #8b949e;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.exercise-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.exercise-description {
-  font-size: 0.9rem;
-  color: #8b949e;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
-}
-
-.exercise-meta {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.meta-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: #c9d1d9;
-}
-
-/* Skeleton */
-.exercise-card.skeleton {
-  pointer-events: none;
-  gap: 12px;
-}
-
-/* Empty State */
-.empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
-
-.empty-state h3 {
-  color: #ffffff;
-  margin: 24px 0 8px;
-  font-size: 1.5rem;
-}
-
-.empty-state p {
-  color: #8b949e;
-  margin: 0 0 24px;
 }
 
 /* Exercise Dialog */
 .exercise-dialog {
   display: flex;
-  width: 100vw;
-  height: 100vh;
   background: #0f1419;
   border-radius: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 .dialog-sidebar {
-  width: 450px;
+  width: 480px;
   background: #1a1f2e;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .sidebar-header {
@@ -1638,7 +1100,7 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-header h3 {
@@ -1655,82 +1117,17 @@ onMounted(() => {
 }
 
 .form-section {
-  margin-bottom: 32px;
-}
-
-/* Fire Rating */
-.fire-rating {
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.fire-rating .q-btn {
-  opacity: 0.3;
-  transition: all 0.2s ease;
-}
-
-.fire-rating .q-btn.fire-active {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.fire-rating .q-btn:hover {
-  opacity: 0.8;
-}
-
-.preview-fires {
-  display: flex;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.video-input-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.video-input {
-  flex: 1;
-}
-
-.video-help {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 0.8rem;
-  color: #8b949e;
-}
-
-.video-help span {
-  line-height: 1.4;
+  margin-bottom: 28px;
 }
 
 .section-label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #8b949e;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 16px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #c9d1d9;
-  margin-bottom: 8px;
 }
 
 .form-row {
@@ -1739,40 +1136,97 @@ onMounted(() => {
   gap: 16px;
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #c9d1d9;
+}
+
+.fire-rating {
+  display: flex;
+  gap: 8px;
+}
+
+.fire-rating .q-btn {
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.fire-rating .q-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fire-rating .fire-active {
+  animation: firePulse 0.3s ease;
+}
+
+@keyframes firePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.video-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.video-input {
+  flex: 1;
+}
+
+.video-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
 .sidebar-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Preview */
 .dialog-preview {
   flex: 1;
-  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
-  padding: 40px;
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .preview-header {
-  margin-bottom: 32px;
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .preview-header h4 {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #8b949e;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0;
 }
 
 .preview-content {
+  flex: 1;
+  padding: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
 }
 
 .preview-card {
@@ -1785,8 +1239,11 @@ onMounted(() => {
 }
 
 .preview-image {
-  height: 220px;
-  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .preview-image img {
@@ -1801,7 +1258,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1f2e 0%, #2d333b 100%);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .preview-info {
@@ -1809,144 +1266,50 @@ onMounted(() => {
 }
 
 .preview-info h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #ffffff;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
 }
 
-.preview-info p {
-  font-size: 0.95rem;
-  color: #8b949e;
-  margin: 0 0 20px 0;
-  line-height: 1.6;
-}
-
-.preview-tags {
-  display: flex;
-  gap: 8px;
-}
-
-.preview-tag {
-  padding: 6px 14px;
-  background: rgba(255, 143, 56, 0.15);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: #ff8f38;
-  font-weight: 500;
-}
-
-.preview-tag.beginner {
-  background: rgba(63, 185, 80, 0.15);
-  color: #3fb950;
-}
-
-.preview-tag.intermediate {
-  background: rgba(255, 193, 7, 0.15);
-  color: #ffc107;
-}
-
-.preview-tag.advanced {
-  background: rgba(248, 81, 73, 0.15);
-  color: #f85149;
-}
-
-/* Delete Dialog */
-.dialog-card {
-  background: #1a1f2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  min-width: 400px;
-}
-
-.delete-dialog {
-  text-align: center;
-}
-
-.dialog-header {
-  padding: 32px;
-}
-
-.delete-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(248, 81, 73, 0.15);
-  border-radius: 50%;
+.preview-muscles {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #c9d1d9;
+  margin-bottom: 16px;
 }
 
-.dialog-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-}
-
-.dialog-subtitle {
-  color: #8b949e;
-  margin: 0;
-}
-
-.dialog-subtitle strong {
-  color: #ffffff;
-}
-
-.dialog-footer {
+.preview-fires {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 4px;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .stats-row {
+@media (max-width: 1024px) {
+  .exercise-dialog {
     flex-direction: column;
-  }
-
-  .filters-container {
-    padding: 20px 16px;
-  }
-
-  .search-box-modern .search-input {
-    padding: 16px 48px 16px 52px;
-    font-size: 1rem;
-  }
-
-  .filter-pill {
-    padding: 10px 18px;
-    font-size: 0.9rem;
-  }
-
-  .filter-pills {
-    gap: 8px;
-  }
-
-  .pagination-row {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .per-page-wrapper {
-    order: 1;
-  }
-
-  .pagination-info {
-    order: 2;
-    text-align: center;
   }
 
   .dialog-sidebar {
     width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 60vh;
   }
 
   .dialog-preview {
     display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-container {
+    padding: 20px 16px;
   }
 }
 </style>

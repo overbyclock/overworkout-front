@@ -157,7 +157,7 @@ const saveLevel = async () => {
     await new Promise(r => setTimeout(r, 800))
     $q.notify({ type: 'positive', message: isEditing.value ? 'Nivel actualizado' : 'Nivel creado' })
     goBack()
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al guardar' })
   } finally {
     saving.value = false

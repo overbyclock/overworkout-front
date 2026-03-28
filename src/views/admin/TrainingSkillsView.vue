@@ -88,11 +88,13 @@
 
       <!-- Skills Grid -->
       <div class="skills-grid">
-        <div v-if="loading" v-for="i in 6" :key="i" class="skill-card skeleton">
-          <q-skeleton type="text" class="bg-grey-8" width="60%" />
-          <q-skeleton type="text" class="bg-grey-8" width="80%" />
-          <q-skeleton type="text" class="bg-grey-8" width="40%" />
-        </div>
+        <template v-if="loading">
+          <div v-for="i in 6" :key="i" class="skill-card skeleton">
+            <q-skeleton type="text" class="bg-grey-8" width="60%" />
+            <q-skeleton type="text" class="bg-grey-8" width="80%" />
+            <q-skeleton type="text" class="bg-grey-8" width="40%" />
+          </div>
+        </template>
 
         <div v-else-if="filteredSkills.length === 0" class="empty-state">
           <q-icon name="emoji_events" size="64px" color="grey-6" />
@@ -410,7 +412,7 @@ const fetchSkills = async () => {
       { id: 33, name: 'One Arm Handstand', skillFamily: 'handstand', description: 'Pino a una mano libre. Equilibrio supremo.', levelRequired: 12, difficultyScore: 100 },
       { id: 34, name: 'Maltese', skillFamily: 'rings', description: 'Posición maltesa en anillas. Proyección máxima boca abajo.', levelRequired: 11, difficultyScore: 95 },
     ]
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar skills' })
   } finally {
     loading.value = false
@@ -466,7 +468,7 @@ const saveSkill = async () => {
       $q.notify({ type: 'positive', message: 'Skill creado' })
     }
     skillDialog.value = false
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al guardar' })
   } finally {
     saving.value = false
@@ -484,7 +486,7 @@ const deleteSkill = async () => {
     skills.value = skills.value.filter(s => s.id !== skillToDelete.value.id)
     $q.notify({ type: 'positive', message: 'Skill eliminado' })
     deleteDialog.value = false
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al eliminar' })
   }
 }

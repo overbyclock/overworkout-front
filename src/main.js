@@ -1,4 +1,5 @@
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { Dialog, Loading, Notify, Quasar } from 'quasar'
 import { createApp } from 'vue'
 import { useAuthStore } from './stores/auth'
@@ -16,6 +17,9 @@ import router from './router'
 
 const app = createApp(App)
 const pinia = createPinia()
+
+// Configurar plugin de persistencia
+pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
 app.use(router)

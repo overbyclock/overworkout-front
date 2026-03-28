@@ -1,0 +1,123 @@
+# CI/CD Pipeline para OverWorkout Admin
+# Se ejecuta en cada push y pull request
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Job 1: Verificar calidad del código
+  quality:
+    name: Lint y Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar ESLint
+        run: npm run lint
+
+      - name: Verificar formateo con Prettier
+        run: npx prettier --check "src/**/*.{js,vue}"
+
+  # Job 2: Tests unitarios
+  test:
+    name: Tests Unitarios
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar tests
+        run: npm run test
+
+      # Opcional: Subir reporte de cobertura
+      # - name: Upload coverage
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-report
+      #     path: coverage/
+
+  # Job 3: Build de producción
+  build:
+    name: Build Producción
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Guardar el build como artifact (útil para descargar)
+      - name: Subir dist como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # Job 4: Tests E2E (opcional - comentado por defecto)
+  # Descomenta si quieres ejecutar tests E2E en CI
+  # e2e:
+  #   name: Tests E2E
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     - name: Checkout código
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'npm'
+  #
+  #     - name: Instalar dependencias
+  #       run: npm ci
+  #
+  #     - name: Instalar Playwright
+  #       run: npx playwright install --with-deps
+  #
+  #     - name: Ejecutar tests E2E
+  #       run: npm run test:e2e
+  #
+  #     - name: Subir reporte de Playwright
+  #       uses: actions/upload-artifact@v4
+  #       if: failure()
+  #       with:
+  #         name: playwright-report
+  #         path: playwright-report/

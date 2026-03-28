@@ -1,71 +1,110 @@
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
 import { authService } from '@/services/auth'
 import { USER_ROLES } from '@/utils/constants'
-import { defineStore } from 'pinia'
+import { extractErrorMessage } from '@/utils/api-helpers'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    loading: false,
-    error: null,
-  }),
-  getters: {
-    isAdmin: (state) => {
-      return state.user?.roles?.includes(USER_ROLES.ADMIN) || false
-    },
-    userInitials: (state) => {
-      if (!state.user?.nick) return 'U'
-      const names = state.user.nick.split(' ')
-      if (names.length >= 2) {
-        return (names[0][0] + names[1][0]).toUpperCase()
+export const useAuthStore = defineStore('auth', () => {
+  // State
+  const user = ref(null)
+  const token = ref(null)
+  const isAuthenticated = ref(false)
+  const loading = ref(false)
+  const error = ref(null)
+
+  // Getters
+  const isAdmin = computed(() => {
+    return user.value?.roles?.includes(USER_ROLES.ADMIN) || false
+  })
+
+  const userInitials = computed(() => {
+    if (!user.value?.nick) return 'U'
+    const names = user.value.nick.split(' ')
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase()
+    }
+    return names[0].substring(0, 2).toUpperCase()
+  })
+
+  const userDisplayName = computed(() => {
+    return user.value?.nick || 'Usuario'
+  })
+
+  const hasRole = (role) => {
+    return user.value?.roles?.includes(role) || false
+  }
+
+  // Actions
+  const login = async (credentials) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authService.login(credentials)
+
+      token.value = response.token
+      user.value = {
+        id: response.userId,
+        nick: response.nick,
+        avatar: response.avatar,
+        roles: response.roles,
       }
-      return names[0].substring(0, 2).toUpperCase()
-    },
-  },
+      isAuthenticated.value = true
 
-  actions: {
-    async login(credentials) {
-      this.loading = true
-      this.error = null
+      return response
+    } catch (err) {
+      error.value = extractErrorMessage(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-      try {
-        const response = await authService.login(credentials)
+  const logout = () => {
+    authService.logout()
+    user.value = null
+    token.value = null
+    isAuthenticated.value = false
+    error.value = null
+  }
 
-        this.token = response.token
-        this.user = {
-          id: response.userId,
-          nick: response.nick,
-          avatar: response.avatar,
-          roles: response.roles,
-        }
-        this.isAuthenticated = true
-
-        return response
-      } catch (error) {
-        this.error = error.message
-        throw error
-      } finally {
-        this.loading = false
+  const initializeAuth = () => {
+    if (authService.isAuthenticated()) {
+      const currentUser = authService.getCurrentUser()
+      if (currentUser) {
+        user.value = currentUser
+        isAuthenticated.value = true
       }
-    },
+    }
+  }
 
-    logout() {
-      authService.logout()
-      this.user = null
-      this.token = null
-      this.isAuthenticated = false
-      this.error = null
-    },
+  const clearError = () => {
+    error.value = null
+  }
 
-    initializeAuth() {
-      if (authService.isAuthenticated()) {
-        const user = authService.getCurrentUser()
-        if (user) {
-          this.user = user
-          this.isAuthenticated = true
-        }
-      }
-    },
-  },
+  const updateUser = (userData) => {
+    user.value = { ...user.value, ...userData }
+  }
+
+  return {
+    // State
+    user,
+    token,
+    isAuthenticated,
+    loading,
+    error,
+    
+    // Getters
+    isAdmin,
+    userInitials,
+    userDisplayName,
+    hasRole,
+    
+    // Actions
+    login,
+    logout,
+    initializeAuth,
+    clearError,
+    updateUser,
+  }
 })

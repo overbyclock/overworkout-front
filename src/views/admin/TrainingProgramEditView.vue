@@ -106,7 +106,7 @@ const fetchProgram = async () => {
       isActive: true
     }
     form.value = { ...program.value }
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar el programa' })
   } finally {
     loading.value = false
@@ -119,7 +119,7 @@ const saveProgram = async () => {
     await new Promise(r => setTimeout(r, 800))
     $q.notify({ type: 'positive', message: 'Programa guardado correctamente' })
     goBack()
-  } catch (error) {
+  } catch {
     $q.notify({ type: 'negative', message: 'Error al guardar' })
   } finally {
     saving.value = false

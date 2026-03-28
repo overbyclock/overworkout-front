@@ -1,0 +1,525 @@
+/*
+ * Estilos comunes para vistas admin
+ * Incluye layouts de página, formularios y filtros
+ */
+
+/* ==========================================================================
+   Page Layout
+   ========================================================================== */
+
+.page-container {
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+  min-height: 100vh;
+}
+
+.page-content {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 16px 20px;
+  }
+}
+
+/* ==========================================================================
+   Main Cards
+   ========================================================================== */
+
+.main-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #c9d1d9;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .form-grid,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Modern Filters Container
+   ========================================================================== */
+
+.filters-container {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Search Box Modern */
+.search-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.search-box-modern {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-box-modern .search-icon {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff8f38;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.search-box-modern:focus-within .search-icon {
+  color: #ff6b35;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.search-box-modern .search-input {
+  width: 100%;
+  padding: 18px 52px 18px 60px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 143, 56, 0.15);
+  border-radius: 50px;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.search-box-modern .search-input:focus {
+  border-color: #ff8f38;
+  box-shadow: 0 4px 30px rgba(255, 143, 56, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.search-box-modern .search-input::placeholder {
+  color: #6e7681;
+  font-weight: 400;
+}
+
+.search-box-modern .clear-search {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b949e;
+  transition: all 0.2s ease;
+}
+
+.search-box-modern .clear-search:hover {
+  color: #ff8f38;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* Standard Search Box */
+.search-box {
+  position: relative;
+  width: 320px;
+}
+
+.search-box .search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b949e;
+  pointer-events: none;
+}
+
+.search-box .search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px 12px 48px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-box .search-input::placeholder {
+  color: #8b949e;
+}
+
+.search-box .search-input:focus {
+  border-color: rgba(255, 143, 56, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .search-box {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Filter Groups
+   ========================================================================== */
+
+.filter-groups-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-category {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filter-category-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.filter-category-label .q-icon {
+  opacity: 0.7;
+}
+
+/* Filter Pills */
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-pill {
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #c9d1d9;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.filter-pill:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.filter-pill.active {
+  background: linear-gradient(135deg, #ff8f38 0%, #ff6b35 100%);
+  color: #000000;
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5);
+}
+
+/* Active Filters */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.active-filters-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6e7681;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.active-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  color: #ffffff;
+  margin: 24px 0 8px;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  color: #8b949e;
+  margin: 0 0 24px;
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.pagination-wrapper {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 16px;
+}
+
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
+}
+
+.per-page-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.per-page-label {
+  font-size: 0.8rem;
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.per-page-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.per-page-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #8b949e;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 36px;
+}
+
+.per-page-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.per-page-pill.active {
+  background: #ff8f38;
+  color: #000000;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+@media (max-width: 768px) {
+  .pagination-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+/* ==========================================================================
+   View Toggle
+   ========================================================================== */
+
+.view-toggle-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* ==========================================================================
+   Card Grid Layouts
+   ========================================================================== */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* ==========================================================================
+   Dialog Sidebar Pattern
+   ========================================================================== */
+
+.dialog-sidebar {
+  width: 480px;
+  background: #1a1f2e;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.dialog-sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dialog-sidebar .sidebar-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.dialog-sidebar .sidebar-form {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.dialog-sidebar .sidebar-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 1024px) {
+  .dialog-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.public,
+.visibility-badge.public {
+  background: rgba(63, 185, 80, 0.15);
+  color: #3fb950;
+}
+
+.status-badge.private,
+.visibility-badge.private {
+  background: rgba(139, 148, 158, 0.15);
+  color: #8b949e;
+}
+
+.visibility-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes firePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease;
+}
