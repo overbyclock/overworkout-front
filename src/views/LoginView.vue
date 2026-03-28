@@ -23,7 +23,7 @@
       <div class="brand-section">
         <div class="brand-content">
           <div class="brand-logo-large">
-            <img src="/logo.png" alt="OverWorkout" />
+            <img src="./logo.png" alt="OverWorkout" />
           </div>
           <h1 class="brand-title">OverWorkout</h1>
           <p class="brand-tagline">Tu plataforma de entrenamiento personalizado</p>
@@ -56,7 +56,7 @@
         <div class="form-card">
           <!-- Mobile Logo -->
           <div class="mobile-brand">
-            <img src="/logo.png" alt="OverWorkout" class="mobile-logo" />
+            <img src="./logo.png" alt="OverWorkout" class="mobile-logo" />
             <h2>OverWorkout</h2>
           </div>
 
