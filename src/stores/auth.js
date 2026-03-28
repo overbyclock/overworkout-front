@@ -43,11 +43,13 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authService.login(credentials)
 
       token.value = response.token
+      // El backend devuelve el usuario anidado en response.user
+      const userData = response.user || {}
       user.value = {
-        id: response.userId,
-        nick: response.nick,
-        avatar: response.avatar,
-        roles: response.roles,
+        id: userData.id || response.userId,
+        nick: userData.nick || response.nick,
+        avatar: userData.avatar || response.avatar,
+        roles: userData.roles || response.roles,
       }
       isAuthenticated.value = true
 

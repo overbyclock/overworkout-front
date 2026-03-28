@@ -6,17 +6,25 @@ export const authService = {
   async login(credentials) {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
-      const { token, userId, nick, avatar, roles, expiresAt } = response.data
+      const { token, user, userId, nick, avatar, roles, expiresAt } = response.data
+      
+      // El backend devuelve el usuario anidado en response.user
+      const userData = user || {
+        id: userId,
+        nick,
+        avatar,
+        roles,
+      }
 
       localStorage.setItem(STORAGE_KEYS.TOKEN, token)
-      localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt?.toString() || '')
       localStorage.setItem(
         STORAGE_KEYS.USER,
         JSON.stringify({
-          id: userId,
-          nick,
-          avatar,
-          roles,
+          id: userData.id,
+          nick: userData.nick,
+          avatar: userData.avatar,
+          roles: userData.roles,
         }),
       )
 
