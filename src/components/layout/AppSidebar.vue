@@ -5,7 +5,7 @@
     <div class="sidebar-brand">
       <div class="brand-logo">
         <div class="logo-image-wrapper">
-          <img src="/logo.png" alt="OverWorkout Logo" class="logo-image" />
+          <img :src="logoUrl" alt="OverWorkout Logo" class="logo-image" />
         </div>
         <div class="logo-text">
           <span class="logo-title">OverWorkout</span>
@@ -47,6 +47,8 @@
 
 <script setup>
 import NavSection from './NavSection.vue'
+
+const logoUrl = import.meta.env.BASE_URL + 'logo.png'
 
 defineProps({
   modelValue: { type: Boolean, default: false },
