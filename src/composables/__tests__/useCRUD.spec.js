@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useCrud } from '../useCRUD'
+import { useCrud } from '../useCrud'
 
 // Mock Quasar
 const mockNotify = vi.fn()
