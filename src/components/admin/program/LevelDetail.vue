@@ -16,7 +16,7 @@
       <q-tabs v-model="selectedWeek" dense dark class="week-tabs-compact">
         <q-tab v-for="weekNum in availableWeeks" :key="weekNum" :name="`week${weekNum}`"
           :label="weekNum === 0 ? 'SEMANA 0' : `SEMANA ${weekNum}`" />
-        <q-tab :name="`week${levelData.durationWeeks - 1}`" label="TESTS" />
+        <q-tab v-if="levelData.testWeek" :name="`week${levelData.durationWeeks - 1}`" label="TESTS" />
       </q-tabs>
 
       <q-tab-panels v-model="selectedWeek" dark animated class="week-panels-compact">
@@ -24,12 +24,12 @@
           <WeekPanel :week-data="getWeekData(weekNum)" :week-num="weekNum" :level-num="level.levelNumber" />
         </q-tab-panel>
 
-        <q-tab-panel :name="`week${levelData.durationWeeks - 1}`">
+        <q-tab-panel v-if="levelData.testWeek" :name="`week${levelData.durationWeeks - 1}`">
           <div class="tests-compact">
-            <h4>{{ levelData.testWeek?.name }}</h4>
-            <p class="tests-desc">{{ levelData.testWeek?.tests?.description }}</p>
+            <h4>{{ levelData.testWeek.name }}</h4>
+            <p class="tests-desc">{{ levelData.testWeek.tests?.description }}</p>
             <div class="tests-list">
-              <div v-for="(test, idx) in levelData.testWeek?.tests?.requirements" :key="idx" class="test-item">
+              <div v-for="(test, idx) in levelData.testWeek.tests?.requirements" :key="idx" class="test-item">
                 <div class="test-info">
                   <span class="test-name-compact">{{ test.name }}</span>
                   <span class="test-minimum">Mín: {{ test.minimum }} {{ test.unit }}</span>
@@ -63,32 +63,21 @@ const props = defineProps({
 const selectedWeek = ref('week0')
 
 const availableWeeks = computed(() => {
-  if (!props.levelData) return []
-  const totalWeeks = props.levelData.durationWeeks || 5
-  const trainingWeeks = totalWeeks - 1
-  return Array.from({ length: trainingWeeks }, (_, i) => i)
+  if (!props.levelData?.weeks) return []
+  const weekNums = Object.keys(props.levelData.weeks).map(Number)
+  return weekNums.sort((a, b) => a - b)
 })
 
 const getWeekData = (weekNum) => {
   if (!props.levelData) return null
-  if (weekNum === 0 || weekNum === 1) {
-    return {
-      type: 'weeks01',
-      data: props.levelData.weeks01,
-      info: props.levelData.trainingWeeks?.[weekNum],
-      progression: props.levelData.progression?.[`week${weekNum}`]
-    }
+  const weekData = props.levelData.weeks?.[weekNum]
+  if (!weekData) return null
+  return {
+    type: `week${weekNum}`,
+    data: weekData,
+    info: props.levelData.trainingWeeks?.find(w => w.week === weekNum),
+    progression: props.levelData.progression?.[`week${weekNum}`]
   }
-  const weekKey = `week${weekNum}`
-  if (props.levelData[weekKey]) {
-    return {
-      type: weekKey,
-      data: props.levelData[weekKey],
-      info: props.levelData.trainingWeeks?.[weekNum],
-      progression: props.levelData.progression?.[weekKey]
-    }
-  }
-  return null
 }
 </script>
 
@@ -126,9 +115,58 @@ const getWeekData = (weekNum) => {
 
 .weeks-container {
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Estilos custom para las tabs de semanas */
+.week-tabs-compact :deep(.q-tabs__content) {
+  gap: 6px;
+  padding: 8px;
+}
+
+.week-tabs-compact :deep(.q-tab) {
+  min-height: 36px;
+  padding: 6px 16px;
+  border-radius: 10px;
+  color: #8b949e;
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.week-tabs-compact :deep(.q-tab:hover) {
+  background: rgba(255, 255, 255, 0.04);
+  color: #c9d1d9;
+}
+
+.week-tabs-compact :deep(.q-tab--active) {
+  background: linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 143, 56, 0.3);
+}
+
+.week-tabs-compact :deep(.q-tab__indicator) {
+  display: none;
+}
+
+.week-tabs-compact :deep(.q-tab__content) {
+  min-width: auto;
+}
+
+/* Paneles de semana */
+.week-panels-compact :deep(.q-tab-panel) {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .week-panels-compact :deep(.q-tab-panel) {
+    padding: 16px;
+  }
 }
 
 .tests-compact {

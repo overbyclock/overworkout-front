@@ -59,8 +59,8 @@ import {
   SkillsTab, AchievementsTab, AnalyticsTab
 } from '@/components/admin'
 import LevelDetail from '@/components/admin/program/LevelDetail.vue'
-import nivel1Fundamentos from '@/data/calistenia-master-program'
-import nivel2Intermedio from '@/data/calistenia-master-level2'
+import { programService } from '@/services'
+import { adaptApiLevelToLegacy } from '@/utils/api-adapters'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -70,9 +70,11 @@ const loading = ref(true)
 const program = ref(null)
 const activeTab = ref('levels')
 
-const calisteniaLevels = { 1: ref(nivel1Fundamentos), 2: ref(nivel2Intermedio) }
-
-const getLevelData = (levelNumber) => calisteniaLevels[levelNumber]?.value || null
+const getLevelData = (levelNumber) => {
+  const apiLevel = program.value?.levels?.find((l) => l.levelNumber === levelNumber)
+  if (!apiLevel) return null
+  return adaptApiLevelToLegacy(apiLevel)
+}
 
 const tabs = [
   { id: 'levels', label: 'Niveles', icon: 'stairs', count: 12 },
@@ -151,27 +153,20 @@ const skillStats = [
 const fetchProgram = async () => {
   loading.value = true
   try {
-    await new Promise(r => setTimeout(r, 800))
-    program.value = {
-      id: route.params.id,
-      name: 'Calistenia Master',
-      slug: 'calistenia-master',
-      description: 'Programa completo de calistenia desde cero hasta nivel experto.',
-      discipline: 'calisthenics',
-      totalLevels: 12,
-      estimatedDurationWeeks: 144,
-      isActive: true,
-      levels: Array.from({ length: 12 }, (_, i) => ({
-        id: i + 1,
-        levelNumber: i + 1,
-        name: ['Fundamentos', 'Intermedio', 'Aprendiz', 'Intermedio-Avanzado', 'Avanzado', 'Experto', 'Elite', 'Master', 'Grand Master', 'Legendario', 'Divino', 'Titán'][i],
-        description: i === 0 ? 'Base: Push-ups asistidos, Australian Pull-ups...' : `Nivel ${i + 1}`,
-        isLockedByDefault: i > 0,
-        requirements: [{ id: 1 }, { id: 2 }],
-        hasDetailedTraining: i < 2
+    const data = await programService.getById(route.params.id)
+    // Enriquecer niveles con campos que espera la UI
+    if (data.levels) {
+      data.levels = data.levels.map((level) => ({
+        ...level,
+        hasDetailedTraining: level.trainings && level.trainings.length > 0,
+        requirements: level.requirementsSummary
+          ? [{ id: 1, name: level.requirementsSummary }]
+          : [],
       }))
     }
-  } catch {
+    program.value = data
+  } catch (err) {
+    console.error('Error cargando programa:', err)
     $q.notify({ type: 'negative', message: 'Error al cargar el programa' })
   } finally {
     loading.value = false
