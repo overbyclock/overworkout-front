@@ -59,7 +59,11 @@ export const authService = {
 
   handleError(error) {
     if (error.response) {
-      const message = error.response.data?.message || 'Error en el servidor'
+      const data = error.response.data
+      let message = 'Error en el servidor'
+      if (data) {
+        message = data['hydra:description'] || data.detail || data.message || data.title || JSON.stringify(data)
+      }
       return new Error(message)
     } else if (error.request) {
       return new Error('Error de conexión. Verifica tu conexión a internet')

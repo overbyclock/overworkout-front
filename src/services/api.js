@@ -14,7 +14,9 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(STORAGE_KEYS.TOKEN)
 
-    if (token) {
+    // No enviar token en el endpoint de login
+    const isLoginRequest = config.url?.includes('/login')
+    if (token && !isLoginRequest) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -34,8 +36,14 @@ apiClient.interceptors.response.use(
       localStorage.removeItem(STORAGE_KEYS.USER)
       localStorage.removeItem(STORAGE_KEYS.EXPIRES_AT)
 
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      const isLoginRequest = error.config?.url?.includes('/login')
+      if (isLoginRequest) return Promise.reject(error)
+
+      const baseUrl = import.meta.env.BASE_URL || '/'
+      const loginPath = baseUrl.endsWith('/') ? baseUrl + 'login' : baseUrl + '/login'
+
+      if (window.location.pathname !== loginPath) {
+        window.location.href = loginPath
       }
     }
     return Promise.reject(error)
