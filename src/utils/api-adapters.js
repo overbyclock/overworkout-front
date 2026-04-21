@@ -1,9 +1,11 @@
 import nivel1Fundamentos from '@/data/calistenia-master-program'
 import nivel2Intermedio from '@/data/calistenia-master-level2'
+import nivel3PrincipianteII from '@/data/calistenia-master-level3'
 
 const staticLevels = {
   1: nivel1Fundamentos,
   2: nivel2Intermedio,
+  3: nivel3PrincipianteII,
 }
 
 /**
