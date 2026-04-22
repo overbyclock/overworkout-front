@@ -5,7 +5,9 @@
       <div class="week-hero__icon">{{ weekIcon }}</div>
       <div class="week-hero__text">
         <h4 class="week-hero__title">{{ weekData?.info?.name }}</h4>
-        <p v-if="weekData?.progression" class="week-hero__tip">{{ weekData.progression }}</p>
+        <p v-if="weekData?.progression || weekData?.info?.focus" class="week-hero__tip">
+          {{ weekData.progression || weekData.info.focus }}
+        </p>
       </div>
       <q-badge v-if="weekData?.info?.intensity" color="dark" class="intensity-badge">
         Intensidad {{ weekData.info.intensity }}
@@ -128,7 +130,10 @@
                 </div>
               </div>
               <div class="exercise-sub">
-                <span class="exercise-reps">{{ ex.reps }}</span>
+                <span class="exercise-reps">
+                  <span v-if="ex.sets && ex.sets > 1" class="exercise-sets">{{ ex.sets }} sets × </span>
+                  {{ ex.reps }}
+                </span>
                 <span v-if="ex.notes" class="exercise-note">{{ ex.notes }}</span>
               </div>
             </div>

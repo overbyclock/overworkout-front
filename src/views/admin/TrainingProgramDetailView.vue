@@ -156,13 +156,19 @@ const fetchProgram = async () => {
     const data = await programService.getById(route.params.id)
     // Enriquecer niveles con campos que espera la UI
     if (data.levels) {
-      data.levels = data.levels.map((level) => ({
-        ...level,
-        hasDetailedTraining: level.trainings && level.trainings.length > 0,
-        requirements: level.requirementsSummary
-          ? [{ id: 1, name: level.requirementsSummary }]
-          : [],
-      }))
+      data.levels = data.levels.map((level) => {
+        const legacyData = adaptApiLevelToLegacy(level)
+        const hasStaticData = legacyData?.weeks && Object.keys(legacyData.weeks).length > 0
+        return {
+          ...level,
+          hasDetailedTraining: (level.trainings && level.trainings.length > 0) || hasStaticData,
+          requirements: level.requirements && level.requirements.length > 0
+            ? level.requirements
+            : level.requirementsSummary
+              ? [{ id: 1, name: level.requirementsSummary }]
+              : [],
+        }
+      })
     }
     program.value = data
   } catch (err) {
