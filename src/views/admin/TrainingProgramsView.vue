@@ -170,6 +170,7 @@ import StatsCards from '@/components/common/StatsCards.vue'
 import FilterPills from '@/components/common/FilterPills.vue'
 import FormDialog from '@/components/common/FormDialog.vue'
 import { ProgramCard } from '@/components/admin'
+import { programService } from '@/services'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -306,33 +307,8 @@ const truncateText = (text, length) => {
 const fetchPrograms = async () => {
   loading.value = true
   try {
-    // TODO: Reemplazar con llamada API real
-    programs.value = [
-      {
-        id: 1, name: 'Calistenia Master', slug: 'calistenia-master',
-        description: 'Programa completo de calistenia desde cero hasta nivel experto.',
-        discipline: 'calisthenics', totalLevels: 12, estimatedDurationWeeks: 144,
-        isActive: true, usersCount: 156,
-      },
-      {
-        id: 2, name: 'CrossFit Fundamentals', slug: 'crossfit-fundamentals',
-        description: 'Introducción al CrossFit con movimientos olímpicos y WODs progresivos.',
-        discipline: 'crossfit', totalLevels: 8, estimatedDurationWeeks: 96,
-        isActive: true, usersCount: 89,
-      },
-      {
-        id: 3, name: 'Powerlifting 101', slug: 'powerlifting-101',
-        description: 'Domina los tres levantamientos: squat, bench press y deadlift.',
-        discipline: 'powerlifting', totalLevels: 6, estimatedDurationWeeks: 72,
-        isActive: false, usersCount: 0,
-      },
-      {
-        id: 4, name: 'Fitness General', slug: 'fitness-general',
-        description: 'Entrenamiento funcional para mejorar la condición física general.',
-        discipline: 'fitness', totalLevels: 10, estimatedDurationWeeks: 120,
-        isActive: true, usersCount: 234,
-      },
-    ]
+    const data = await programService.getAll()
+    programs.value = Array.isArray(data) ? data : []
   } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar programas' })
   } finally {
@@ -340,7 +316,7 @@ const fetchPrograms = async () => {
   }
 }
 
-const viewProgram = (program) => router.push(`/admin/training-programs/${program.id}`)
+const viewProgram = (program) => router.push(`/admin/training-programs/${program.slug || program.id}`)
 const editProgram = (program) => router.push(`/admin/training-programs/${program.id}/edit`)
 
 const duplicateProgram = (program) => {

@@ -70,73 +70,99 @@
           <span class="session-goal__text">{{ weekData?.data?.[sessionKey]?.goal }}</span>
         </div>
 
-        <!-- Circuito info -->
-        <div v-if="weekData?.data?.[sessionKey]?.isCircuit" class="circuit-banner">
-          <div class="circuit-banner__main">
-            <q-icon name="repeat" size="18px" />
-            <strong>{{ weekData.data[sessionKey].circuitConfig?.rounds }} RONDAS</strong>
-          </div>
-          <div class="circuit-banner__rest">
-            <span class="rest-pill">
-              <q-icon name="timer" size="12px" />
-              {{ weekData.data[sessionKey].circuitConfig?.restBetweenExercises }} entre ejercicios
-            </span>
-            <span class="rest-pill">
-              <q-icon name="hourglass_top" size="12px" />
-              {{ weekData.data[sessionKey].circuitConfig?.restBetweenRounds }} entre rondas
-            </span>
-          </div>
-        </div>
+        <!-- Bloques de entrenamiento (multi-bloque o legacy single) -->
+        <div
+          v-for="(block, blockIdx) in (weekData?.data?.[sessionKey]?.blocks || [weekData?.data?.[sessionKey]])"
+          :key="blockIdx"
+          class="training-block">
 
-        <!-- Lista de ejercicios -->
-        <div class="exercises-list" :class="{ 'exercises-list--circuit': weekData?.data?.[sessionKey]?.isCircuit }">
-          <div
-            v-for="(ex, exIdx) in weekData?.data?.[sessionKey]?.exercises"
-            :key="exIdx"
-            class="exercise-item">
-
-            <div class="exercise-item__left">
-              <div class="exercise-number">{{ exIdx + 1 }}</div>
-              <div v-if="weekData?.data?.[sessionKey]?.isCircuit && exIdx < (weekData.data[sessionKey].exercises.length - 1)" class="circuit-connector">
-                <q-icon name="arrow_downward" size="14px" />
-              </div>
+          <!-- Nombre del bloque (solo si hay múltiples bloques) -->
+          <div v-if="weekData?.data?.[sessionKey]?.blocks?.length > 1" class="block-header">
+            <div class="block-header__bar"></div>
+            <span class="block-header__name">{{ block.name }}</span>
+            <div class="block-header__rounds">
+              <q-icon name="repeat" size="14px" />
+              {{ block.circuitConfig?.rounds }} rondas
             </div>
+          </div>
 
-            <div class="exercise-item__body">
-              <div class="exercise-main">
-                <div class="exercise-title">
-                  <span class="exercise-name">{{ ex.name }}</span>
-                  <span v-if="ex.id" class="exercise-id">#{{ ex.id }}</span>
+          <!-- Circuito info -->
+          <div v-if="block?.isCircuit" class="circuit-banner">
+            <div class="circuit-banner__main">
+              <q-icon name="repeat" size="18px" />
+              <strong>{{ block.circuitConfig?.rounds }} RONDAS</strong>
+            </div>
+            <div class="circuit-banner__rest">
+              <span class="rest-pill">
+                <q-icon name="timer" size="12px" />
+                {{ block.circuitConfig?.restBetweenExercises }} entre ejercicios
+              </span>
+              <span class="rest-pill">
+                <q-icon name="hourglass_top" size="12px" />
+                {{ block.circuitConfig?.restBetweenRounds }} entre rondas
+              </span>
+            </div>
+          </div>
+
+          <!-- Lista de ejercicios -->
+          <div class="exercises-list" :class="{ 'exercises-list--circuit': block?.isCircuit }">
+            <div
+              v-for="(ex, exIdx) in block?.exercises"
+              :key="`${blockIdx}-${exIdx}`"
+              class="exercise-item">
+
+              <div class="exercise-item__left">
+                <div class="exercise-number">{{ exIdx + 1 }}</div>
+                <div v-if="block?.isCircuit && exIdx < (block.exercises.length - 1)" class="circuit-connector">
+                  <q-icon name="arrow_downward" size="14px" />
                 </div>
-                <div class="exercise-badges">
-                  <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
-                    <q-icon
-                      v-for="n in (ex.difficulty || 1)"
-                      :key="n"
-                      name="local_fire_department"
-                      size="12px" />
+              </div>
+
+              <div class="exercise-item__body">
+                <div class="exercise-main">
+                  <div class="exercise-title">
+                    <span class="exercise-name">{{ ex.name }}</span>
+                    <span v-if="ex.id" class="exercise-id">#{{ ex.id }}</span>
+                  </div>
+                  <div class="exercise-badges">
+                    <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
+                      <q-icon
+                        v-for="n in (ex.difficulty || 1)"
+                        :key="n"
+                        name="local_fire_department"
+                        size="12px" />
+                    </span>
+                    <q-btn
+                      v-if="ex.videoSearch"
+                      flat
+                      round
+                      dense
+                      icon="play_circle"
+                      size="sm"
+                      class="video-btn"
+                      @click="searchVideo(ex.videoSearch)">
+                      <q-tooltip>Ver video</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
+                <div class="exercise-sub">
+                  <span class="exercise-reps">
+                    <span v-if="ex.sets && ex.sets > 1" class="exercise-sets">{{ ex.sets }} sets × </span>
+                    {{ ex.reps }}
                   </span>
-                  <q-btn
-                    v-if="ex.videoSearch"
-                    flat
-                    round
-                    dense
-                    icon="play_circle"
-                    size="sm"
-                    class="video-btn"
-                    @click="searchVideo(ex.videoSearch)">
-                    <q-tooltip>Ver video</q-tooltip>
-                  </q-btn>
+                  <span v-if="ex.notes" class="exercise-note">{{ ex.notes }}</span>
                 </div>
               </div>
-              <div class="exercise-sub">
-                <span class="exercise-reps">
-                  <span v-if="ex.sets && ex.sets > 1" class="exercise-sets">{{ ex.sets }} sets × </span>
-                  {{ ex.reps }}
-                </span>
-                <span v-if="ex.notes" class="exercise-note">{{ ex.notes }}</span>
-              </div>
             </div>
+          </div>
+
+          <!-- Separador entre bloques -->
+          <div
+            v-if="weekData?.data?.[sessionKey]?.blocks?.length > 1 && blockIdx < weekData.data[sessionKey].blocks.length - 1"
+            class="block-separator">
+            <q-icon name="pause" size="16px" />
+            <span>Descanso entre bloques</span>
+            <q-icon name="pause" size="16px" />
           </div>
         </div>
       </div>
@@ -611,6 +637,66 @@ const searchVideo = (query) => {
   font-size: 12px;
   color: #6e7681;
   line-height: 1.4;
+}
+
+/* ===== Bloques de entrenamiento ===== */
+.training-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 143, 56, 0.08);
+  border: 1px solid rgba(255, 143, 56, 0.15);
+  border-radius: 10px;
+}
+
+.block-header__bar {
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, #ff8f38, #ff6b6b);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.block-header__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ff8f38;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.block-header__rounds {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #b0b8c4;
+  font-weight: 500;
+}
+
+.block-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 0;
+  margin: 4px 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
 }
 
 /* Responsive tweaks */

@@ -45,8 +45,14 @@ const truncateText = (text, length) => {
 }
 
 const calculateDuration = computed(() => {
-  if (!props.training.exercises?.length) return 0
-  const totalSeconds = props.training.exercises.reduce((sum, ex) => {
+  const t = props.training
+  if (t.estimatedDurationMin != null && t.estimatedDurationMax != null) {
+    const min = Math.ceil(t.estimatedDurationMin / 60)
+    const max = Math.ceil(t.estimatedDurationMax / 60)
+    return min === max ? `${min}` : `${min}-${max}`
+  }
+  if (!t.exercises?.length) return 0
+  const totalSeconds = t.exercises.reduce((sum, ex) => {
     return sum + ((ex.sets || 3) * 45) + ((ex.rest || 60) * (ex.sets || 3))
   }, 0)
   return Math.round(totalSeconds / 60)

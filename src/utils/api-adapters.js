@@ -3,63 +3,61 @@
  * Maneja tanto circuitos como entrenamientos tradicionales (no-circuito).
  * Devuelve objeto { min, max } en minutos.
  */
-export function calculateWorkoutTime(session) {
-  if (!session || !session.exercises || !session.circuitConfig) {
+// Parsear tiempos de descanso (convertir "30s", "2 min" o "2 min 30s" a segundos)
+function parseTime(timeStr) {
+  if (!timeStr) return 0
+  let total = 0
+  const minMatch = String(timeStr).match(/(\d+)\s*min/)
+  const sMatch = String(timeStr).match(/(\d+)\s*s/)
+  if (minMatch) total += parseInt(minMatch[1]) * 60
+  if (sMatch) total += parseInt(sMatch[1])
+  return total
+}
+
+// Calcular tiempo por ejercicio basado en reps/tiempo
+function calculateExerciseTime(exercise) {
+  const reps = exercise.reps
+
+  // Si es tiempo (ej: "20-30s"), usar eso directamente
+  if (reps && reps.includes('s')) {
+    const timeMatch = reps.match(/(\d+)(?:-(\d+))?s/)
+    if (timeMatch) {
+      const min = parseInt(timeMatch[1])
+      const max = timeMatch[2] ? parseInt(timeMatch[2]) : min
+      return { min, max }
+    }
+  }
+
+  // Si es repeticiones (ej: "8-12"), estimar tiempo por rep
+  const repMatch = reps ? reps.match(/(\d+)(?:-(\d+))?/) : null
+  if (repMatch) {
+    const minReps = parseInt(repMatch[1])
+    const maxReps = repMatch[2] ? parseInt(repMatch[2]) : minReps
+
+    // Tiempo por repetición: 3-5 segundos (incluyendo transición)
+    return {
+      min: minReps * 3,
+      max: maxReps * 5,
+    }
+  }
+
+  return { min: 30, max: 45 }
+}
+
+function calculateBlockTime(block) {
+  const { exercises, circuitConfig, isCircuit } = block
+  if (!exercises || !exercises.length || !circuitConfig) {
     return { min: 0, max: 0 }
   }
 
-  const { exercises, circuitConfig, isCircuit } = session
   const { rounds, restBetweenRounds, restBetweenExercises } = circuitConfig
-
-  // Parsear tiempos de descanso (convertir "30s", "2 min" o "2 min 30s" a segundos)
-  const parseTime = (timeStr) => {
-    if (!timeStr) return 0
-    let total = 0
-    const minMatch = timeStr.match(/(\d+)\s*min/)
-    const sMatch = timeStr.match(/(\d+)\s*s/)
-    if (minMatch) total += parseInt(minMatch[1]) * 60
-    if (sMatch) total += parseInt(sMatch[1])
-    return total
-  }
-
   const restBetweenExercisesSec = parseTime(restBetweenExercises)
   const restBetweenRoundsSec = parseTime(restBetweenRounds)
-
-  // Calcular tiempo por ejercicio basado en reps/tiempo
-  const calculateExerciseTime = (exercise) => {
-    const reps = exercise.reps
-
-    // Si es tiempo (ej: "20-30s"), usar eso directamente
-    if (reps.includes('s')) {
-      const timeMatch = reps.match(/(\d+)(?:-(\d+))?s/)
-      if (timeMatch) {
-        const min = parseInt(timeMatch[1])
-        const max = timeMatch[2] ? parseInt(timeMatch[2]) : min
-        return { min, max }
-      }
-    }
-
-    // Si es repeticiones (ej: "8-12"), estimar tiempo por rep
-    const repMatch = reps.match(/(\d+)(?:-(\d+))?/)
-    if (repMatch) {
-      const minReps = parseInt(repMatch[1])
-      const maxReps = repMatch[2] ? parseInt(repMatch[2]) : minReps
-
-      // Tiempo por repetición: 3-5 segundos (incluyendo transición)
-      return {
-        min: minReps * 3,
-        max: maxReps * 5,
-      }
-    }
-
-    return { min: 30, max: 45 }
-  }
 
   let totalTimeMin = 0
   let totalTimeMax = 0
 
   if (isCircuit) {
-    // CIRCUITO: rounds × (suma ejercicios + descansos entre ejercicios) + descansos entre rounds
     let timePerRoundMin = 0
     let timePerRoundMax = 0
 
@@ -68,7 +66,6 @@ export function calculateWorkoutTime(session) {
       timePerRoundMin += exTime.min
       timePerRoundMax += exTime.max
 
-      // Añadir descanso entre ejercicios (excepto después del último)
       if (index < exercises.length - 1) {
         timePerRoundMin += restBetweenExercisesSec
         timePerRoundMax += restBetweenExercisesSec
@@ -79,14 +76,12 @@ export function calculateWorkoutTime(session) {
       totalTimeMin += timePerRoundMin
       totalTimeMax += timePerRoundMax
 
-      // Añadir descanso entre rondas (excepto después de la última)
       if (i < rounds - 1) {
         totalTimeMin += restBetweenRoundsSec
         totalTimeMax += restBetweenRoundsSec
       }
     }
   } else {
-    // NO CIRCUITO: cada ejercicio se hace N sets seguidos
     exercises.forEach((ex, index) => {
       const exTime = calculateExerciseTime(ex)
       const sets = ex.sets || 1
@@ -96,14 +91,12 @@ export function calculateWorkoutTime(session) {
         totalTimeMin += exTime.min
         totalTimeMax += exTime.max
 
-        // Descanso entre sets del mismo ejercicio
         if (i < sets - 1) {
           totalTimeMin += restBetweenSetsSec
           totalTimeMax += restBetweenSetsSec
         }
       }
 
-      // Descanso entre ejercicios (excepto después del último)
       if (index < exercises.length - 1) {
         totalTimeMin += restBetweenExercisesSec
         totalTimeMax += restBetweenExercisesSec
@@ -111,56 +104,95 @@ export function calculateWorkoutTime(session) {
     })
   }
 
-  // Convertir a minutos y redondear
+  return { min: totalTimeMin, max: totalTimeMax }
+}
+
+/**
+ * Calcula el tiempo total de un entrenamiento con múltiples bloques.
+ * @param {Object} session - Objeto con blocks[] o legacy {exercises, circuitConfig, isCircuit}
+ * @returns {Object} {min, max} en minutos
+ */
+export function calculateWorkoutTime(session) {
+  if (!session) return { min: 0, max: 0 }
+
+  // Soporte multi-bloque
+  if (session.blocks && session.blocks.length > 0) {
+    let totalMin = 0
+    let totalMax = 0
+    session.blocks.forEach((block) => {
+      const t = calculateBlockTime(block)
+      totalMin += t.min
+      totalMax += t.max
+    })
+    return {
+      min: Math.ceil(totalMin / 60),
+      max: Math.ceil(totalMax / 60),
+    }
+  }
+
+  // Fallback legacy: un solo bloque implícito
+  return calculateBlockTime(session)
+}
+
+function mapConfigToExercise(cfg, isCircuit, blockRounds) {
   return {
-    min: Math.ceil(totalTimeMin / 60),
-    max: Math.ceil(totalTimeMax / 60),
+    id: cfg.exercise?.id,
+    name: cfg.exercise?.name,
+    reps: cfg.reps ? String(cfg.reps) : cfg.maxTimeForReps ? `${cfg.maxTimeForReps}s` : '',
+    sets: isCircuit ? blockRounds : (cfg.setsForExercise ?? 1),
+    restBetweenSets: formatSeconds(cfg.restBetweenSets),
+    difficulty: cfg.exercise?.difficultyRating || 1,
+    notes: cfg.notes || '',
+    videoSearch: null,
+  }
+}
+
+function mapRoundToBlock(round, isCircuit, blockIndex) {
+  const configs = round?.trainingExerciseConfigurations || []
+  const blockRounds = round?.setsForRound ?? 1
+
+  const exercises = configs.map((cfg) => mapConfigToExercise(cfg, isCircuit, blockRounds))
+
+  const circuitConfig = {
+    rounds: blockRounds,
+    restBetweenRounds: formatSeconds(round?.restBetweenRounds),
+    restBetweenExercises: formatSeconds(
+      configs[0]?.restBetweenExercises || configs[0]?.restBetweenSets || 30
+    ),
+  }
+
+  return {
+    name: `Bloque ${blockIndex + 1}`,
+    isCircuit,
+    circuitConfig,
+    exercises,
   }
 }
 
 function mergeSession(apiSession) {
   // La API puede devolver trainingRounds como array u omitirlo por referencia circular
   const hasRounds = Array.isArray(apiSession.trainingRounds) && apiSession.trainingRounds.length > 0
-  const round = hasRounds ? apiSession.trainingRounds[0] : null
-  const configs = round?.trainingExerciseConfigurations || []
+  const rounds = hasRounds ? apiSession.trainingRounds : []
 
   // Fallback robusto: Symfony Serializer puede devolver 'circuit' en lugar de 'isCircuit'
   const isCircuit = apiSession.isCircuit ?? apiSession.circuit ?? (apiSession.rounds > 1 || hasRounds || false)
-  const totalRounds = round?.setsForRound ?? apiSession.rounds ?? 1
 
-  const exercises = configs.map((cfg) => {
-    return {
-      id: cfg.exercise?.id,
-      name: cfg.exercise?.name,
-      reps: cfg.reps ? String(cfg.reps) : cfg.maxTimeForReps ? `${cfg.maxTimeForReps}s` : '',
-      sets: isCircuit ? totalRounds : (cfg.setsForExercise ?? 1),
-      restBetweenSets: formatSeconds(cfg.restBetweenSets),
-      difficulty: cfg.exercise?.difficultyRating || 1,
-      notes: cfg.notes || '',
-      videoSearch: null,
-    }
-  })
+  // Construir bloques a partir de todas las rondas
+  const blocks = rounds.map((round, index) => mapRoundToBlock(round, isCircuit, index))
 
-  const circuitConfig = round
-    ? {
-        rounds: totalRounds,
-        restBetweenRounds: formatSeconds(round.restBetweenRounds),
-        restBetweenExercises: formatSeconds(
-          configs[0]?.restBetweenExercises || configs[0]?.restBetweenSets || 30
-        ),
-      }
-    : apiSession.rounds
-      ? {
-          rounds: apiSession.rounds,
-          restBetweenRounds: '2 min',
-          restBetweenExercises: '30s',
-        }
-      : null
+  // --- Compatibilidad legacy: mantener exercises/circuitConfig planos (primera ronda) ---
+  const firstBlock = blocks[0]
+  const legacyExercises = firstBlock?.exercises || []
+  const legacyCircuitConfig = firstBlock?.circuitConfig || null
 
-  // Calcular duracion automaticamente
+  // Usar duración calculada del backend si existe, si no calcular al vuelo
   let duration = ''
-  if (exercises.length > 0 && circuitConfig) {
-    const time = calculateWorkoutTime({ exercises, circuitConfig, isCircuit })
+  if (apiSession.estimatedDurationMin != null && apiSession.estimatedDurationMax != null) {
+    const minMin = Math.ceil(apiSession.estimatedDurationMin / 60)
+    const maxMin = Math.ceil(apiSession.estimatedDurationMax / 60)
+    duration = minMin === maxMin ? `${minMin} min` : `${minMin}-${maxMin} min`
+  } else if (blocks.length > 0) {
+    const time = calculateWorkoutTime({ blocks })
     if (time.min > 0) {
       duration = `${time.min}-${time.max} min`
     }
@@ -172,8 +204,9 @@ function mergeSession(apiSession) {
     muscleGroups: inferMuscleGroups(apiSession.dayKey),
     duration,
     isCircuit,
-    circuitConfig,
-    exercises,
+    circuitConfig: legacyCircuitConfig,
+    exercises: legacyExercises,
+    blocks: blocks.length > 1 ? blocks : undefined, // Solo exponer blocks si hay más de 1
   }
 }
 

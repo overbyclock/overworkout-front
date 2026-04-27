@@ -62,7 +62,7 @@
                 </div>
                 <div class="stat-item">
                   <q-icon name="timer" size="16px" />
-                  <span>{{ calculateDuration(training) }} min</span>
+                  <span>{{ formatDuration(training) }} min</span>
                 </div>
                 <div class="stat-item">
                   <q-icon name="local_fire_department" size="16px" />
@@ -115,7 +115,7 @@
               <p class="card-description">{{ truncateText(training.description, 60) }}</p>
               <div class="card-stats">
                 <span><q-icon name="fitness_center" size="14px" /> {{ training.exercises?.length || 0 }}</span>
-                <span><q-icon name="timer" size="14px" /> {{ calculateDuration(training) }}m</span>
+                <span><q-icon name="timer" size="14px" /> {{ formatDuration(training) }}m</span>
               </div>
               <div class="card-actions">
                 <q-btn flat dense label="Editar" color="primary" no-caps @click="editTraining(training)" />
@@ -367,6 +367,15 @@ const calculatePreviewDuration = computed(() => {
   }, 0)
   return Math.round(totalSeconds / 60)
 })
+
+const formatDuration = (training) => {
+  if (training.estimatedDurationMin != null && training.estimatedDurationMax != null) {
+    const min = Math.ceil(training.estimatedDurationMin / 60)
+    const max = Math.ceil(training.estimatedDurationMax / 60)
+    return min === max ? `${min}` : `${min}-${max}`
+  }
+  return calculateDuration(training)
+}
 
 // Methods
 const fetchData = async () => {

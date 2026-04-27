@@ -13,6 +13,11 @@ export const programService = {
     return response.data
   },
 
+  async getBySlug(slug) {
+    const response = await apiClient.get(`${BASE_URL}/by-slug/${slug}`)
+    return response.data
+  },
+
   async create(data) {
     const response = await apiClient.post(BASE_URL, data)
     return response.data

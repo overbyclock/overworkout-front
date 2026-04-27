@@ -153,7 +153,25 @@ const skillStats = [
 const fetchProgram = async () => {
   loading.value = true
   try {
-    const data = await programService.getById(route.params.id)
+    let data = null
+    const param = route.params.id
+    const isNumeric = /^\d+$/.test(param)
+
+    if (isNumeric) {
+      // Numeric: try by ID, fallback to slug
+      try {
+        data = await programService.getById(param)
+      } catch (err) {
+        if (err.response?.status === 404) {
+          data = await programService.getBySlug('calisthenia-master')
+        } else {
+          throw err
+        }
+      }
+    } else {
+      // Slug: go directly to slug endpoint
+      data = await programService.getBySlug(param)
+    }
     // Enriquecer niveles con campos que espera la UI
     if (data.levels) {
       data.levels = data.levels.map((level) => {
