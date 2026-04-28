@@ -161,7 +161,10 @@
             v-if="weekData?.data?.[sessionKey]?.blocks?.length > 1 && blockIdx < weekData.data[sessionKey].blocks.length - 1"
             class="block-separator">
             <q-icon name="pause" size="16px" />
-            <span>Descanso entre bloques</span>
+            <span>
+              Descanso entre bloques
+              <span v-if="block.restAfterBlock" class="block-rest-time">({{ block.restAfterBlock }})</span>
+            </span>
             <q-icon name="pause" size="16px" />
           </div>
         </div>
@@ -697,6 +700,12 @@ const searchVideo = (query) => {
   letter-spacing: 0.5px;
   border-top: 1px dashed rgba(255, 255, 255, 0.08);
   border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.block-rest-time {
+  color: #ff8f38;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 /* Responsive tweaks */

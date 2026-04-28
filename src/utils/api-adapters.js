@@ -166,6 +166,7 @@ function mapRoundToBlock(round, isCircuit, blockIndex) {
     isCircuit,
     circuitConfig,
     exercises,
+    restAfterBlock: round?.restAfterBlock ? formatSeconds(round.restAfterBlock) : null,
   }
 }
 
