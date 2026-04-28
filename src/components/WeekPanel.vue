@@ -14,23 +14,23 @@
       </q-badge>
     </div>
 
-    <q-banner v-if="weekNum === 0" class="info-banner info-banner--amber" dense rounded>
+    <q-banner v-if="weekNum === 0 && weekData?.info?.note" class="info-banner info-banner--amber" dense rounded>
       <template #avatar>
         <q-icon name="info" color="amber" />
       </template>
-      {{ weekData?.info?.note }}
+      {{ weekData.info.note }}
     </q-banner>
-    <q-banner v-else-if="weekNum === 2" class="info-banner info-banner--blue" dense rounded>
+    <q-banner v-else-if="weekNum === 2 && weekData?.info?.note" class="info-banner info-banner--blue" dense rounded>
       <template #avatar>
         <q-icon name="trending_up" color="blue" />
       </template>
-      {{ weekData?.info?.note }}
+      {{ weekData.info.note }}
     </q-banner>
-    <q-banner v-else-if="weekNum === 3 || weekNum === 4" class="info-banner info-banner--red" dense rounded>
+    <q-banner v-else-if="(weekNum === 3 || weekNum === 4) && weekData?.info?.note" class="info-banner info-banner--red" dense rounded>
       <template #avatar>
         <q-icon name="local_fire_department" color="red" />
       </template>
-      {{ weekData?.info?.note }}
+      {{ weekData.info.note }}
     </q-banner>
 
     <!-- Grid de sesiones -->

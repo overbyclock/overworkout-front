@@ -42,7 +42,7 @@
       </q-tab-panels>
     </div>
 
-    <div class="tips-compact">
+    <div v-if="levelData.tips?.length > 0" class="tips-compact">
       <h5>💡 Consejos</h5>
       <ul>
         <li v-for="(tip, idx) in levelData.tips" :key="idx">{{ tip }}</li>
