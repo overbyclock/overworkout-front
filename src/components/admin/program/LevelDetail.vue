@@ -4,22 +4,30 @@
       <div class="training-title-row">
         <h3>{{ levelData.name }}</h3>
         <div class="training-badges">
-          <q-badge color="primary">{{ levelData.durationWeeks }} semanas</q-badge>
-          <q-badge color="secondary">{{ levelData.sessionsPerWeek }} sesiones/semana</q-badge>
+          <q-badge v-if="levelData.programVersion" :color="levelData.programVersion === 'v2' ? 'green' : 'grey'" outline>
+            v{{ levelData.programVersion }}
+          </q-badge>
+          <q-badge v-if="levelData.programVersion === 'v3'" color="primary">4 fases</q-badge>
+          <q-badge v-else color="primary">{{ levelData.durationWeeks }} semanas</q-badge>
+          <q-badge color="secondary">{{ levelData.sessionsPerWeek }} sesiones</q-badge>
           <q-badge color="accent">{{ levelData.difficulty }}</q-badge>
+          <q-badge v-if="levelData.skillFocus" color="orange" class="skill-focus-badge">
+            <q-icon name="stars" size="12px" class="q-mr-xs" />
+            {{ levelData.skillFocus }}
+          </q-badge>
         </div>
       </div>
       <p class="training-desc">{{ levelData.description }}</p>
     </div>
 
-    <div class="weeks-container">
-      <q-tabs v-model="selectedWeek" dense dark class="week-tabs-compact">
+    <div class="phases-container">
+      <q-tabs v-model="selectedPhase" dense dark class="phase-tabs-compact">
         <q-tab v-for="weekNum in availableWeeks" :key="weekNum" :name="`week${weekNum}`"
-          :label="weekNum === 0 ? 'SEMANA 0' : `SEMANA ${weekNum}`" />
+          :label="getPhaseLabel(weekNum)" />
         <q-tab v-if="levelData.testWeek" :name="`week${levelData.durationWeeks - 1}`" label="TESTS" />
       </q-tabs>
 
-      <q-tab-panels v-model="selectedWeek" dark animated class="week-panels-compact">
+      <q-tab-panels v-model="selectedPhase" dark animated class="phase-panels-compact">
         <q-tab-panel v-for="weekNum in availableWeeks" :key="weekNum" :name="`week${weekNum}`">
           <WeekPanel :week-data="getWeekData(weekNum)" :week-num="weekNum" :level-num="level.levelNumber" />
         </q-tab-panel>
@@ -60,13 +68,20 @@ const props = defineProps({
   levelData: { type: Object, default: null }
 })
 
-const selectedWeek = ref('week0')
+const selectedPhase = ref('week0')
 
 const availableWeeks = computed(() => {
   if (!props.levelData?.weeks) return []
   const weekNums = Object.keys(props.levelData.weeks).map(Number)
   return weekNums.sort((a, b) => a - b)
 })
+
+const getPhaseLabel = (weekNum) => {
+  const info = props.levelData.trainingWeeks?.find(w => w.week === weekNum)
+  if (info?.name) return info.name
+  const phaseNames = ['Base', 'Progresión', 'Intensificación', 'Recuperación']
+  return phaseNames[weekNum] || `Fase ${weekNum + 1}`
+}
 
 const getWeekData = (weekNum) => {
   if (!props.levelData) return null
@@ -113,7 +128,7 @@ const getWeekData = (weekNum) => {
   line-height: 1.6;
 }
 
-.weeks-container {
+.phases-container {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 16px;
   overflow: hidden;
@@ -121,13 +136,13 @@ const getWeekData = (weekNum) => {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Estilos custom para las tabs de semanas */
-.week-tabs-compact :deep(.q-tabs__content) {
+/* Estilos custom para las tabs de fases */
+.phase-tabs-compact :deep(.q-tabs__content) {
   gap: 6px;
   padding: 8px;
 }
 
-.week-tabs-compact :deep(.q-tab) {
+.phase-tabs-compact :deep(.q-tab) {
   min-height: 36px;
   padding: 6px 16px;
   border-radius: 10px;
@@ -139,32 +154,32 @@ const getWeekData = (weekNum) => {
   transition: all 0.2s ease;
 }
 
-.week-tabs-compact :deep(.q-tab:hover) {
+.phase-tabs-compact :deep(.q-tab:hover) {
   background: rgba(255, 255, 255, 0.04);
   color: #c9d1d9;
 }
 
-.week-tabs-compact :deep(.q-tab--active) {
+.phase-tabs-compact :deep(.q-tab--active) {
   background: linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%);
   color: #fff;
   box-shadow: 0 4px 14px rgba(255, 143, 56, 0.3);
 }
 
-.week-tabs-compact :deep(.q-tab__indicator) {
+.phase-tabs-compact :deep(.q-tab__indicator) {
   display: none;
 }
 
-.week-tabs-compact :deep(.q-tab__content) {
+.phase-tabs-compact :deep(.q-tab__content) {
   min-width: auto;
 }
 
-/* Paneles de semana */
-.week-panels-compact :deep(.q-tab-panel) {
+/* Paneles de fase */
+.phase-panels-compact :deep(.q-tab-panel) {
   padding: 24px;
 }
 
 @media (max-width: 768px) {
-  .week-panels-compact :deep(.q-tab-panel) {
+  .phase-panels-compact :deep(.q-tab-panel) {
     padding: 16px;
   }
 }

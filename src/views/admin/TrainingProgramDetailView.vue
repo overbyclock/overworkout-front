@@ -9,8 +9,32 @@
       <ProgramHeader :program="program" :gradient="programGradient" :icon="programIcon" @back="goBack"
         @edit="editProgram" @duplicate="duplicateProgram" @toggle-active="toggleActive" @delete="deleteProgram" />
 
+      <!-- Selector de versión para Calistenia Master -->
+      <div v-if="hasVersionSelector" class="version-selector-bar">
+        <q-btn-toggle
+          v-model="currentVersion"
+          :options="versionOptions"
+          color="dark"
+          text-color="grey-5"
+          toggle-color="primary"
+          toggle-text-color="dark"
+          rounded
+          unelevated
+          dense
+          spread
+          @update:model-value="switchVersion"
+        />
+      </div>
+
       <div class="page-content">
         <ProgramStats :stats="statsList" />
+
+        <!-- Skill Tracker Roadmap (solo para programas con skills definidos) -->
+        <SkillTracker
+          v-if="program?.levels?.some(l => l.skillFocus)"
+          :levels="program.levels"
+          :current-level="currentUserLevel"
+        />
 
         <div class="tabs-container">
           <div class="tabs-header">
@@ -56,7 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import {
   ProgramHeader, ProgramStats, LevelsTab, UsersTab,
-  SkillsTab, AchievementsTab, AnalyticsTab
+  SkillsTab, AchievementsTab, AnalyticsTab, SkillTracker
 } from '@/components/admin'
 import LevelDetail from '@/components/admin/program/LevelDetail.vue'
 import { programService } from '@/services'
@@ -69,6 +93,42 @@ const router = useRouter()
 const loading = ref(true)
 const program = ref(null)
 const activeTab = ref('levels')
+
+// Nivel actual del usuario (mock - en producción vendría del store de usuario)
+const currentUserLevel = computed(() => {
+  // Por defecto mostramos el nivel 1 como actual
+  // En una implementación real, esto vendría del progreso del usuario
+  return 1
+})
+
+// Selector de versión para Calistenia Master
+const isCalisteniaMaster = computed(() => {
+  const slug = program.value?.slug || ''
+  return slug === 'calisthenia-master' || slug === 'calisthenia-master-v2'
+})
+
+const currentVersion = computed(() => {
+  const slug = program.value?.slug || ''
+  return slug === 'calisthenia-master-v2' ? 'v2' : 'v1'
+})
+
+const hasVersionSelector = computed(() => isCalisteniaMaster.value)
+
+const versionOptions = [
+  { label: 'Versión 1.0', value: 'v1' },
+  { label: 'Versión 2.0', value: 'v2' }
+]
+
+const switchVersion = (version) => {
+  const targetSlug = version === 'v2' ? 'calisthenia-master-v2' : 'calisthenia-master'
+  if (targetSlug !== program.value?.slug) {
+    router.push(`/admin/training-programs/${targetSlug}`)
+    // Recargar la página para obtener el nuevo programa
+    setTimeout(() => {
+      window.location.reload()
+    }, 100)
+  }
+}
 
 const getLevelData = (levelNumber) => {
   const apiLevel = program.value?.levels?.find((l) => l.levelNumber === levelNumber)
@@ -237,6 +297,15 @@ onMounted(fetchProgram)
   min-height: 60vh;
   gap: 16px;
   color: #8b949e;
+}
+
+.version-selector-bar {
+  max-width: 400px;
+  margin: 0 auto 24px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tabs-container {

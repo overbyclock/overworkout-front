@@ -18,7 +18,12 @@
       </div>
 
       <div class="card-body" @click="$emit('view')">
-        <h3 class="program-name">{{ program.name }}</h3>
+        <h3 class="program-name">
+          {{ program.name }}
+          <q-badge v-if="versionBadge" :color="versionBadge.color" class="version-badge" outline dense>
+            {{ versionBadge.label }}
+          </q-badge>
+        </h3>
         <p class="program-description">{{ truncateText(program.description, 100) }}</p>
 
         <div class="program-meta">
@@ -26,9 +31,13 @@
             <q-icon name="stairs" size="14px" />
             {{ program.totalLevels }} niveles
           </span>
-          <span class="meta-item">
+          <span v-if="!isV3" class="meta-item">
             <q-icon name="schedule" size="14px" />
             {{ program.estimatedDurationWeeks }} semanas
+          </span>
+          <span v-else class="meta-item">
+            <q-icon name="schedule" size="14px" />
+            Ciclos ilimitados
           </span>
         </div>
       </div>
@@ -77,6 +86,24 @@ const disciplineGradients = {
 
 const disciplineIcon = computed(() => disciplineIcons[props.program.discipline] || '🎯')
 const gradient = computed(() => disciplineGradients[props.program.discipline] || disciplineGradients.fitness)
+
+const versionBadge = computed(() => {
+  const slug = props.program.slug || ''
+  const name = props.program.name || ''
+  if (slug.endsWith('-v2') || name.includes('v2')) {
+    return { label: 'v2', color: 'green' }
+  }
+  if (slug === 'calisthenia-master') {
+    return { label: 'v1', color: 'grey' }
+  }
+  return null
+})
+
+const isV3 = computed(() => {
+  const slug = props.program.slug || ''
+  const name = props.program.name || ''
+  return slug.endsWith('-v3') || name.includes('v3')
+})
 
 const truncateText = (text, length) => {
   if (!text) return ''
@@ -160,6 +187,13 @@ const truncateText = (text, length) => {
   color: #ffffff;
   margin: 0 0 8px 0;
   line-height: 1.3;
+}
+
+.version-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .program-description {

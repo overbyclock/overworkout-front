@@ -1,6 +1,6 @@
 <template>
   <div class="week-panel">
-    <!-- Encabezado de la semana -->
+    <!-- Encabezado de la fase -->
     <div class="week-hero">
       <div class="week-hero__icon">{{ weekIcon }}</div>
       <div class="week-hero__text">
@@ -52,6 +52,14 @@
                 {{ weekData?.data?.[sessionKey]?.duration }}
               </span>
               <span class="meta-divider">•</span>
+              <q-badge
+                v-if="weekData?.data?.[sessionKey]?.sessionType"
+                :color="sessionTypeColor(weekData.data[sessionKey].sessionType)"
+                class="session-type-badge"
+                outline>
+                {{ sessionTypeLabel(weekData.data[sessionKey].sessionType) }}
+              </q-badge>
+              <span class="meta-divider" v-if="weekData?.data?.[sessionKey]?.sessionType && weekData?.data?.[sessionKey]?.muscleGroups?.length">•</span>
               <div class="muscle-tags">
                 <span
                   v-for="mg in weekData?.data?.[sessionKey]?.muscleGroups"
@@ -70,111 +78,50 @@
           <span class="session-goal__text">{{ weekData?.data?.[sessionKey]?.goal }}</span>
         </div>
 
-        <!-- Bloques de entrenamiento (multi-bloque o legacy single) -->
-        <div
-          v-for="(block, blockIdx) in (weekData?.data?.[sessionKey]?.blocks || [weekData?.data?.[sessionKey]])"
-          :key="blockIdx"
-          class="training-block">
+        <!-- Bloques de entrenamiento: tabs si hay múltiples, directo si es uno -->
+        <template v-if="hasMultipleBlocks(sessionKey)">
+          <q-tabs
+            :model-value="blockTabs[sessionKey]"
+            @update:model-value="(val) => blockTabs[sessionKey] = val"
+            dense
+            dark
+            class="block-tabs"
+            align="left"
+            narrow-indicator>
+            <q-tab
+              v-for="(block, blockIdx) in weekData?.data?.[sessionKey]?.blocks"
+              :key="blockIdx"
+              :name="`block-${sessionKey}-${blockIdx}`"
+              :label="block.name" />
+          </q-tabs>
 
-          <!-- Nombre del bloque (solo si hay múltiples bloques) -->
-          <div v-if="weekData?.data?.[sessionKey]?.blocks?.length > 1" class="block-header">
-            <div class="block-header__bar"></div>
-            <span class="block-header__name">{{ block.name }}</span>
-            <div class="block-header__rounds">
-              <q-icon name="repeat" size="14px" />
-              {{ block.circuitConfig?.rounds }} rondas
-            </div>
-          </div>
+          <q-tab-panels
+            :model-value="blockTabs[sessionKey]"
+            @update:model-value="(val) => blockTabs[sessionKey] = val"
+            dark
+            animated
+            class="block-panels">
+            <q-tab-panel
+              v-for="(block, blockIdx) in weekData?.data?.[sessionKey]?.blocks"
+              :key="blockIdx"
+              :name="`block-${sessionKey}-${blockIdx}`"
+              class="q-pa-none">
+              <SessionBlock :block="block" />
+            </q-tab-panel>
+          </q-tab-panels>
+        </template>
 
-          <!-- Circuito info -->
-          <div v-if="block?.isCircuit" class="circuit-banner">
-            <div class="circuit-banner__main">
-              <q-icon name="repeat" size="18px" />
-              <strong>{{ block.circuitConfig?.rounds }} RONDAS</strong>
-            </div>
-            <div class="circuit-banner__rest">
-              <span class="rest-pill">
-                <q-icon name="timer" size="12px" />
-                {{ block.circuitConfig?.restBetweenExercises }} entre ejercicios
-              </span>
-              <span class="rest-pill">
-                <q-icon name="hourglass_top" size="12px" />
-                {{ block.circuitConfig?.restBetweenRounds }} entre rondas
-              </span>
-            </div>
-          </div>
-
-          <!-- Lista de ejercicios -->
-          <div class="exercises-list" :class="{ 'exercises-list--circuit': block?.isCircuit }">
-            <div
-              v-for="(ex, exIdx) in block?.exercises"
-              :key="`${blockIdx}-${exIdx}`"
-              class="exercise-item">
-
-              <div class="exercise-item__left">
-                <div class="exercise-number">{{ exIdx + 1 }}</div>
-                <div v-if="block?.isCircuit && exIdx < (block.exercises.length - 1)" class="circuit-connector">
-                  <q-icon name="arrow_downward" size="14px" />
-                </div>
-              </div>
-
-              <div class="exercise-item__body">
-                <div class="exercise-main">
-                  <div class="exercise-title">
-                    <span class="exercise-name">{{ ex.name }}</span>
-                    <span v-if="ex.id" class="exercise-id">#{{ ex.id }}</span>
-                  </div>
-                  <div class="exercise-badges">
-                    <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
-                      <q-icon
-                        v-for="n in (ex.difficulty || 1)"
-                        :key="n"
-                        name="local_fire_department"
-                        size="12px" />
-                    </span>
-                    <q-btn
-                      v-if="ex.videoSearch"
-                      flat
-                      round
-                      dense
-                      icon="play_circle"
-                      size="sm"
-                      class="video-btn"
-                      @click="searchVideo(ex.videoSearch)">
-                      <q-tooltip>Ver video</q-tooltip>
-                    </q-btn>
-                  </div>
-                </div>
-                <div class="exercise-sub">
-                  <span class="exercise-reps">
-                    <span v-if="ex.sets && ex.sets > 1" class="exercise-sets">{{ ex.sets }} sets × </span>
-                    {{ ex.reps }}
-                  </span>
-                  <span v-if="ex.notes" class="exercise-note">{{ ex.notes }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Separador entre bloques -->
-          <div
-            v-if="weekData?.data?.[sessionKey]?.blocks?.length > 1 && blockIdx < weekData.data[sessionKey].blocks.length - 1"
-            class="block-separator">
-            <q-icon name="pause" size="16px" />
-            <span>
-              Descanso entre bloques
-              <span v-if="block.restAfterBlock" class="block-rest-time">({{ block.restAfterBlock }})</span>
-            </span>
-            <q-icon name="pause" size="16px" />
-          </div>
-        </div>
+        <template v-else>
+          <SessionBlock :block="weekData?.data?.[sessionKey]?.blocks?.[0] || weekData?.data?.[sessionKey]" />
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import SessionBlock from '@/components/admin/program/SessionBlock.vue'
 
 const props = defineProps({
   weekData: Object,
@@ -182,7 +129,37 @@ const props = defineProps({
   levelNum: Number
 })
 
-const sessionKeys = ['day1_push', 'day2_pull', 'day3_legs', 'day4_core']
+const blockTabs = ref({})
+
+const hasMultipleBlocks = (sessionKey) => {
+  return (props.weekData?.data?.[sessionKey]?.blocks?.length || 0) > 1
+}
+
+watch(() => props.weekData, (newData) => {
+  if (!newData?.data) return
+  const tabs = {}
+  Object.keys(newData.data).forEach(key => {
+    const blocks = newData.data[key]?.blocks
+    if (blocks && blocks.length > 1) {
+      tabs[key] = `block-${key}-0`
+    }
+  })
+  blockTabs.value = tabs
+}, { immediate: true })
+
+const sessionKeys = computed(() => {
+  // Detectar automáticamente las session keys disponibles en los datos
+  // Soporta tanto v1 (day1_push, day2_pull...) como v2 (day1_strength, day2_strength...)
+  const data = props.weekData?.data || {}
+  const keys = Object.keys(data)
+  if (keys.length === 0) return ['day1_push', 'day2_pull', 'day3_legs', 'day4_core']
+  // Ordenar para mantener consistencia: day1, day2, day3, day4
+  return keys.sort((a, b) => {
+    const numA = parseInt(a.match(/\d+/)?.[0] || 0)
+    const numB = parseInt(b.match(/\d+/)?.[0] || 0)
+    return numA - numB
+  })
+})
 
 const weekIcon = computed(() => {
   if (props.weekNum === 0) return '🌱'
@@ -196,21 +173,40 @@ const sessionTheme = (key) => {
   if (key.includes('push')) return 'push'
   if (key.includes('pull')) return 'pull'
   if (key.includes('legs')) return 'legs'
+  if (key.includes('core')) return 'core'
+  // v2 day keys
+  if (key === 'day1_strength') return 'push'
+  if (key === 'day2_strength') return 'pull'
+  if (key === 'day3_circuit') return 'legs'
+  if (key === 'day4_circuit') return 'core'
   return 'core'
+}
+
+const sessionTypeLabel = (type) => {
+  if (type === 'strength') return 'FUERZA/SKILL'
+  if (type === 'circuit') return 'CIRCUITO'
+  return type
+}
+
+const sessionTypeColor = (type) => {
+  if (type === 'strength') return 'orange'
+  if (type === 'circuit') return 'green'
+  return 'grey'
 }
 
 const sessionIcon = (key) => {
   if (key.includes('push')) return '💪'
   if (key.includes('pull')) return '🏋️'
   if (key.includes('legs')) return '🦵'
-  return '🧘'
+  if (key.includes('core')) return '🧘'
+  // v2 day keys
+  if (key === 'day1_strength') return '💪'
+  if (key === 'day2_strength') return '🏋️'
+  if (key === 'day3_circuit') return '🦵'
+  if (key === 'day4_circuit') return '🧘'
+  return '🎯'
 }
 
-const searchVideo = (query) => {
-  if (!query) return
-  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
-  window.open(url, '_blank')
-}
 </script>
 
 <style scoped>
@@ -484,6 +480,24 @@ const searchVideo = (query) => {
   flex-wrap: wrap;
 }
 
+.strength-banner {
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px dashed rgba(96, 165, 250, 0.25);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.strength-banner__rest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .rest-pill {
   display: inline-flex;
   align-items: center;
@@ -642,6 +656,18 @@ const searchVideo = (query) => {
   line-height: 1.4;
 }
 
+.exercise-rest {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
 /* ===== Bloques de entrenamiento ===== */
 .training-block {
   display: flex;
@@ -708,6 +734,51 @@ const searchVideo = (query) => {
   margin-left: 4px;
 }
 
+/* ===== Tabs de rondas ===== */
+.block-tabs :deep(.q-tabs__content) {
+  gap: 6px;
+  padding: 4px;
+}
+
+.block-tabs :deep(.q-tab) {
+  min-height: 32px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  color: #8b949e;
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.block-tabs :deep(.q-tab:hover) {
+  background: rgba(255, 255, 255, 0.04);
+  color: #c9d1d9;
+}
+
+.block-tabs :deep(.q-tab--active) {
+  background: linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 143, 56, 0.3);
+}
+
+.block-tabs :deep(.q-tab__indicator) {
+  display: none;
+}
+
+.block-tabs :deep(.q-tab__content) {
+  min-width: auto;
+}
+
+.block-panels {
+  background: transparent;
+}
+
+.block-panels :deep(.q-tab-panel) {
+  padding: 16px 4px 4px;
+}
+
 /* Responsive tweaks */
 @media (max-width: 480px) {
   .session-card {
@@ -718,16 +789,6 @@ const searchVideo = (query) => {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-  }
-
-  .circuit-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .exercise-main {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 </style>

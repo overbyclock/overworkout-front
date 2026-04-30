@@ -5,14 +5,20 @@
       <div class="header-content">
         <div class="program-icon">{{ icon }}</div>
         <div class="program-info">
-          <h1 class="program-title">{{ program.name }}</h1>
+          <h1 class="program-title">
+            {{ program.name }}
+            <q-badge v-if="programVersionBadge" :color="programVersionBadge.color" class="version-badge" outline>
+              {{ programVersionBadge.label }}
+            </q-badge>
+          </h1>
           <p class="program-subtitle">{{ program.description }}</p>
           <div class="program-badges">
             <q-badge :color="program.isActive ? 'positive' : 'grey'" class="q-mr-sm">
               {{ program.isActive ? 'Activo' : 'Inactivo' }}
             </q-badge>
             <q-badge color="primary" class="q-mr-sm">{{ program.totalLevels }} niveles</q-badge>
-            <q-badge color="grey-7">~{{ program.estimatedDurationWeeks }} semanas</q-badge>
+            <q-badge v-if="!isV3" color="grey-7">~{{ program.estimatedDurationWeeks }} semanas</q-badge>
+            <q-badge v-else color="grey-7">Ciclos ilimitados</q-badge>
           </div>
         </div>
         <div class="header-actions">
@@ -45,13 +51,33 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   program: { type: Object, required: true },
   gradient: { type: String, default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
   icon: { type: String, default: '🎯' }
 })
 
 defineEmits(['back', 'edit', 'duplicate', 'toggle-active', 'delete'])
+
+const programVersionBadge = computed(() => {
+  const slug = props.program.slug || ''
+  const name = props.program.name || ''
+  if (slug.endsWith('-v2') || name.includes('v2')) {
+    return { label: 'v2.0', color: 'green' }
+  }
+  if (slug === 'calisthenia-master' || name.includes('Master')) {
+    return { label: 'v1.0', color: 'grey' }
+  }
+  return null
+})
+
+const isV3 = computed(() => {
+  const slug = props.program.slug || ''
+  const name = props.program.name || ''
+  return slug.endsWith('-v3') || name.includes('v3')
+})
 </script>
 
 <style scoped>
@@ -111,6 +137,15 @@ defineEmits(['back', 'edit', 'duplicate', 'toggle-active', 'delete'])
 .program-badges {
   display: flex;
   gap: 8px;
+}
+
+.version-badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin-left: 12px;
+  vertical-align: middle;
 }
 
 .header-actions {

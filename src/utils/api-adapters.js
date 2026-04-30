@@ -162,7 +162,7 @@ function mapRoundToBlock(round, isCircuit, blockIndex) {
   }
 
   return {
-    name: `Bloque ${blockIndex + 1}`,
+    name: `Ronda ${blockIndex + 1}`,
     isCircuit,
     circuitConfig,
     exercises,
@@ -201,10 +201,11 @@ function mergeSession(apiSession) {
 
   return {
     name: apiSession.name,
-    goal: inferGoal(apiSession.dayKey),
+    goal: inferGoal(apiSession.dayKey, apiSession.sessionType),
     muscleGroups: inferMuscleGroups(apiSession.dayKey),
     duration,
     isCircuit,
+    sessionType: apiSession.sessionType || (isCircuit ? 'circuit' : 'strength'),
     circuitConfig: legacyCircuitConfig,
     exercises: legacyExercises,
     blocks: blocks.length > 1 ? blocks : undefined, // Solo exponer blocks si hay más de 1
@@ -218,10 +219,6 @@ function mergeSession(apiSession) {
 export function adaptApiLevelToLegacy(apiLevel) {
   const apiTrainings = apiLevel.trainings || []
 
-  if (!apiTrainings.length) {
-    return null
-  }
-
   const weeks = {}
 
   apiTrainings.forEach((t) => {
@@ -234,9 +231,11 @@ export function adaptApiLevelToLegacy(apiLevel) {
   const maxWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0
   const durationWeeks = maxWeek > 0 ? maxWeek + 2 : apiLevel.estimatedDurationWeeks || 5
 
-  // Construir testWeek desde requirements de la API
+  // Construir testWeek desde testRequirements (v2) o requirements legacy
   let testWeek = null
-  if (apiLevel.requirements && apiLevel.requirements.length > 0) {
+  if (apiLevel.testRequirements && apiLevel.testRequirements.length > 0) {
+    testWeek = buildTestWeekFromTestRequirements(apiLevel.testRequirements, apiLevel.name, apiLevel.levelNumber, durationWeeks)
+  } else if (apiLevel.requirements && apiLevel.requirements.length > 0) {
     testWeek = buildTestWeekFromRequirements(apiLevel.requirements, apiLevel.name, apiLevel.levelNumber, durationWeeks)
   }
 
@@ -246,7 +245,7 @@ export function adaptApiLevelToLegacy(apiLevel) {
     const info = apiWeekInfos.find((i) => i.weekNumber === w)
     return {
       week: w,
-      name: info?.name || `Semana ${w}`,
+      name: info?.name || '',
       focus: info?.focus || '',
       note: info?.note || '',
       intensity: info?.intensity || `${Math.min(50 + w * 15, 100)}%`,
@@ -264,6 +263,33 @@ export function adaptApiLevelToLegacy(apiLevel) {
     progression: {},
     testWeek,
     tips: apiLevel.tips || [],
+    skillFocus: apiLevel.skillFocus || null,
+    programVersion: apiLevel.programVersion || 'v1',
+    cyclesCompleted: apiLevel.cyclesCompleted || 0,
+  }
+}
+
+function buildTestWeekFromTestRequirements(requirements, levelName, levelNumber, durationWeeks) {
+  const mapped = requirements.map((req) => ({
+    name: req.name || 'Requisito',
+    minimum: req.minimum ?? 0,
+    target: req.target ?? req.minimum ?? 0,
+    unit: req.unit || '',
+    form: req.form || '',
+  }))
+
+  return {
+    week: durationWeeks - 1,
+    name: `Tests de ${levelName || 'Nivel ' + levelNumber}`,
+    description: `Evalua si estas listo para el siguiente nivel`,
+    preparation: [
+      { session: '2-3 dias antes', activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'] }
+    ],
+    tests: {
+      name: `TESTS NIVEL ${levelNumber}`,
+      description: `Debes superar al menos ${Math.max(1, Math.ceil(mapped.length * 0.75))} de ${mapped.length} tests para avanzar al siguiente nivel`,
+      requirements: mapped,
+    },
   }
 }
 
@@ -288,7 +314,7 @@ function buildTestWeekFromRequirements(requirements, levelName, levelNumber, dur
 
   return {
     week: durationWeeks - 1,
-    name: `Semana ${durationWeeks - 1}: Tests de ${levelName || 'Nivel ' + levelNumber}`,
+    name: `Tests de ${levelName || 'Nivel ' + levelNumber}`,
     description: `Evalua si estas listo para el siguiente nivel`,
     preparation: [
       { session: '2-3 dias antes', activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'] }
@@ -310,7 +336,17 @@ function inferMuscleGroups(dayKey) {
   return []
 }
 
-function inferGoal(dayKey) {
+function inferGoal(dayKey, sessionType) {
+  if (sessionType === 'strength') {
+    if (dayKey.includes('push') || dayKey === 'day1_strength') return 'Fuerza/Skill Push'
+    if (dayKey.includes('pull') || dayKey === 'day2_strength') return 'Fuerza/Skill Pull'
+    return 'Fuerza/Skills'
+  }
+  if (sessionType === 'circuit') {
+    if (dayKey.includes('legs') || dayKey === 'day3_circuit') return 'Piernas + Prehab'
+    if (dayKey.includes('core') || dayKey === 'day4_circuit') return 'Core + Conditioning'
+    return 'Circuito/Condición'
+  }
   if (!dayKey) return 'Entrenamiento'
   if (dayKey.includes('push')) return 'Desarrollar empuje'
   if (dayKey.includes('pull')) return 'Desarrollar tracción'

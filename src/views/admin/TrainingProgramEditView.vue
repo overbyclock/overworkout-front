@@ -20,7 +20,7 @@
             <q-select v-model="form.discipline" :options="disciplineOptions" label="Disciplina" outlined dark />
             <q-input v-model="form.description" label="Descripción" type="textarea" outlined dark class="col-span-2" rows="4" />
             <q-input v-model.number="form.totalLevels" label="Número total de niveles" type="number" outlined dark />
-            <q-input v-model.number="form.estimatedDurationWeeks" label="Duración estimada (semanas)" type="number" outlined dark />
+            <q-input v-model.number="form.estimatedDurationWeeks" label="Duración estimada (fases)" type="number" outlined dark />
             
             <!-- Selector de Color -->
             <div class="color-picker-wrapper">
