@@ -7,7 +7,12 @@
         <div class="program-info">
           <h1 class="program-title">
             {{ program.name }}
-            <q-badge v-if="programVersionBadge" :color="programVersionBadge.color" class="version-badge" outline>
+            <q-badge
+              v-if="programVersionBadge"
+              :color="programVersionBadge.color"
+              class="version-badge"
+              outline
+            >
               {{ programVersionBadge.label }}
             </q-badge>
           </h1>
@@ -17,7 +22,9 @@
               {{ program.isActive ? 'Activo' : 'Inactivo' }}
             </q-badge>
             <q-badge color="primary" class="q-mr-sm">{{ program.totalLevels }} niveles</q-badge>
-            <q-badge v-if="!isV3" color="grey-7">~{{ program.estimatedDurationWeeks }} semanas</q-badge>
+            <q-badge v-if="!isV3" color="grey-7"
+              >~{{ program.estimatedDurationWeeks }} semanas</q-badge
+            >
             <q-badge v-else color="grey-7">Ciclos ilimitados</q-badge>
           </div>
         </div>
@@ -27,13 +34,15 @@
           </q-btn>
           <q-btn flat round icon="more_vert" color="white">
             <q-menu dark>
-              <q-list style="min-width: 200px; background: #212529;">
+              <q-list style="min-width: 200px; background: #212529">
                 <q-item clickable v-close-popup @click="$emit('duplicate')">
                   <q-item-section avatar><q-icon name="content_copy" /></q-item-section>
                   <q-item-section>Duplicar</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="$emit('toggle-active')">
-                  <q-item-section avatar><q-icon :name="program.isActive ? 'pause' : 'play_arrow'" /></q-item-section>
+                  <q-item-section avatar
+                    ><q-icon :name="program.isActive ? 'pause' : 'play_arrow'"
+                  /></q-item-section>
                   <q-item-section>{{ program.isActive ? 'Desactivar' : 'Activar' }}</q-item-section>
                 </q-item>
                 <q-separator dark />
@@ -56,7 +65,7 @@ import { computed } from 'vue'
 const props = defineProps({
   program: { type: Object, required: true },
   gradient: { type: String, default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  icon: { type: String, default: '🎯' }
+  icon: { type: String, default: '🎯' },
 })
 
 defineEmits(['back', 'edit', 'duplicate', 'toggle-active', 'delete'])
@@ -64,6 +73,9 @@ defineEmits(['back', 'edit', 'duplicate', 'toggle-active', 'delete'])
 const programVersionBadge = computed(() => {
   const slug = props.program.slug || ''
   const name = props.program.name || ''
+  if (slug.endsWith('-v3') || name.includes('v3')) {
+    return { label: 'v3.0', color: 'primary' }
+  }
   if (slug.endsWith('-v2') || name.includes('v2')) {
     return { label: 'v2.0', color: 'green' }
   }
@@ -98,7 +110,7 @@ const isV3 = computed(() => {
   top: 24px;
   left: 24px;
   color: white;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
 }
 
@@ -111,7 +123,7 @@ const isV3 = computed(() => {
 
 .program-icon {
   font-size: 100px;
-  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3));
 }
 
 .program-info {
@@ -123,7 +135,7 @@ const isV3 = computed(() => {
   font-size: 42px;
   font-weight: 800;
   margin: 0 0 12px;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .program-subtitle {
@@ -158,17 +170,17 @@ const isV3 = computed(() => {
     padding: 80px 20px 30px;
     min-height: auto;
   }
-  
+
   .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 20px;
   }
-  
+
   .program-icon {
     font-size: 60px;
   }
-  
+
   .program-title {
     font-size: 28px;
   }

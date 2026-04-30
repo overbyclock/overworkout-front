@@ -1,17 +1,33 @@
 <template>
-  <div class="program-card" :class="{ 'inactive': !program.isActive }">
+  <div class="program-card" :class="{ inactive: !program.isActive }">
     <div class="card-gradient" :style="{ background: gradient }"></div>
     <div class="card-content">
       <div class="card-header">
         <div class="discipline-icon">{{ disciplineIcon }}</div>
         <div class="card-actions">
-          <q-btn flat round dense icon="visibility" color="white" size="sm" @click.stop="$emit('view')">
+          <q-btn
+            flat
+            round
+            dense
+            icon="visibility"
+            color="white"
+            size="sm"
+            @click.stop="$emit('view')"
+          >
             <q-tooltip>Ver detalles</q-tooltip>
           </q-btn>
           <q-btn flat round dense icon="edit" color="white" size="sm" @click.stop="$emit('edit')">
             <q-tooltip>Editar</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="content_copy" color="white" size="sm" @click.stop="$emit('duplicate')">
+          <q-btn
+            flat
+            round
+            dense
+            icon="content_copy"
+            color="white"
+            size="sm"
+            @click.stop="$emit('duplicate')"
+          >
             <q-tooltip>Duplicar</q-tooltip>
           </q-btn>
         </div>
@@ -20,7 +36,13 @@
       <div class="card-body" @click="$emit('view')">
         <h3 class="program-name">
           {{ program.name }}
-          <q-badge v-if="versionBadge" :color="versionBadge.color" class="version-badge" outline dense>
+          <q-badge
+            v-if="versionBadge"
+            :color="versionBadge.color"
+            class="version-badge"
+            outline
+            dense
+          >
             {{ versionBadge.label }}
           </q-badge>
         </h3>
@@ -71,25 +93,30 @@ const props = defineProps({
 defineEmits(['view', 'edit', 'duplicate', 'toggle-status'])
 
 const disciplineIcons = {
-  'calisthenics': '🤸',
-  'crossfit': '🏋️',
-  'fitness': '💪',
-  'powerlifting': '🏆',
+  calisthenics: '🤸',
+  crossfit: '🏋️',
+  fitness: '💪',
+  powerlifting: '🏆',
 }
 
 const disciplineGradients = {
-  'calisthenics': 'linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%)',
-  'crossfit': 'linear-gradient(135deg, #38b2ac 0%, #4299e1 100%)',
-  'fitness': 'linear-gradient(135deg, #9f7aea 0%, #ed64a6 100%)',
-  'powerlifting': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  calisthenics: 'linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%)',
+  crossfit: 'linear-gradient(135deg, #38b2ac 0%, #4299e1 100%)',
+  fitness: 'linear-gradient(135deg, #9f7aea 0%, #ed64a6 100%)',
+  powerlifting: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
 }
 
 const disciplineIcon = computed(() => disciplineIcons[props.program.discipline] || '🎯')
-const gradient = computed(() => disciplineGradients[props.program.discipline] || disciplineGradients.fitness)
+const gradient = computed(
+  () => disciplineGradients[props.program.discipline] || disciplineGradients.fitness,
+)
 
 const versionBadge = computed(() => {
   const slug = props.program.slug || ''
   const name = props.program.name || ''
+  if (slug.endsWith('-v3') || name.includes('v3')) {
+    return { label: 'v3', color: 'primary' }
+  }
   if (slug.endsWith('-v2') || name.includes('v2')) {
     return { label: 'v2', color: 'green' }
   }
