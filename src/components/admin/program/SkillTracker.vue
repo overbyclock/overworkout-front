@@ -1,35 +1,45 @@
 <template>
-  <div v-if="hasSkills" class="skill-tracker">
-    <h5 class="skill-tracker__title">
-      <q-icon name="route" size="18px" class="q-mr-sm" />
-      Roadmap de Skills
-    </h5>
-
-    <div class="skill-roadmap">
-      <div
-        v-for="(level, index) in levelsWithSkills"
-        :key="level.levelNumber"
-        class="skill-node"
-        :class="{
-          'skill-node--current': level.levelNumber === currentLevel,
-          'skill-node--completed': level.levelNumber < currentLevel,
-          'skill-node--future': level.levelNumber > currentLevel,
-        }">
-        <div class="skill-node__connector" v-if="index > 0"></div>
-        <div class="skill-node__dot">
-          <span class="skill-node__level">{{ level.levelNumber }}</span>
-        </div>
-        <div class="skill-node__label">
-          <span class="skill-node__name">{{ level.skillFocus }}</span>
-        </div>
+  <div v-if="hasLevels" class="skill-tracker">
+    <div class="skill-tracker__header">
+      <div class="skill-tracker__title-group">
+        <q-icon name="route" size="20px" color="primary" class="q-mr-sm" />
+        <span class="skill-tracker__title">Skills por nivel</span>
       </div>
+      <q-badge color="dark" text-color="grey-5" class="skill-tracker__badge">
+        {{ levelsWithSkillCount }} / {{ sortedLevels.length }} definidos
+      </q-badge>
     </div>
 
-    <div v-if="currentSkill" class="skill-current">
-      <q-icon name="stars" size="20px" color="primary" />
-      <div class="skill-current__info">
-        <span class="skill-current__label">Skill actual (Nivel {{ currentLevel }})</span>
-        <span class="skill-current__name">{{ currentSkill }}</span>
+    <div class="skill-levels">
+      <div
+        v-for="level in sortedLevels"
+        :key="level.levelNumber"
+        class="skill-level-card"
+        :class="{ 'skill-level-card--empty': !level.skillFocus }"
+      >
+        <div class="skill-level-card__dot">{{ level.levelNumber }}</div>
+
+        <div class="skill-level-card__content">
+          <div v-if="level.skillFocus" class="skill-level-card__value">
+            {{ level.skillFocus }}
+          </div>
+          <div v-else class="skill-level-card__empty">Sin skill definido</div>
+        </div>
+
+        <q-icon
+          v-if="level.skillFocus"
+          name="check_circle"
+          size="18px"
+          color="positive"
+          class="skill-level-card__status"
+        />
+        <q-icon
+          v-else
+          name="error_outline"
+          size="18px"
+          color="grey-6"
+          class="skill-level-card__status"
+        />
       </div>
     </div>
   </div>
@@ -40,20 +50,17 @@ import { computed } from 'vue'
 
 const props = defineProps({
   levels: { type: Array, required: true },
-  currentLevel: { type: Number, default: 1 }
+  currentLevel: { type: Number, default: 1 },
 })
 
-const levelsWithSkills = computed(() => {
-  return props.levels
-    .filter((l) => !!l.skillFocus)
-    .sort((a, b) => a.levelNumber - b.levelNumber)
+const sortedLevels = computed(() => {
+  return [...props.levels].sort((a, b) => a.levelNumber - b.levelNumber)
 })
 
-const hasSkills = computed(() => levelsWithSkills.value.length > 0)
+const hasLevels = computed(() => sortedLevels.value.length > 0)
 
-const currentSkill = computed(() => {
-  const level = props.levels.find((l) => l.levelNumber === props.currentLevel)
-  return level?.skillFocus || null
+const levelsWithSkillCount = computed(() => {
+  return sortedLevels.value.filter((l) => !!l.skillFocus).length
 })
 </script>
 
@@ -62,62 +69,72 @@ const currentSkill = computed(() => {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  padding: 20px;
+  padding: 20px 24px;
   margin-bottom: 20px;
+}
+
+.skill-tracker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.skill-tracker__title-group {
+  display: flex;
+  align-items: center;
 }
 
 .skill-tracker__title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
-  margin: 0 0 16px;
+}
+
+.skill-tracker__badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Grid responsive */
+.skill-levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* Tarjeta de cada nivel */
+.skill-level-card {
   display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
-.skill-roadmap {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  overflow-x: auto;
-  padding-bottom: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 143, 56, 0.3) transparent;
+.skill-level-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 143, 56, 0.2);
+  transform: translateY(-1px);
 }
 
-.skill-roadmap::-webkit-scrollbar {
-  height: 4px;
+.skill-level-card--empty {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.04);
 }
 
-.skill-roadmap::-webkit-scrollbar-thumb {
-  background: rgba(255, 143, 56, 0.3);
-  border-radius: 4px;
+.skill-level-card--empty:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.skill-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  min-width: 80px;
-  flex-shrink: 0;
-}
-
-.skill-node__connector {
-  position: absolute;
-  top: 16px;
-  left: -50%;
-  width: 100%;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  z-index: 0;
-}
-
-.skill-node--completed .skill-node__connector {
-  background: linear-gradient(90deg, #21ba45, #21ba45);
-}
-
-.skill-node__dot {
+/* Número de nivel */
+.skill-level-card__dot {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -126,92 +143,60 @@ const currentSkill = computed(() => {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: #1a1f2e;
-  color: #8b949e;
-  z-index: 1;
-  transition: all 0.3s ease;
-}
-
-.skill-node--completed .skill-node__dot {
-  background: #21ba45;
-  border-color: #21ba45;
-  color: #fff;
-}
-
-.skill-node--current .skill-node__dot {
-  background: #ff8f38;
-  border-color: #ff8f38;
-  color: #fff;
-  box-shadow: 0 0 16px rgba(255, 143, 56, 0.4);
-  transform: scale(1.15);
-}
-
-.skill-node__label {
-  margin-top: 8px;
-  text-align: center;
-  max-width: 90px;
-}
-
-.skill-node__name {
-  font-size: 11px;
-  color: #8b949e;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.skill-node--current .skill-node__name {
+  flex-shrink: 0;
+  border: 2px solid #ff8f38;
+  background: rgba(255, 143, 56, 0.1);
   color: #ff8f38;
+}
+
+.skill-level-card--empty .skill-level-card__dot {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #6e7681;
+}
+
+/* Contenido del skill */
+.skill-level-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.skill-level-card__value {
+  font-size: 13px;
   font-weight: 600;
+  color: #e6edf3;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.skill-node--completed .skill-node__name {
-  color: #4ade80;
-}
-
-.skill-current {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 14px 16px;
-  background: rgba(255, 143, 56, 0.08);
-  border: 1px solid rgba(255, 143, 56, 0.2);
-  border-radius: 12px;
-}
-
-.skill-current__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.skill-current__label {
-  font-size: 12px;
-  color: #ff8f38;
+.skill-level-card__empty {
+  font-size: 13px;
+  font-style: italic;
+  color: #6e7681;
   font-weight: 500;
 }
 
-.skill-current__name {
-  font-size: 15px;
-  color: #fff;
-  font-weight: 600;
+.skill-level-card__status {
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
-@media (max-width: 768px) {
-  .skill-roadmap {
-    gap: 8px;
+/* Breakpoints: 3 → 2 → 1 */
+@media (max-width: 1519px) {
+  .skill-levels {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1151px) {
+  .skill-levels {
+    grid-template-columns: 1fr;
   }
 
-  .skill-node {
-    min-width: 60px;
-  }
-
-  .skill-node__label {
-    max-width: 70px;
+  .skill-tracker {
+    padding: 16px;
   }
 }
 </style>
