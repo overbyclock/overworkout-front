@@ -157,7 +157,7 @@ function mapRoundToBlock(round, isCircuit, blockIndex) {
     rounds: blockRounds,
     restBetweenRounds: formatSeconds(round?.restBetweenRounds),
     restBetweenExercises: formatSeconds(
-      configs[0]?.restBetweenExercises || configs[0]?.restBetweenSets || 30
+      configs[0]?.restBetweenExercises || configs[0]?.restBetweenSets || 30,
     ),
   }
 
@@ -176,7 +176,8 @@ function mergeSession(apiSession) {
   const rounds = hasRounds ? apiSession.trainingRounds : []
 
   // Fallback robusto: Symfony Serializer puede devolver 'circuit' en lugar de 'isCircuit'
-  const isCircuit = apiSession.isCircuit ?? apiSession.circuit ?? (apiSession.rounds > 1 || hasRounds || false)
+  const isCircuit =
+    apiSession.isCircuit ?? apiSession.circuit ?? (apiSession.rounds > 1 || hasRounds || false)
 
   // Construir bloques a partir de todas las rondas
   const blocks = rounds.map((round, index) => mapRoundToBlock(round, isCircuit, index))
@@ -227,16 +228,28 @@ export function adaptApiLevelToLegacy(apiLevel) {
     weeks[weekNum][t.dayKey] = mergeSession(t)
   })
 
-  const weekNumbers = Object.keys(weeks).map(Number).sort((a, b) => a - b)
+  const weekNumbers = Object.keys(weeks)
+    .map(Number)
+    .sort((a, b) => a - b)
   const maxWeek = weekNumbers.length ? Math.max(...weekNumbers) : 0
   const durationWeeks = maxWeek > 0 ? maxWeek + 2 : apiLevel.estimatedDurationWeeks || 5
 
   // Construir testWeek desde testRequirements (v2) o requirements legacy
   let testWeek = null
   if (apiLevel.testRequirements && apiLevel.testRequirements.length > 0) {
-    testWeek = buildTestWeekFromTestRequirements(apiLevel.testRequirements, apiLevel.name, apiLevel.levelNumber, durationWeeks)
+    testWeek = buildTestWeekFromTestRequirements(
+      apiLevel.testRequirements,
+      apiLevel.name,
+      apiLevel.levelNumber,
+      durationWeeks,
+    )
   } else if (apiLevel.requirements && apiLevel.requirements.length > 0) {
-    testWeek = buildTestWeekFromRequirements(apiLevel.requirements, apiLevel.name, apiLevel.levelNumber, durationWeeks)
+    testWeek = buildTestWeekFromRequirements(
+      apiLevel.requirements,
+      apiLevel.name,
+      apiLevel.levelNumber,
+      durationWeeks,
+    )
   }
 
   // Usar weekInfos de la API si existen, si no generar genéricos
@@ -283,7 +296,10 @@ function buildTestWeekFromTestRequirements(requirements, levelName, levelNumber,
     name: `Tests de ${levelName || 'Nivel ' + levelNumber}`,
     description: `Evalua si estas listo para el siguiente nivel`,
     preparation: [
-      { session: '2-3 dias antes', activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'] }
+      {
+        session: '2-3 dias antes',
+        activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'],
+      },
     ],
     tests: {
       name: `TESTS NIVEL ${levelNumber}`,
@@ -317,7 +333,10 @@ function buildTestWeekFromRequirements(requirements, levelName, levelNumber, dur
     name: `Tests de ${levelName || 'Nivel ' + levelNumber}`,
     description: `Evalua si estas listo para el siguiente nivel`,
     preparation: [
-      { session: '2-3 dias antes', activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'] }
+      {
+        session: '2-3 dias antes',
+        activities: ['Descanso completo', 'Movilidad suave', 'Dormir bien', 'Hidratacion'],
+      },
     ],
     tests: {
       name: `TESTS NIVEL ${levelNumber}`,
@@ -333,12 +352,18 @@ function inferMuscleGroups(dayKey) {
   if (dayKey.includes('pull')) return ['back', 'biceps', 'forearms']
   if (dayKey.includes('legs')) return ['legs', 'glutes', 'calves']
   if (dayKey.includes('core')) return ['core']
+  // Handstand Balance Mastery sessions
+  if (dayKey === 'session_a') return ['shoulders', 'chest', 'triceps']
+  if (dayKey === 'session_b') return ['core', 'shoulders']
+  if (dayKey === 'session_c') return ['shoulders', 'wrists', 'hips']
+  if (dayKey === 'session_d') return ['shoulders', 'core', 'balance']
   return []
 }
 
 function inferGoal(dayKey, sessionType) {
   if (sessionType === 'strength') {
-    if (dayKey.includes('push') || dayKey === 'day1_strength') return 'Fuerza/Skill Push'
+    if (dayKey.includes('push') || dayKey === 'day1_strength' || dayKey === 'session_a')
+      return 'Fuerza/Skill Push'
     if (dayKey.includes('pull') || dayKey === 'day2_strength') return 'Fuerza/Skill Pull'
     return 'Fuerza/Skills'
   }
@@ -346,6 +371,15 @@ function inferGoal(dayKey, sessionType) {
     if (dayKey.includes('legs') || dayKey === 'day3_circuit') return 'Piernas + Prehab'
     if (dayKey.includes('core') || dayKey === 'day4_circuit') return 'Core + Conditioning'
     return 'Circuito/Condición'
+  }
+  if (sessionType === 'skill') {
+    if (dayKey === 'session_b') return 'Técnica/Balance'
+    if (dayKey === 'session_d') return 'Entrada/Control'
+    return 'Skill Development'
+  }
+  if (sessionType === 'mobility') {
+    if (dayKey === 'session_c') return 'Movilidad/Prehab'
+    return 'Movilidad'
   }
   if (!dayKey) return 'Entrenamiento'
   if (dayKey.includes('push')) return 'Desarrollar empuje'

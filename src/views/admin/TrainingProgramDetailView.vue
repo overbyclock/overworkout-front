@@ -178,13 +178,13 @@ const getLevelData = (levelNumber) => {
   return adaptApiLevelToLegacy(apiLevel)
 }
 
-const tabs = [
-  { id: 'levels', label: 'Niveles', icon: 'stairs', count: 12 },
+const tabs = computed(() => [
+  { id: 'levels', label: 'Niveles', icon: 'stairs', count: program.value?.levels?.length || 0 },
   { id: 'users', label: 'Usuarios', icon: 'people', count: 156 },
   { id: 'skills', label: 'Skills', icon: 'emoji_events', count: 18 },
   { id: 'achievements', label: 'Logros', icon: 'military_tech', count: 29 },
   { id: 'analytics', label: 'Analíticas', icon: 'analytics' },
-]
+])
 
 const stats = ref({
   totalUsers: 156,
@@ -202,22 +202,32 @@ const statsList = computed(() => [
   { value: stats.value.avgTime + 'm', label: 'Tiempo medio/día', icon: 'schedule' },
 ])
 
-const programGradient = computed(
-  () =>
-    ({
+const programGradient = computed(() => {
+  const slug = program.value?.slug || ''
+  if (slug.includes('handstand')) {
+    return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  }
+  return (
+    {
       calisthenics: 'linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%)',
       crossfit: 'linear-gradient(135deg, #38b2ac 0%, #4299e1 100%)',
-    })[program.value?.discipline] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-)
+    }[program.value?.discipline] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  )
+})
 
-const programIcon = computed(
-  () =>
-    ({
+const programIcon = computed(() => {
+  const slug = program.value?.slug || ''
+  if (slug.includes('handstand')) {
+    return '🤸'
+  }
+  return (
+    {
       calisthenics: '🤸',
       crossfit: '🏋️',
       fitness: '💪',
-    })[program.value?.discipline] || '🎯',
-)
+    }[program.value?.discipline] || '🎯'
+  )
+})
 
 const programUsers = ref([
   {
