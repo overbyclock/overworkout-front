@@ -22,10 +22,7 @@
               {{ program.isActive ? 'Activo' : 'Inactivo' }}
             </q-badge>
             <q-badge color="primary" class="q-mr-sm">{{ program.totalLevels }} niveles</q-badge>
-            <q-badge v-if="!isV3" color="grey-7"
-              >~{{ program.estimatedDurationWeeks }} semanas</q-badge
-            >
-            <q-badge v-else color="grey-7">Ciclos ilimitados</q-badge>
+            <q-badge v-if="isV3" color="grey-7">Ciclos ilimitados</q-badge>
           </div>
         </div>
         <div class="header-actions">

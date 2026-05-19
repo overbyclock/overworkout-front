@@ -53,11 +53,7 @@
             <q-icon name="stairs" size="14px" />
             {{ program.totalLevels }} niveles
           </span>
-          <span v-if="!isV3" class="meta-item">
-            <q-icon name="schedule" size="14px" />
-            {{ program.estimatedDurationWeeks }} semanas
-          </span>
-          <span v-else class="meta-item">
+          <span v-if="isV3" class="meta-item">
             <q-icon name="schedule" size="14px" />
             Ciclos ilimitados
           </span>

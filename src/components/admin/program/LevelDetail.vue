@@ -4,11 +4,14 @@
       <div class="training-title-row">
         <h3>{{ levelData.name }}</h3>
         <div class="training-badges">
-          <q-badge v-if="levelData.programVersion" :color="levelData.programVersion === 'v2' ? 'green' : 'grey'" outline>
+          <q-badge
+            v-if="levelData.programVersion"
+            :color="levelData.programVersion === 'v2' ? 'green' : 'grey'"
+            outline
+          >
             v{{ levelData.programVersion }}
           </q-badge>
           <q-badge v-if="levelData.programVersion === 'v3'" color="primary">4 fases</q-badge>
-          <q-badge v-else color="primary">{{ levelData.durationWeeks }} semanas</q-badge>
           <q-badge color="secondary">{{ levelData.sessionsPerWeek }} sesiones</q-badge>
           <q-badge color="accent">{{ levelData.difficulty }}</q-badge>
           <q-badge v-if="levelData.skillFocus" color="orange" class="skill-focus-badge">
@@ -22,14 +25,26 @@
 
     <div class="phases-container">
       <q-tabs v-model="selectedPhase" dense dark class="phase-tabs-compact">
-        <q-tab v-for="weekNum in availableWeeks" :key="weekNum" :name="`week${weekNum}`"
-          :label="getPhaseLabel(weekNum)" />
-        <q-tab v-if="levelData.testWeek" :name="`week${levelData.durationWeeks - 1}`" label="TESTS" />
+        <q-tab
+          v-for="weekNum in availableWeeks"
+          :key="weekNum"
+          :name="`week${weekNum}`"
+          :label="getPhaseLabel(weekNum)"
+        />
+        <q-tab
+          v-if="levelData.testWeek"
+          :name="`week${levelData.durationWeeks - 1}`"
+          label="TESTS"
+        />
       </q-tabs>
 
       <q-tab-panels v-model="selectedPhase" dark animated class="phase-panels-compact">
         <q-tab-panel v-for="weekNum in availableWeeks" :key="weekNum" :name="`week${weekNum}`">
-          <WeekPanel :week-data="getWeekData(weekNum)" :week-num="weekNum" :level-num="level.levelNumber" />
+          <WeekPanel
+            :week-data="getWeekData(weekNum)"
+            :week-num="weekNum"
+            :level-num="level.levelNumber"
+          />
         </q-tab-panel>
 
         <q-tab-panel v-if="levelData.testWeek" :name="`week${levelData.durationWeeks - 1}`">
@@ -37,7 +52,11 @@
             <h4>{{ levelData.testWeek.name }}</h4>
             <p class="tests-desc">{{ levelData.testWeek.tests?.description }}</p>
             <div class="tests-list">
-              <div v-for="(test, idx) in levelData.testWeek.tests?.requirements" :key="idx" class="test-item">
+              <div
+                v-for="(test, idx) in levelData.testWeek.tests?.requirements"
+                :key="idx"
+                class="test-item"
+              >
                 <div class="test-info">
                   <span class="test-name-compact">{{ test.name }}</span>
                   <span class="test-minimum">Mín: {{ test.minimum }} {{ test.unit }}</span>
@@ -65,7 +84,7 @@ import WeekPanel from '@/components/WeekPanel.vue'
 
 const props = defineProps({
   level: { type: Object, required: true },
-  levelData: { type: Object, default: null }
+  levelData: { type: Object, default: null },
 })
 
 const selectedPhase = ref('week0')
@@ -77,7 +96,7 @@ const availableWeeks = computed(() => {
 })
 
 const getPhaseLabel = (weekNum) => {
-  const info = props.levelData.trainingWeeks?.find(w => w.week === weekNum)
+  const info = props.levelData.trainingWeeks?.find((w) => w.week === weekNum)
   if (info?.name) return info.name
   const phaseNames = ['Base', 'Progresión', 'Intensificación', 'Recuperación']
   return phaseNames[weekNum] || `Fase ${weekNum + 1}`
@@ -90,8 +109,8 @@ const getWeekData = (weekNum) => {
   return {
     type: `week${weekNum}`,
     data: weekData,
-    info: props.levelData.trainingWeeks?.find(w => w.week === weekNum),
-    progression: props.levelData.progression?.[`week${weekNum}`]
+    info: props.levelData.trainingWeeks?.find((w) => w.week === weekNum),
+    progression: props.levelData.progression?.[`week${weekNum}`],
   }
 }
 </script>
