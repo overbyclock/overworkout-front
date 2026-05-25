@@ -17,15 +17,33 @@
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input v-model="searchQuery" type="text" placeholder="Buscar ejercicios..." class="search-input">
-            <q-btn v-if="searchQuery" flat round dense icon="close" size="sm" class="clear-search"
-              @click="searchQuery = ''" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar por nombre o descripción..."
+              class="search-input"
+            />
+            <q-btn
+              v-if="searchQuery"
+              flat
+              round
+              dense
+              icon="close"
+              size="sm"
+              class="clear-search"
+              @click="searchQuery = ''"
+            />
           </div>
         </div>
 
         <div class="filter-groups-modern">
-          <FilterPills v-model="muscleFilter" label="Grupo muscular" icon="fitness_center" :options="muscleOptions" />
-          
+          <FilterPills
+            v-model="muscleFilter"
+            label="Grupo muscular"
+            icon="fitness_center"
+            :options="muscleOptions"
+          />
+
           <!-- Level Filter -->
           <div class="filter-category">
             <span class="filter-category-label">
@@ -33,16 +51,28 @@
               Nivel
             </span>
             <div class="filter-pills">
-              <button v-for="level in levelOptions" :key="level.value" class="filter-pill level"
-                :class="{ 'active': levelFilter === level.value, [level.value]: levelFilter === level.value }"
-                @click="levelFilter = level.value">
+              <button
+                v-for="level in levelOptions"
+                :key="level.value"
+                class="filter-pill level"
+                :class="{
+                  active: levelFilter === level.value,
+                  [level.value]: levelFilter === level.value,
+                }"
+                @click="levelFilter = level.value"
+              >
                 <q-icon v-if="level.value !== 'all'" name="local_fire_department" size="12px" />
                 {{ level.label }}
               </button>
             </div>
           </div>
 
-          <FilterPills v-model="disciplineFilter" label="Disciplina" icon="sports" :options="disciplineOptions" />
+          <FilterPills
+            v-model="disciplineFilter"
+            label="Disciplina"
+            icon="sports"
+            :options="disciplineOptions"
+          />
         </div>
 
         <!-- Sort Options -->
@@ -52,8 +82,13 @@
             Ordenar por:
           </span>
           <div class="sort-pills">
-            <button v-for="option in sortOptions" :key="option.value" class="sort-pill"
-              :class="{ 'active': sortBy === option.value }" @click="sortBy = option.value">
+            <button
+              v-for="option in sortOptions"
+              :key="option.value"
+              class="sort-pill"
+              :class="{ active: sortBy === option.value }"
+              @click="sortBy = option.value"
+            >
               {{ option.label }}
             </button>
           </div>
@@ -63,26 +98,65 @@
         <div v-if="hasActiveFilters" class="active-filters">
           <span class="active-filters-label">Filtros activos:</span>
           <div class="active-filter-chips">
-            <q-chip v-if="searchQuery" removable dense color="primary" text-color="dark" @remove="searchQuery = ''">
+            <q-chip
+              v-if="searchQuery"
+              removable
+              dense
+              color="primary"
+              text-color="dark"
+              @remove="searchQuery = ''"
+            >
               <q-icon name="search" size="14px" left /> {{ searchQuery }}
             </q-chip>
-            <q-chip v-if="muscleFilter !== 'all'" removable dense :color="getMuscleColor(muscleFilter)"
-              text-color="white" @remove="muscleFilter = 'all'">
+            <q-chip
+              v-if="muscleFilter !== 'all'"
+              removable
+              dense
+              :color="getMuscleColor(muscleFilter)"
+              text-color="white"
+              @remove="muscleFilter = 'all'"
+            >
               {{ getMuscleGroupLabel(muscleFilter) }}
             </q-chip>
-            <q-chip v-if="levelFilter !== 'all'" removable dense :color="getLevelColor(levelFilter)"
-              text-color="white" @remove="levelFilter = 'all'">
+            <q-chip
+              v-if="levelFilter !== 'all'"
+              removable
+              dense
+              :color="getLevelColor(levelFilter)"
+              text-color="white"
+              @remove="levelFilter = 'all'"
+            >
               {{ getLevelLabel(levelFilter) }}
             </q-chip>
-            <q-chip v-if="disciplineFilter !== 'all'" removable dense color="deep-orange" text-color="white"
-              @remove="disciplineFilter = 'all'">
+            <q-chip
+              v-if="disciplineFilter !== 'all'"
+              removable
+              dense
+              color="deep-orange"
+              text-color="white"
+              @remove="disciplineFilter = 'all'"
+            >
               {{ getDisciplineLabel(disciplineFilter) }}
             </q-chip>
-            <q-chip v-if="sortBy !== 'difficulty_asc'" removable dense color="blue" text-color="white"
-              @remove="sortBy = 'difficulty_asc'">
+            <q-chip
+              v-if="sortBy !== 'difficulty_asc'"
+              removable
+              dense
+              color="blue"
+              text-color="white"
+              @remove="sortBy = 'difficulty_asc'"
+            >
               <q-icon name="sort" size="14px" left /> {{ getSortLabel(sortBy) }}
             </q-chip>
-            <q-btn flat dense no-caps color="grey-6" label="Limpiar todo" size="sm" @click="clearAllFilters" />
+            <q-btn
+              flat
+              dense
+              no-caps
+              color="grey-6"
+              label="Limpiar todo"
+              size="sm"
+              @click="clearAllFilters"
+            />
           </div>
         </div>
       </div>
@@ -93,7 +167,7 @@
           <div v-for="i in 8" :key="`skeleton-${i}`" class="exercise-card skeleton">
             <q-skeleton type="text" class="bg-grey-8" width="80%" />
             <q-skeleton type="text" class="bg-grey-8" width="40%" />
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px">
               <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
               <q-skeleton type="rect" class="bg-grey-8" width="80px" height="28px" />
             </div>
@@ -105,33 +179,83 @@
           <q-icon name="fitness_center" size="64px" color="grey-6" />
           <h3>No hay ejercicios</h3>
           <p>Crea tu primer ejercicio para empezar</p>
-          <q-btn color="primary" icon="add" label="Crear Ejercicio" no-caps @click="openCreateDialog" />
+          <q-btn
+            color="primary"
+            icon="add"
+            label="Crear Ejercicio"
+            no-caps
+            @click="openCreateDialog"
+          />
         </div>
 
         <div v-for="exercise in paginatedExercises" :key="exercise.id" class="exercise-card">
           <div class="exercise-header" :class="exercise.level">
             <h3 class="exercise-name">{{ normalizeName(exercise.name) }}</h3>
-            <p v-if="exercise.description" class="exercise-description">{{ exercise.description }}</p>
+            <p v-if="exercise.description" class="exercise-description">
+              {{ exercise.description }}
+            </p>
           </div>
 
           <div class="exercise-actions">
-            <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps
-              @click="searchExercise(exercise, 'youtube')" />
-            <q-btn flat dense icon="search" label="Google" color="grey-5" size="sm" no-caps
-              @click="searchExercise(exercise, 'google')" />
-            <q-btn flat dense icon="edit" label="Editar" color="primary" size="sm" no-caps
-              @click="editExercise(exercise)" />
-            <q-btn flat dense icon="delete" label="Eliminar" color="negative" size="sm" no-caps
-              @click="confirmDelete(exercise)" />
+            <q-btn
+              flat
+              dense
+              icon="play_circle"
+              label="YouTube"
+              color="grey-5"
+              size="sm"
+              no-caps
+              @click="searchExercise(exercise, 'youtube')"
+            />
+            <q-btn
+              flat
+              dense
+              icon="search"
+              label="Google"
+              color="grey-5"
+              size="sm"
+              no-caps
+              @click="searchExercise(exercise, 'google')"
+            />
+            <q-btn
+              flat
+              dense
+              icon="edit"
+              label="Editar"
+              color="primary"
+              size="sm"
+              no-caps
+              @click="editExercise(exercise)"
+            />
+            <q-btn
+              flat
+              dense
+              icon="delete"
+              label="Eliminar"
+              color="negative"
+              size="sm"
+              no-caps
+              @click="confirmDelete(exercise)"
+            />
           </div>
 
           <div class="exercise-difficulty">
             <div class="fire-row">
-              <q-icon v-for="n in 3" :key="n" name="local_fire_department"
-                :color="n <= (exercise.difficultyRating || 1) ? getFireColor(exercise.level, true) : 'grey-7'"
-                size="20px" />
+              <q-icon
+                v-for="n in 3"
+                :key="n"
+                name="local_fire_department"
+                :color="
+                  n <= (exercise.difficultyRating || 1)
+                    ? getFireColor(exercise.level, true)
+                    : 'grey-7'
+                "
+                size="20px"
+              />
             </div>
-            <span class="level-badge" :class="exercise.level">{{ getLevelLabel(exercise.level) }}</span>
+            <span class="level-badge" :class="exercise.level">{{
+              getLevelLabel(exercise.level)
+            }}</span>
           </div>
 
           <div class="exercise-muscles">
@@ -144,14 +268,22 @@
           </div>
 
           <div v-if="exercise.disciplines?.length" class="exercise-disciplines">
-            <div v-for="discipline in exercise.disciplines" :key="discipline" class="discipline-tag"
-              :class="discipline">
+            <div
+              v-for="discipline in exercise.disciplines"
+              :key="discipline"
+              class="discipline-tag"
+              :class="discipline"
+            >
               {{ getDisciplineLabel(discipline) }}
             </div>
           </div>
 
           <div class="exercise-equipment">
-            <q-icon :name="exercise.equipment ? 'sports_gymnastics' : 'block'" size="14px" color="grey-5" />
+            <q-icon
+              :name="exercise.equipment ? 'sports_gymnastics' : 'block'"
+              size="14px"
+              color="grey-5"
+            />
             <span>{{ exercise.equipment ? exercise.equipment.name : 'Sin equipamiento' }}</span>
           </div>
         </div>
@@ -162,18 +294,31 @@
             <div class="per-page-wrapper">
               <span class="per-page-label">Mostrar:</span>
               <div class="per-page-pills">
-                <button v-for="option in itemsPerPageOptions" :key="option.value" class="per-page-pill"
-                  :class="{ 'active': itemsPerPage === option.value }" @click="itemsPerPage = option.value">
+                <button
+                  v-for="option in itemsPerPageOptions"
+                  :key="option.value"
+                  class="per-page-pill"
+                  :class="{ active: itemsPerPage === option.value }"
+                  @click="itemsPerPage = option.value"
+                >
                   {{ option.label }}
                 </button>
               </div>
             </div>
             <span class="pagination-info">
-              {{ filteredExercises.length }} ejercicios | Página {{ currentPage }} de {{ totalPages }}
+              {{ filteredExercises.length }} ejercicios | Página {{ currentPage }} de
+              {{ totalPages }}
             </span>
           </div>
-          <q-pagination v-model="currentPage" :max="totalPages" :max-pages="6" boundary-numbers direction-links
-            color="grey-6" active-color="primary" />
+          <q-pagination
+            v-model="currentPage"
+            :max="totalPages"
+            :max-pages="6"
+            boundary-numbers
+            direction-links
+            color="grey-6"
+            active-color="primary"
+          />
         </div>
       </div>
     </div>
@@ -192,8 +337,14 @@
               <label class="section-label">Información Básica</label>
               <div class="form-group">
                 <label>Nombre *</label>
-                <q-input v-model="exerciseForm.name" outlined dark dense placeholder="Ej: Push Ups, Dips, Pull Ups"
-                  :rules="[val => !!val || 'El nombre es obligatorio']" />
+                <q-input
+                  v-model="exerciseForm.name"
+                  outlined
+                  dark
+                  dense
+                  placeholder="Ej: Push Ups, Dips, Pull Ups"
+                  :rules="[(val) => !!val || 'El nombre es obligatorio']"
+                />
               </div>
             </div>
 
@@ -202,14 +353,31 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Músculo Principal *</label>
-                  <q-select v-model="exerciseForm.primaryMuscleGroup" :options="muscleGroupOptions" outlined dark dense
-                    emit-value map-options placeholder="Selecciona"
-                    :rules="[val => !!val || 'El grupo muscular es obligatorio']" />
+                  <q-select
+                    v-model="exerciseForm.primaryMuscleGroup"
+                    :options="muscleGroupOptions"
+                    outlined
+                    dark
+                    dense
+                    emit-value
+                    map-options
+                    placeholder="Selecciona"
+                    :rules="[(val) => !!val || 'El grupo muscular es obligatorio']"
+                  />
                 </div>
                 <div class="form-group">
                   <label>Músculo Secundario</label>
-                  <q-select v-model="exerciseForm.secondaryMuscleGroup" :options="muscleGroupOptions" outlined dark
-                    dense emit-value map-options placeholder="Opcional" clearable />
+                  <q-select
+                    v-model="exerciseForm.secondaryMuscleGroup"
+                    :options="muscleGroupOptions"
+                    outlined
+                    dark
+                    dense
+                    emit-value
+                    map-options
+                    placeholder="Opcional"
+                    clearable
+                  />
                 </div>
               </div>
             </div>
@@ -219,17 +387,35 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Nivel *</label>
-                  <q-select v-model="exerciseForm.level" :options="levelOptions" outlined dark dense emit-value
-                    map-options placeholder="Selecciona" />
+                  <q-select
+                    v-model="exerciseForm.level"
+                    :options="levelOptions"
+                    outlined
+                    dark
+                    dense
+                    emit-value
+                    map-options
+                    placeholder="Selecciona"
+                  />
                 </div>
                 <div class="form-group">
                   <label>Intensidad</label>
                   <div class="fire-rating">
-                    <q-btn v-for="n in 3" :key="n" flat dense
+                    <q-btn
+                      v-for="n in 3"
+                      :key="n"
+                      flat
+                      dense
                       :class="{ 'fire-active': n <= exerciseForm.difficultyRating }"
-                      @click="exerciseForm.difficultyRating = n">
-                      <q-icon name="local_fire_department"
-                        :color="getFireColor(exerciseForm.level, n <= exerciseForm.difficultyRating)" size="24px" />
+                      @click="exerciseForm.difficultyRating = n"
+                    >
+                      <q-icon
+                        name="local_fire_department"
+                        :color="
+                          getFireColor(exerciseForm.level, n <= exerciseForm.difficultyRating)
+                        "
+                        size="24px"
+                      />
                     </q-btn>
                   </div>
                 </div>
@@ -239,8 +425,19 @@
             <div class="form-section">
               <label class="section-label">Equipamiento</label>
               <div class="form-group">
-                <q-select v-model="exerciseForm.equipment" :options="equipmentOptions" outlined dark dense emit-value
-                  map-options placeholder="Ninguno" clearable option-value="id" option-label="name" />
+                <q-select
+                  v-model="exerciseForm.equipment"
+                  :options="equipmentOptions"
+                  outlined
+                  dark
+                  dense
+                  emit-value
+                  map-options
+                  placeholder="Ninguno"
+                  clearable
+                  option-value="id"
+                  option-label="name"
+                />
               </div>
             </div>
 
@@ -249,14 +446,30 @@
               <div class="form-group">
                 <label>Enlace a video (YouTube)</label>
                 <div class="video-input-row">
-                  <q-input v-model="exerciseForm.media" outlined dark dense
-                    placeholder="https://youtube.com/watch?v=..." class="video-input" />
-                  <q-btn v-if="exerciseForm.name" flat icon="search" color="primary"
-                    @click="searchExercise({ name: exerciseForm.name }, 'youtube')" label="Buscar" no-caps />
+                  <q-input
+                    v-model="exerciseForm.media"
+                    outlined
+                    dark
+                    dense
+                    placeholder="https://youtube.com/watch?v=..."
+                    class="video-input"
+                  />
+                  <q-btn
+                    v-if="exerciseForm.name"
+                    flat
+                    icon="search"
+                    color="primary"
+                    @click="searchExercise({ name: exerciseForm.name }, 'youtube')"
+                    label="Buscar"
+                    no-caps
+                  />
                 </div>
                 <div class="video-help">
                   <q-icon name="info" size="16px" color="grey-6" />
-                  <span>Deja vacío y usa el botón "Buscar" para encontrar videos, o pega un enlace de YouTube</span>
+                  <span
+                    >Deja vacío y usa el botón "Buscar" para encontrar videos, o pega un enlace de
+                    YouTube</span
+                  >
                 </div>
               </div>
             </div>
@@ -264,8 +477,12 @@
 
           <div class="sidebar-footer">
             <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-            <q-btn color="primary" :label="isEditing ? 'Guardar Cambios' : 'Crear Ejercicio'" :loading="saving"
-              @click="saveExercise" />
+            <q-btn
+              color="primary"
+              :label="isEditing ? 'Guardar Cambios' : 'Crear Ejercicio'"
+              :loading="saving"
+              @click="saveExercise"
+            />
           </div>
         </div>
 
@@ -277,7 +494,7 @@
           <div class="preview-content">
             <div class="preview-card">
               <div class="preview-image">
-                <img v-if="exerciseForm.media" :src="exerciseForm.media" :alt="exerciseForm.name">
+                <img v-if="exerciseForm.media" :src="exerciseForm.media" :alt="exerciseForm.name" />
                 <div v-else class="preview-placeholder">
                   <q-icon name="fitness_center" color="grey-6" size="48px" />
                 </div>
@@ -292,8 +509,13 @@
                   </span>
                 </div>
                 <div class="preview-fires" v-if="exerciseForm.level">
-                  <q-icon v-for="n in exerciseForm.difficultyRating" :key="n" name="local_fire_department"
-                    :color="getFireColor(exerciseForm.level, true)" size="20px" />
+                  <q-icon
+                    v-for="n in exerciseForm.difficultyRating"
+                    :key="n"
+                    name="local_fire_department"
+                    :color="getFireColor(exerciseForm.level, true)"
+                    size="20px"
+                  />
                 </div>
               </div>
             </div>
@@ -303,9 +525,16 @@
     </q-dialog>
 
     <!-- Delete Dialog -->
-    <FormDialog v-model="deleteDialog" title="Eliminar Ejercicio"
-      :subtitle="`¿Estás seguro de que quieres eliminar <strong>${exerciseToDelete?.name}</strong>?`" is-delete
-      confirm-label="Eliminar" confirm-color="negative" :loading="deleting" @confirm="deleteExercise" />
+    <FormDialog
+      v-model="deleteDialog"
+      title="Eliminar Ejercicio"
+      :subtitle="`¿Estás seguro de que quieres eliminar <strong>${exerciseToDelete?.name}</strong>?`"
+      is-delete
+      confirm-label="Eliminar"
+      confirm-color="negative"
+      :loading="deleting"
+      @confirm="deleteExercise"
+    />
   </q-page>
 </template>
 
@@ -315,12 +544,7 @@ import { useQuasar } from 'quasar'
 import { useExercisesStore } from '@/stores/exercises'
 import { useEquipmentsStore } from '@/stores/equipments'
 import { useHelpers } from '@/composables/useHelpers'
-import { 
-  getMuscleGroupLabel,
-  getLevelLabel,
-  getDisciplineLabel,
-  getLevelColor,
-} from '@/constants'
+import { getMuscleGroupLabel, getLevelLabel, getDisciplineLabel, getLevelColor } from '@/constants'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatsCards from '@/components/common/StatsCards.vue'
 import FilterPills from '@/components/common/FilterPills.vue'
@@ -356,7 +580,7 @@ const exerciseForm = ref({
   level: 'beginner',
   difficultyRating: 1,
   equipment: null,
-  media: ''
+  media: '',
 })
 
 // Options
@@ -365,7 +589,7 @@ const itemsPerPageOptions = [
   { label: '20', value: 20 },
   { label: '30', value: 30 },
   { label: '40', value: 40 },
-  { label: '50', value: 50 }
+  { label: '50', value: 50 },
 ]
 
 const muscleGroupOptions = [
@@ -428,20 +652,31 @@ const muscleOptions = [
 // Computed
 const stats = computed(() => [
   { value: exercisesStore.totalExercises, label: 'Total Ejercicios', icon: 'fitness_center' },
-  { value: muscleGroupsCount.value, label: 'Grupos Musculares', icon: 'fitness_center', iconColor: 'teal' },
+  {
+    value: muscleGroupsCount.value,
+    label: 'Grupos Musculares',
+    icon: 'fitness_center',
+    iconColor: 'teal',
+  },
   { value: expertCount.value, label: 'Expertos', icon: 'local_fire_department', iconColor: 'red' },
 ])
 
 const muscleGroupsCount = computed(() => {
-  const groups = new Set(exercisesStore.exercises.map(e => e.primaryMuscleGroup).filter(Boolean))
+  const groups = new Set(exercisesStore.exercises.map((e) => e.primaryMuscleGroup).filter(Boolean))
   return groups.size
 })
 
-const expertCount = computed(() => exercisesStore.exercises.filter(e => e.level === 'expert').length)
+const expertCount = computed(
+  () => exercisesStore.exercises.filter((e) => e.level === 'expert').length,
+)
 
-const hasActiveFilters = computed(() =>
-  searchQuery.value || muscleFilter.value !== 'all' || levelFilter.value !== 'all' ||
-  disciplineFilter.value !== 'all' || sortBy.value !== 'difficulty_asc'
+const hasActiveFilters = computed(
+  () =>
+    searchQuery.value ||
+    muscleFilter.value !== 'all' ||
+    levelFilter.value !== 'all' ||
+    disciplineFilter.value !== 'all' ||
+    sortBy.value !== 'difficulty_asc',
 )
 
 const filteredExercises = computed(() => {
@@ -449,33 +684,46 @@ const filteredExercises = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(ex => ex.name?.toLowerCase().includes(query))
+    result = result.filter(
+      (ex) =>
+        ex.name?.toLowerCase().includes(query) || ex.description?.toLowerCase().includes(query),
+    )
   }
 
   if (muscleFilter.value !== 'all') {
-    result = result.filter(ex => ex.primaryMuscleGroup === muscleFilter.value)
+    result = result.filter(
+      (ex) =>
+        ex.primaryMuscleGroup === muscleFilter.value ||
+        ex.secondaryMuscleGroup === muscleFilter.value,
+    )
   }
 
   if (levelFilter.value !== 'all') {
-    result = result.filter(ex => ex.level === levelFilter.value)
+    result = result.filter((ex) => ex.level === levelFilter.value)
   }
 
   if (disciplineFilter.value !== 'all') {
-    result = result.filter(ex => ex.disciplines?.includes(disciplineFilter.value))
+    result = result.filter((ex) => ex.disciplines?.includes(disciplineFilter.value))
   }
 
   result.sort((a, b) => {
     switch (sortBy.value) {
-      case 'difficulty_asc': return (a.difficultyRating || 1) - (b.difficultyRating || 1)
-      case 'difficulty_desc': return (b.difficultyRating || 1) - (a.difficultyRating || 1)
-      case 'name_asc': return (a.name || '').localeCompare(b.name || '')
-      case 'name_desc': return (b.name || '').localeCompare(a.name || '')
-      case 'muscle': return (a.primaryMuscleGroup || '').localeCompare(b.primaryMuscleGroup || '')
+      case 'difficulty_asc':
+        return (a.difficultyRating || 1) - (b.difficultyRating || 1)
+      case 'difficulty_desc':
+        return (b.difficultyRating || 1) - (a.difficultyRating || 1)
+      case 'name_asc':
+        return (a.name || '').localeCompare(b.name || '')
+      case 'name_desc':
+        return (b.name || '').localeCompare(a.name || '')
+      case 'muscle':
+        return (a.primaryMuscleGroup || '').localeCompare(b.primaryMuscleGroup || '')
       case 'level': {
-        const order = { 'beginner': 1, 'intermediate': 2, 'expert': 3 }
+        const order = { beginner: 1, intermediate: 2, expert: 3 }
         return (order[a.level] || 99) - (order[b.level] || 99)
       }
-      default: return 0
+      default:
+        return 0
     }
   })
 
@@ -489,7 +737,10 @@ const paginatedExercises = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filteredExercises.value.length / itemsPerPage.value))
 
-const equipmentOptions = computed(() => [{ id: null, name: 'Ninguno' }, ...equipmentsStore.equipments])
+const equipmentOptions = computed(() => [
+  { id: null, name: 'Ninguno' },
+  ...equipmentsStore.equipments,
+])
 
 // Methods
 const fetchData = async () => {
@@ -503,14 +754,24 @@ const fetchData = async () => {
   }
 }
 
-const getSortLabel = (value) => sortOptions.find(o => o.value === value)?.label || value
+const getSortLabel = (value) => sortOptions.find((o) => o.value === value)?.label || value
 
-const getMuscleColor = (muscle) => ({
-  'chest': 'orange', 'back': 'blue', 'legs': 'purple', 'glutes': 'pink',
-  'hamstrings': 'deep-purple', 'calves': 'teal', 'adductors': 'indigo',
-  'shoulders': 'cyan', 'biceps': 'green', 'triceps': 'pink',
-  'forearms': 'brown', 'core': 'yellow', 'hiit': 'red',
-}[muscle] || 'grey')
+const getMuscleColor = (muscle) =>
+  ({
+    chest: 'orange',
+    back: 'blue',
+    legs: 'purple',
+    glutes: 'pink',
+    hamstrings: 'deep-purple',
+    calves: 'teal',
+    adductors: 'indigo',
+    shoulders: 'cyan',
+    biceps: 'green',
+    triceps: 'pink',
+    forearms: 'brown',
+    core: 'yellow',
+    hiit: 'red',
+  })[muscle] || 'grey'
 
 const clearAllFilters = () => {
   searchQuery.value = ''
@@ -526,25 +787,39 @@ const getFireColor = (level, isActive) => getLevelColor(level, isActive)
 
 const openCreateDialog = () => {
   isEditing.value = false
-  exerciseForm.value = { name: '', primaryMuscleGroup: '', secondaryMuscleGroup: '', level: 'beginner', difficultyRating: 1, equipment: null, media: '' }
+  exerciseForm.value = {
+    name: '',
+    primaryMuscleGroup: '',
+    secondaryMuscleGroup: '',
+    level: 'beginner',
+    difficultyRating: 1,
+    equipment: null,
+    media: '',
+  }
   exerciseDialog.value = true
 }
 
 const editExercise = (exercise) => {
   isEditing.value = true
   exerciseForm.value = {
-    id: exercise.id, name: exercise.name, primaryMuscleGroup: exercise.primaryMuscleGroup,
-    secondaryMuscleGroup: exercise.secondaryMuscleGroup || '', level: exercise.level,
-    difficultyRating: exercise.difficultyRating || 1, equipment: exercise.equipment?.id || null, media: exercise.media || ''
+    id: exercise.id,
+    name: exercise.name,
+    primaryMuscleGroup: exercise.primaryMuscleGroup,
+    secondaryMuscleGroup: exercise.secondaryMuscleGroup || '',
+    level: exercise.level,
+    difficultyRating: exercise.difficultyRating || 1,
+    equipment: exercise.equipment?.id || null,
+    media: exercise.media || '',
   }
   exerciseDialog.value = true
 }
 
 const searchExercise = (exercise, platform) => {
   const query = encodeURIComponent(`${exercise.name} exercise tutorial`)
-  const url = platform === 'youtube'
-    ? `https://www.youtube.com/results?search_query=${query}`
-    : `https://www.google.com/search?q=${query}&tbm=vid`
+  const url =
+    platform === 'youtube'
+      ? `https://www.youtube.com/results?search_query=${query}`
+      : `https://www.google.com/search?q=${query}&tbm=vid`
   window.open(url, '_blank')
 }
 
@@ -587,8 +862,8 @@ const deleteExercise = async () => {
 }
 
 // Watchers
-watch([searchQuery, muscleFilter, levelFilter, disciplineFilter], () => currentPage.value = 1)
-watch(itemsPerPage, () => currentPage.value = 1)
+watch([searchQuery, muscleFilter, levelFilter, disciplineFilter], () => (currentPage.value = 1))
+watch(itemsPerPage, () => (currentPage.value = 1))
 
 onMounted(fetchData)
 </script>
@@ -654,12 +929,16 @@ onMounted(fetchData)
   font-weight: 500;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .search-box-modern .search-input:focus {
   border-color: #ff8f38;
-  box-shadow: 0 4px 30px rgba(255, 143, 56, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 30px rgba(255, 143, 56, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.5);
 }
 
@@ -739,9 +1018,18 @@ onMounted(fetchData)
   box-shadow: 0 6px 20px rgba(255, 143, 56, 0.5);
 }
 
-.filter-pill.beginner.active { background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%); box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5); }
-.filter-pill.intermediate.active { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
-.filter-pill.expert.active { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5); }
+.filter-pill.beginner.active {
+  background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%);
+  box-shadow: 0 6px 20px rgba(63, 185, 80, 0.5);
+}
+.filter-pill.intermediate.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+}
+.filter-pill.expert.active {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+}
 
 /* Sort Section */
 .sort-section {
@@ -868,9 +1156,15 @@ onMounted(fetchData)
   transition: all 0.3s ease;
 }
 
-.exercise-header.beginner::before { background: linear-gradient(90deg, #3fb950, #2ea043); }
-.exercise-header.intermediate::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
-.exercise-header.expert::before { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+.exercise-header.beginner::before {
+  background: linear-gradient(90deg, #3fb950, #2ea043);
+}
+.exercise-header.intermediate::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+.exercise-header.expert::before {
+  background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+}
 
 .exercise-name {
   font-size: 1.25rem;
@@ -926,9 +1220,18 @@ onMounted(fetchData)
   border-radius: 20px;
 }
 
-.level-badge.beginner { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
-.level-badge.intermediate { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-.level-badge.expert { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+.level-badge.beginner {
+  background: rgba(63, 185, 80, 0.2);
+  color: #3fb950;
+}
+.level-badge.intermediate {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+.level-badge.expert {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
 
 /* Exercise Muscles */
 .exercise-muscles {
@@ -972,9 +1275,18 @@ onMounted(fetchData)
   letter-spacing: 0.5px;
 }
 
-.discipline-tag.calisthenics { background: rgba(255, 143, 56, 0.15); color: #ff8f38; }
-.discipline-tag.crossfit { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
-.discipline-tag.fitness { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+.discipline-tag.calisthenics {
+  background: rgba(255, 143, 56, 0.15);
+  color: #ff8f38;
+}
+.discipline-tag.crossfit {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+.discipline-tag.fitness {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
 
 /* Exercise Equipment */
 .exercise-equipment {
@@ -1168,8 +1480,13 @@ onMounted(fetchData)
 }
 
 @keyframes firePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .video-input-row {

@@ -7,7 +7,29 @@
 
 ## 📅 Última sesión
 
-- **Fecha**: 2026-05-19
+- **Fecha**: 2026-05-25
+- **Focus**: Arreglo de clasificación por grupo muscular en ejercicios + recalificación de ejercicios Handstand
+- **Resumen**:
+  1. Fix: `primaryMuscleGroup` y `secondaryMuscleGroup` añadidos al grupo de serialización `GROUP_READ` en `Exercises.php`. El endpoint `GET /exercises` ya devuelve estos campos correctamente.
+  2. Frontend: Búsqueda ahora incluye descripción; filtro por grupo muscular busca en primario y secundario.
+  3. Revisión con experto entrenador: Se recalificaron 3 ejercicios de handstand de `intermediate` a `beginner` en BBDD (`Chest to Wall Handstand`, `Frog Stand`, `Hollow Body Hold`).
+  4. Datos verificados: 728 ejercicios totales, todos con grupo muscular asignado.
+  5. **NUEVO PROGRAMA**: `Front Lever Mastery` creado completamente (6 niveles, 96 trainings, ~300 configs).
+     - Niveles: Fundamentos de Tracción → Tuck FL → Advanced Tuck → Straddle FL → Full FL → Dominio
+     - 4 ejercicios nuevos creados con clasificación correcta: `Inverted Hang Hold` (beginner), `One Leg Front Lever Hold` (intermediate), `Front Lever Negative` (intermediate), `Ice Cream Maker` (intermediate diff 3).
+     - Archivos: `FrontLeverBlueprint.php`, `FrontLeverContent.php`, `CreateFrontLeverMasteryCommand.php`.
+     - **Ajustes post-revisión experto**:
+       - Back Lever Hold movido de Nivel 3 a Nivel 4 (protección articular)
+       - Ice Cream Maker añadido en N3-N5 (conexión vertical→horizontal)
+       - Front Lever Negative añadido en N5-N6 (fuerza excéntrica)
+       - Test N2: Tuck FL Hold target 25s → **30s**
+       - Test N4: Straddle FL Row mínimo 5 → **3 reps**
+       - Volumen aumentado en Sesiones D de N5-N6 (2 bloques)
+
+---
+
+## 📅 Sesión anterior (2026-05-19)
+
 - **Focus**: Implementación del programa **Handstand Balance Mastery V3** (Skill program de calistenia)
 - **Resumen**: Se diseñó, revisó con experto entrenador y programó completamente el primer programa de skill especializado. 6 niveles, 96 trainings, 296 configs de ejercicios.
 
@@ -117,12 +139,12 @@
 
 ---
 
-## 🎯 Próximos Pasos (definir al finalizar la siguiente sesión)
+## 🎯 Próximos Pasos
 
-1. **Frontend**: ✅ Adaptación completada. `TrainingProgramDetailView.vue`, `WeekPanel.vue` y `api-adapters.js` actualizados para soportar Handstand Balance Mastery.
-2. **Siguiente Skill Program**: Muscle-up, Planche, Front Lever, Back Lever, etc. (elegir uno).
-3. **Tests funcionales**: Añadir tests funcionales para el nuevo endpoint de programa (requiere configurar entorno de test con SQLite).
-4. **Refinamiento V3**: Si el experto entrenador quiere ajustar sets/reps de algún nivel.
+1. **Siguiente Skill Program**: Muscle-up, Planche, Front Lever, Back Lever, etc. (elegir uno).
+2. **Tests funcionales**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa.
+3. **Auditoría de ejercicios**: Revisar si otros programas (Calistenia Master V1/V2/V3) tienen ejercicios con clasificación inconsistente respecto a la progresión donde se usan.
+4. **Refinamiento V3**: Ajustar sets/reps de algún nivel si el experto entrenador lo solicita.
 
 ---
 
@@ -152,4 +174,4 @@
 
 ---
 
-_Actualizado: 2026-05-19_
+_Actualizado: 2026-05-25_
