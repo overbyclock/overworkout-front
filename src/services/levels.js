@@ -1,8 +1,8 @@
 import apiClient from './api'
 
-const BASE_URL = '/training-programs'
+const BASE_URL = '/training-levels'
 
-export const programService = {
+export const levelService = {
   async getAll(params = {}) {
     const response = await apiClient.get(BASE_URL, { params })
     return response.data
@@ -10,11 +10,6 @@ export const programService = {
 
   async getById(id) {
     const response = await apiClient.get(`${BASE_URL}/${id}`)
-    return response.data
-  },
-
-  async getBySlug(slug) {
-    const response = await apiClient.get(`${BASE_URL}/by-slug/${slug}`)
     return response.data
   },
 
@@ -30,15 +25,5 @@ export const programService = {
 
   async delete(id) {
     await apiClient.delete(`${BASE_URL}/${id}`)
-  },
-
-  async getLevels(programId) {
-    const response = await apiClient.get(`${BASE_URL}/${programId}/levels`)
-    return response.data
-  },
-
-  async addLevel(programId, levelData) {
-    const response = await apiClient.post(`${BASE_URL}/${programId}/levels`, levelData)
-    return response.data
   },
 }

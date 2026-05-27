@@ -74,6 +74,18 @@ export default [
         meta: { title: 'Editar Nivel' },
       },
       {
+        path: 'training-levels/:levelId/weeks',
+        name: 'admin-training-level-weeks',
+        component: () => import('@/views/admin/LevelWeeksView.vue'),
+        meta: { title: 'Semanas del Nivel' },
+      },
+      {
+        path: 'training-levels/:levelId/trainings',
+        name: 'admin-training-level-trainings',
+        component: () => import('@/views/admin/LevelTrainingsView.vue'),
+        meta: { title: 'Entrenamientos del Nivel' },
+      },
+      {
         path: 'training-skills',
         name: 'admin-training-skills',
         component: () => import('@/views/admin/TrainingSkillsView.vue'),

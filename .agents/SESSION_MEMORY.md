@@ -5,7 +5,26 @@
 
 ---
 
-## 📅 Última sesión
+## 📅 Sesión en curso (PENDIENTE DE CONTINUAR)
+
+- **Fecha**: 2026-05-27
+- **Focus**: Crear/editar programas COMPLETOS de forma manual desde el admin (fases, descansos, ejercicios, rondas, nombres, consejos)
+- **Estado**: Fases 1-6 completadas.
+- **Análisis realizado**:
+  - **Backend**: `TrainingProgram` solo tiene GET. `TrainingLevel`, `TrainingWeekInfo` no tienen controllers. `Training` tiene CRUD pero solo para entrenamientos sueltos (falta `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType` en DTOs).
+  - **Frontend**: `TrainingProgramEditView.vue` y `TrainingLevelEditView.vue` están hardcodeados/mock (no conectan a API). No existen vistas para gestionar fases/semanas ni trainings con rounds/ejercicios dentro de un nivel.
+- **Plan acordado** (ver detalle en "🎯 Próximos Pasos" → sección "Plan de implementación CRUD programa completo"):
+  - Fase 1: Backend CRUD `TrainingProgram` + `TrainingLevel` ✅ COMPLETADA
+  - Fase 2: Backend CRUD `TrainingWeekInfo` (fases/semanas) ✅ COMPLETADA
+  - Fase 3: Backend extender `TrainingCreateDto` para asociar a nivel/semana/día ✅ COMPLETADA
+  - Fase 4: Frontend conectar `TrainingProgramEditView` y `TrainingLevelEditView` ✅ COMPLETADA
+  - Fase 5: Frontend nueva vista constructor de trainings (rounds + ejercicios) ✅ COMPLETADA
+  - Fase 6: Frontend nueva vista constructor de fases/semanas ✅ COMPLETADA
+- **Decisiones**: UI con pantallas separadas.
+
+---
+
+## 📅 Última sesión completada
 
 - **Fecha**: 2026-05-25
 - **Focus**: Arreglo de clasificación por grupo muscular en ejercicios + recalificación de ejercicios Handstand
@@ -44,7 +63,7 @@
 | **Framework**       | Symfony 8.0                                      |
 | **ORM**             | Doctrine 3.6+                                    |
 | **Auth**            | JWT custom (firebase/php-jwt)                    |
-| **Tests**           | 494 tests pasando (PHPUnit)                      |
+| **Tests**           | 570 tests pasando (PHPUnit)                      |
 | **Code style**      | PHP-CS-Fixer activo (PSR12 + Symfony)            |
 | **Static analysis** | PHPStan nivel 5, sin errores                     |
 | **CI/CD**           | GitHub Actions (code-style, phpstan, unit-tests) |
@@ -81,7 +100,10 @@
 - Exercises: CRUD `/exercises`
 - Trainings: CRUD `/trainings`, `/trainings/public`, `/trainings/user/{userId}`
 - Equipments: CRUD `/equipments`
-- Training Programs: `GET /training-programs`, `/training-programs/{id}`, `/training-programs/by-slug/{slug}`, `/training-programs/{id}/levels`
+- Training Programs: CRUD `/training-programs`, `/training-programs/{id}`, `/training-programs/by-slug/{slug}`, `/training-programs/{id}/levels`
+- Training Levels: CRUD `/training-levels`, `/training-levels/{id}`
+- Training Week Infos: CRUD `/training-week-infos`, `/training-week-infos/{id}`
+- Trainings: CRUD `/trainings` (ahora soporta `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`)
 - Training Skills: CRUD `/training-skills`
 - User Progress: `/user/progress`, `/user/progress/active`, `/user/progress/{levelId}/test`, `/user/progress/{levelId}/advance-week`, `/user/progress/init/{programId}`
 
@@ -89,7 +111,7 @@
 
 - DTOs + Mappers + Voters en toda la API.
 - Serialización con Symfony Serializer y Groups.
-- Voters: `UserVoter`, `TrainingVoter`, `ExerciseVoter`, `EquipmentVoter`, `TrainingSkillVoter`.
+- Voters: `UserVoter`, `TrainingVoter`, `ExerciseVoter`, `EquipmentVoter`, `TrainingSkillVoter`, `TrainingProgramVoter`, `TrainingLevelVoter`.
 
 ### Sistema Calistenia (muy desarrollado)
 
@@ -141,10 +163,21 @@
 
 ## 🎯 Próximos Pasos
 
-1. **Siguiente Skill Program**: Muscle-up, Planche, Front Lever, Back Lever, etc. (elegir uno).
-2. **Tests funcionales**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa.
-3. **Auditoría de ejercicios**: Revisar si otros programas (Calistenia Master V1/V2/V3) tienen ejercicios con clasificación inconsistente respecto a la progresión donde se usan.
-4. **Refinamiento V3**: Ajustar sets/reps de algún nivel si el experto entrenador lo solicita.
+### Plan de implementación CRUD programa completo (NUEVO - prioridad alta)
+
+1. **Fase 1 — Backend base**: CRUD de `TrainingProgram` (POST/PUT/DELETE) + CRUD de `TrainingLevel` (nuevo controller)
+2. **Fase 2 — Backend fases**: CRUD de `TrainingWeekInfo` (controller + DTOs + mapper)
+3. **Fase 3 — Backend trainings en niveles**: Extender `TrainingCreateDto`/`TrainingUpdateDto` con `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`
+4. **Fase 4 — Frontend programas/niveles**: Conectar `TrainingProgramEditView.vue` y `TrainingLevelEditView.vue` a API real
+5. **Fase 5 — Frontend constructor de trainings**: Nueva vista dentro del nivel para crear/editar trainings con rounds, ejercicios, sets, reps, descansos
+6. **Fase 6 — Frontend constructor de fases**: Nueva vista para gestionar semanas/fases (`TrainingWeekInfo`)
+
+### Pendientes anteriores (baja prioridad)
+
+- **Siguiente Skill Program**: Muscle-up, Planche, Front Lever, Back Lever, etc. (el `Front Lever Mastery` ya fue creado en la sesión del 2026-05-25)
+- **Tests funcionales**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa.
+- **Auditoría de ejercicios**: Revisar si otros programas (Calistenia Master V1/V2/V3) tienen ejercicios con clasificación inconsistente respecto a la progresión donde se usan.
+- **Refinamiento V3**: Ajustar sets/reps de algún nivel si el experto entrenador lo solicita.
 
 ---
 
@@ -174,4 +207,27 @@
 
 ---
 
-_Actualizado: 2026-05-25_
+_Actualizado: 2026-05-27_
+
+---
+
+## 📅 Resumen de cambios (2026-05-27)
+
+### Backend
+
+- **TrainingProgram CRUD completo**: DTOs, Mapper, Voter, Controller extendido (POST/PATCH/DELETE).
+- **TrainingLevel CRUD completo**: Nuevo controller, DTOs, Mapper, Voter.
+- **TrainingWeekInfo CRUD completo**: Nuevo controller, DTOs, Mapper, Voter.
+- **Training DTOs extendidos**: `TrainingCreateDto` y `TrainingUpdateDto` ahora aceptan `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`. Mapper actualizado para buscar el nivel y asignar campos.
+- **Tests**: 76 tests unitarios nuevos (DTOs, Mappers, Voters). Total: 570 tests pasando.
+- **Calidad**: PHPStan nivel 5 sin errores, PHP-CS-Fixer aplicado.
+
+### Frontend
+
+- **Programas**: `TrainingProgramEditView.vue` conectado a API real (`programService`).
+- **Niveles**: `TrainingLevelEditView.vue` conectado a API real (`levelService`).
+- **Nuevo servicio `levelService`** y store `useLevelsStore`.
+- **Nuevo servicio `weekInfoService`**.
+- **Nueva vista `LevelWeeksView.vue`**: gestión de semanas/fases de un nivel (`/admin/training-levels/:levelId/weeks`).
+- **Nueva vista `LevelTrainingsView.vue`**: gestión de trainings dentro de un nivel (`/admin/training-levels/:levelId/trainings`).
+- **Router actualizado** con nuevas rutas.
