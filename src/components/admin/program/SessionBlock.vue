@@ -28,14 +28,13 @@
 
     <!-- Lista de ejercicios -->
     <div class="exercises-list" :class="{ 'exercises-list--circuit': block?.isCircuit }">
-      <div
-        v-for="(ex, exIdx) in block?.exercises"
-        :key="exIdx"
-        class="exercise-item">
-
+      <div v-for="(ex, exIdx) in block?.exercises" :key="exIdx" class="exercise-item">
         <div class="exercise-item__left">
           <div class="exercise-number">{{ exIdx + 1 }}</div>
-          <div v-if="block?.isCircuit && exIdx < (block.exercises.length - 1)" class="circuit-connector">
+          <div
+            v-if="block?.isCircuit && exIdx < block.exercises.length - 1"
+            class="circuit-connector"
+          >
             <q-icon name="arrow_downward" size="14px" />
           </div>
         </div>
@@ -49,10 +48,11 @@
             <div class="exercise-badges">
               <span class="difficulty-flames" :class="'difficulty-' + (ex.difficulty || 1)">
                 <q-icon
-                  v-for="n in (ex.difficulty || 1)"
+                  v-for="n in ex.difficulty || 1"
                   :key="n"
                   name="local_fire_department"
-                  size="12px" />
+                  size="12px"
+                />
               </span>
               <q-btn
                 v-if="ex.videoSearch"
@@ -62,7 +62,8 @@
                 icon="play_circle"
                 size="sm"
                 class="video-btn"
-                @click="searchVideo(ex.videoSearch)">
+                @click="searchVideo(ex.videoSearch)"
+              >
                 <q-tooltip>Ver video</q-tooltip>
               </q-btn>
             </div>
@@ -95,7 +96,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
   block: { type: Object, required: true },
 })
 
@@ -279,11 +280,21 @@ const searchVideo = (query) => {
   color: #555;
 }
 
-.difficulty-1 :deep(.q-icon:nth-child(-n+1)) { color: #ff8f38; }
-.difficulty-2 :deep(.q-icon:nth-child(-n+2)) { color: #ff8f38; }
-.difficulty-3 :deep(.q-icon:nth-child(-n+3)) { color: #ff8f38; }
-.difficulty-4 :deep(.q-icon:nth-child(-n+4)) { color: #ff8f38; }
-.difficulty-5 :deep(.q-icon:nth-child(-n+5)) { color: #ff8f38; }
+.difficulty-1 :deep(.q-icon:nth-child(-n + 1)) {
+  color: #ff8f38;
+}
+.difficulty-2 :deep(.q-icon:nth-child(-n + 2)) {
+  color: #ff8f38;
+}
+.difficulty-3 :deep(.q-icon:nth-child(-n + 3)) {
+  color: #ff8f38;
+}
+.difficulty-4 :deep(.q-icon:nth-child(-n + 4)) {
+  color: #ff8f38;
+}
+.difficulty-5 :deep(.q-icon:nth-child(-n + 5)) {
+  color: #ff8f38;
+}
 
 .video-btn {
   color: #8b949e;

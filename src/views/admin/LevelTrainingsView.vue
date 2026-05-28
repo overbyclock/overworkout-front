@@ -68,6 +68,16 @@
                 <q-btn
                   flat
                   round
+                  icon="content_copy"
+                  color="grey-6"
+                  size="sm"
+                  @click="duplicateTraining(training)"
+                >
+                  <q-tooltip>Duplicar</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
                   icon="delete"
                   color="negative"
                   size="sm"
@@ -84,74 +94,13 @@
       <!-- Create/Edit Dialog -->
       <q-dialog v-model="dialogOpen" persistent maximized>
         <q-card class="dialog-card">
-          <q-card-section class="dialog-header">
-            <div class="header-left">
-              <q-btn flat round icon="close" color="grey-6" v-close-popup />
-              <div class="text-h6">
-                {{ isEditing ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento' }}
-              </div>
-            </div>
-            <q-btn
-              color="primary"
-              icon="save"
-              label="Guardar"
-              :loading="saving"
-              @click="saveTraining"
-            />
-          </q-card-section>
-
-          <q-card-section class="dialog-body">
-            <div class="form-grid">
-              <q-input v-model="form.name" label="Nombre" outlined dark />
-              <q-select
-                v-model="form.discipline"
-                :options="disciplineOptions"
-                label="Disciplina *"
-                outlined
-                dark
-                emit-value
-                map-options
-              />
-              <q-select
-                v-model="form.target"
-                :options="targetOptions"
-                label="Objetivo *"
-                outlined
-                dark
-                emit-value
-                map-options
-              />
-              <q-input
-                v-model.number="form.weekNumber"
-                label="Semana"
-                type="number"
-                outlined
-                dark
-              />
-              <q-input
-                v-model="form.dayKey"
-                label="Clave del día"
-                outlined
-                dark
-                hint="Ej: day_a, day_b"
-              />
-              <q-input
-                v-model="form.sessionType"
-                label="Tipo de sesión"
-                outlined
-                dark
-                hint="Ej: session_a"
-              />
-            </div>
-
-            <div class="q-mt-lg">
-              <h3 class="section-title">Rounds y Ejercicios</h3>
-              <p class="text-grey-5">
-                La edición detallada de rounds está disponible desde la vista general de
-                entrenamientos.
-              </p>
-            </div>
-          </q-card-section>
+          <TrainingBuilder
+            v-if="dialogOpen"
+            :initial-data="editingTraining"
+            :level-id="Number(route.params.levelId)"
+            @save="handleSave"
+            @cancel="dialogOpen = false"
+          />
         </q-card>
       </q-dialog>
 
@@ -180,6 +129,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { levelService, trainingService } from '@/services'
+import TrainingBuilder from '@/components/admin/program/TrainingBuilder.vue'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -192,34 +142,10 @@ const trainings = ref([])
 const levelName = ref('')
 
 const dialogOpen = ref(false)
-const isEditing = ref(false)
-const editingId = ref(null)
+const editingTraining = ref(null)
 
 const deleteDialogOpen = ref(false)
 const trainingToDelete = ref(null)
-
-const form = ref({
-  name: '',
-  discipline: 'calisthenics',
-  target: 'strength',
-  weekNumber: null,
-  dayKey: '',
-  sessionType: '',
-})
-
-const disciplineOptions = [
-  { label: 'Calistenia', value: 'calisthenics' },
-  { label: 'CrossFit', value: 'crossfit' },
-  { label: 'Fitness', value: 'fitness' },
-  { label: 'Calistenia + Fitness', value: 'calisthenicsfitness' },
-]
-
-const targetOptions = [
-  { label: 'Fuerza', value: 'strength' },
-  { label: 'Quema de grasa', value: 'fatburning' },
-  { label: 'Construcción de reps', value: 'repbuilding' },
-  { label: 'Calentamiento', value: 'warmup' },
-]
 
 const fetchData = async () => {
   loading.value = true
@@ -235,44 +161,51 @@ const fetchData = async () => {
   }
 }
 
-const openCreateDialog = () => {
-  isEditing.value = false
-  editingId.value = null
-  form.value = {
-    name: '',
-    discipline: 'calisthenics',
-    target: 'strength',
-    weekNumber: null,
-    dayKey: '',
-    sessionType: '',
-  }
+const openCreateDialog = (prefill = null) => {
+  editingTraining.value = prefill
   dialogOpen.value = true
 }
 
-const openEditDialog = (training) => {
-  isEditing.value = true
-  editingId.value = training.id
-  form.value = {
-    name: training.name || '',
-    discipline: training.discipline?.value || training.discipline || 'calisthenics',
-    target: training.target?.value || training.target || 'strength',
-    weekNumber: training.weekNumber ?? null,
-    dayKey: training.dayKey || '',
-    sessionType: training.sessionType || '',
+const duplicateTraining = async (training) => {
+  try {
+    const fullTraining = await trainingService.getById(training.id)
+    const clone = JSON.parse(JSON.stringify(fullTraining))
+    delete clone.id
+    if (clone.trainingRounds) {
+      clone.trainingRounds.forEach((r) => {
+        delete r.id
+        if (r.trainingExerciseConfigurations) {
+          r.trainingExerciseConfigurations.forEach((ex) => delete ex.id)
+        }
+      })
+    }
+    clone.name = `${clone.name || 'Entrenamiento'} (copia)`
+    openCreateDialog(clone)
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al duplicar el entrenamiento' })
   }
-  dialogOpen.value = true
 }
 
-const saveTraining = async () => {
+const openEditDialog = async (training) => {
+  try {
+    const fullTraining = await trainingService.getById(training.id)
+    editingTraining.value = fullTraining
+    dialogOpen.value = true
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar el entrenamiento' })
+  }
+}
+
+const handleSave = async ({ payload, isEditing, error }) => {
+  if (error) {
+    $q.notify({ type: 'warning', message: error })
+    return
+  }
+
   saving.value = true
   try {
-    const payload = {
-      ...form.value,
-      trainingLevelId: Number(route.params.levelId),
-      rounds: [],
-    }
-    if (isEditing.value) {
-      await trainingService.update(editingId.value, payload)
+    if (isEditing) {
+      await trainingService.update(editingTraining.value.id, payload)
       $q.notify({ type: 'positive', message: 'Entrenamiento actualizado' })
     } else {
       await trainingService.create(payload)
@@ -351,42 +284,6 @@ onMounted(fetchData)
   height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dialog-body {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 12px;
-}
-
-@media (max-width: 1024px) {
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+  overflow: hidden auto;
 }
 </style>

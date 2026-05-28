@@ -17,42 +17,106 @@
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input v-model="searchQuery" type="text" placeholder="Buscar programas..." class="search-input">
-            <q-btn v-if="searchQuery" flat round dense icon="close" size="sm" class="clear-search"
-              @click="searchQuery = ''" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar programas..."
+              class="search-input"
+            />
+            <q-btn
+              v-if="searchQuery"
+              flat
+              round
+              dense
+              icon="close"
+              size="sm"
+              class="clear-search"
+              @click="searchQuery = ''"
+            />
           </div>
         </div>
 
         <div class="filter-groups-modern">
-          <FilterPills v-model="statusFilter" label="Estado" icon="toggle_on" :options="statusOptions" />
-          <FilterPills v-model="disciplineFilter" label="Disciplina" icon="sports" :options="disciplineFilterOptions" />
+          <FilterPills
+            v-model="statusFilter"
+            label="Estado"
+            icon="toggle_on"
+            :options="statusOptions"
+          />
+          <FilterPills
+            v-model="disciplineFilter"
+            label="Disciplina"
+            icon="sports"
+            :options="disciplineFilterOptions"
+          />
         </div>
 
         <div v-if="hasActiveFilters" class="active-filters">
           <span class="active-filters-label">Filtros activos:</span>
           <div class="active-filter-chips">
-            <q-chip v-if="searchQuery" removable dense color="primary" text-color="dark" @remove="searchQuery = ''">
+            <q-chip
+              v-if="searchQuery"
+              removable
+              dense
+              color="primary"
+              text-color="dark"
+              @remove="searchQuery = ''"
+            >
               <q-icon name="search" size="14px" left /> {{ searchQuery }}
             </q-chip>
-            <q-chip v-if="statusFilter !== 'all'" removable dense :color="getStatusColor(statusFilter)"
-              text-color="white" @remove="statusFilter = 'all'">
+            <q-chip
+              v-if="statusFilter !== 'all'"
+              removable
+              dense
+              :color="getStatusColor(statusFilter)"
+              text-color="white"
+              @remove="statusFilter = 'all'"
+            >
               {{ getStatusLabel(statusFilter) }}
             </q-chip>
-            <q-chip v-if="disciplineFilter !== 'all'" removable dense color="teal" text-color="white"
-              @remove="disciplineFilter = 'all'">
+            <q-chip
+              v-if="disciplineFilter !== 'all'"
+              removable
+              dense
+              color="teal"
+              text-color="white"
+              @remove="disciplineFilter = 'all'"
+            >
               {{ getDisciplineLabel(disciplineFilter) }}
             </q-chip>
-            <q-btn flat dense no-caps color="grey-6" label="Limpiar todo" size="sm" @click="clearFilters" />
+            <q-btn
+              flat
+              dense
+              no-caps
+              color="grey-6"
+              label="Limpiar todo"
+              size="sm"
+              @click="clearFilters"
+            />
           </div>
         </div>
       </div>
 
       <!-- View Toggle -->
       <div class="view-toggle-bar">
-        <q-btn flat dense :color="viewMode === 'grid' ? 'primary' : 'grey-6'" icon="grid_view" label="Cuadrícula"
-          no-caps @click="viewMode = 'grid'" />
-        <q-btn flat dense :color="viewMode === 'list' ? 'primary' : 'grey-6'" icon="view_list" label="Lista" no-caps
-          @click="viewMode = 'list'" />
+        <q-btn
+          flat
+          dense
+          :color="viewMode === 'grid' ? 'primary' : 'grey-6'"
+          icon="grid_view"
+          label="Cuadrícula"
+          no-caps
+          @click="viewMode = 'grid'"
+        />
+        <q-btn
+          flat
+          dense
+          :color="viewMode === 'list' ? 'primary' : 'grey-6'"
+          icon="view_list"
+          label="Lista"
+          no-caps
+          @click="viewMode = 'list'"
+        />
       </div>
 
       <!-- Programs Grid -->
@@ -69,12 +133,24 @@
           <q-icon name="school" size="64px" color="grey-6" />
           <h3>No hay programas</h3>
           <p>Crea tu primer programa de entrenamiento</p>
-          <q-btn color="primary" icon="add" label="Crear Programa" no-caps @click="openCreateDialog" />
+          <q-btn
+            color="primary"
+            icon="add"
+            label="Crear Programa"
+            no-caps
+            @click="openCreateDialog"
+          />
         </div>
 
-        <ProgramCard v-for="program in filteredPrograms" :key="program.id" :program="program"
-          @view="viewProgram(program)" @edit="editProgram(program)" @duplicate="duplicateProgram(program)"
-          @toggle-status="toggleProgramStatus(program)" />
+        <ProgramCard
+          v-for="program in filteredPrograms"
+          :key="program.id"
+          :program="program"
+          @view="viewProgram(program)"
+          @edit="editProgram(program)"
+          @duplicate="duplicateProgram(program)"
+          @toggle-status="toggleProgramStatus(program)"
+        />
       </div>
 
       <!-- Programs List -->
@@ -89,11 +165,21 @@
           <q-icon name="school" size="64px" color="grey-6" />
           <h3>No hay programas</h3>
           <p>Crea tu primer programa de entrenamiento</p>
-          <q-btn color="primary" icon="add" label="Crear Programa" no-caps @click="openCreateDialog" />
+          <q-btn
+            color="primary"
+            icon="add"
+            label="Crear Programa"
+            no-caps
+            @click="openCreateDialog"
+          />
         </div>
 
-        <div v-for="program in filteredPrograms" :key="program.id" class="program-list-item"
-          :class="{ 'inactive': !program.isActive }">
+        <div
+          v-for="program in filteredPrograms"
+          :key="program.id"
+          class="program-list-item"
+          :class="{ inactive: !program.isActive }"
+        >
           <div class="list-gradient" :style="{ background: getProgramGradient(program) }"></div>
           <div class="list-content">
             <div class="list-main">
@@ -106,22 +192,45 @@
             <div class="list-meta">
               <span><q-icon name="stairs" size="14px" /> {{ program.totalLevels }} niveles</span>
               <span><q-icon name="people" size="14px" /> {{ program.usersCount || 0 }}</span>
-              <q-chip dense :color="program.isActive ? 'positive' : 'grey'" text-color="white" size="sm">
+              <q-chip
+                dense
+                :color="program.isActive ? 'positive' : 'grey'"
+                text-color="white"
+                size="sm"
+              >
                 {{ program.isActive ? 'Activo' : 'Inactivo' }}
               </q-chip>
             </div>
             <div class="list-actions">
-              <q-btn flat round icon="visibility" color="primary" size="sm" @click="viewProgram(program)">
+              <q-btn
+                flat
+                round
+                icon="visibility"
+                color="primary"
+                size="sm"
+                @click="viewProgram(program)"
+              >
                 <q-tooltip>Ver</q-tooltip>
               </q-btn>
               <q-btn flat round icon="edit" color="primary" size="sm" @click="editProgram(program)">
                 <q-tooltip>Editar</q-tooltip>
               </q-btn>
-              <q-btn flat round icon="content_copy" color="grey-6" size="sm" @click="duplicateProgram(program)">
+              <q-btn
+                flat
+                round
+                icon="content_copy"
+                color="grey-6"
+                size="sm"
+                @click="duplicateProgram(program)"
+              >
                 <q-tooltip>Duplicar</q-tooltip>
               </q-btn>
-              <q-toggle :model-value="program.isActive" color="positive" dense
-                @update:model-value="toggleProgramStatus(program)" />
+              <q-toggle
+                :model-value="program.isActive"
+                color="positive"
+                dense
+                @update:model-value="toggleProgramStatus(program)"
+              />
             </div>
           </div>
         </div>
@@ -129,32 +238,70 @@
     </div>
 
     <!-- Create Dialog -->
-    <FormDialog v-model="showCreateDialog" title="Nuevo Programa" confirm-label="Crear Programa" :loading="saving"
-      @confirm="saveProgram">
+    <FormDialog
+      v-model="showCreateDialog"
+      title="Nuevo Programa"
+      confirm-label="Crear Programa"
+      :loading="saving"
+      @confirm="saveProgram"
+    >
       <div class="form-grid">
         <div class="form-group full-width">
           <label>Nombre *</label>
-          <q-input v-model="newProgram.name" outlined dark dense placeholder="Ej: Calistenia Master"
-            :rules="[val => !!val || 'El nombre es obligatorio']" />
+          <q-input
+            v-model="newProgram.name"
+            outlined
+            dark
+            dense
+            placeholder="Ej: Calistenia Master"
+            :rules="[(val) => !!val || 'El nombre es obligatorio']"
+          />
         </div>
         <div class="form-group full-width">
           <label>Slug (identificador URL)</label>
-          <q-input v-model="newProgram.slug" outlined dark dense placeholder="calistenia-master"
-            hint="Se usará en la URL del programa" />
+          <q-input
+            v-model="newProgram.slug"
+            outlined
+            dark
+            dense
+            placeholder="calistenia-master"
+            hint="Se usará en la URL del programa"
+          />
         </div>
         <div class="form-group">
           <label>Disciplina</label>
-          <q-select v-model="newProgram.discipline" :options="disciplineSelectOptions" outlined dark dense emit-value
-            map-options />
+          <q-select
+            v-model="newProgram.discipline"
+            :options="disciplineSelectOptions"
+            outlined
+            dark
+            dense
+            emit-value
+            map-options
+          />
         </div>
         <div class="form-group">
           <label>Niveles totales</label>
-          <q-input v-model.number="newProgram.totalLevels" type="number" outlined dark dense min="1" />
+          <q-input
+            v-model.number="newProgram.totalLevels"
+            type="number"
+            outlined
+            dark
+            dense
+            min="1"
+          />
         </div>
         <div class="form-group full-width">
           <label>Descripción</label>
-          <q-input v-model="newProgram.description" type="textarea" outlined dark dense rows="3"
-            placeholder="Describe el objetivo del programa..." />
+          <q-input
+            v-model="newProgram.description"
+            type="textarea"
+            outlined
+            dark
+            dense
+            rows="3"
+            placeholder="Describe el objetivo del programa..."
+          />
         </div>
       </div>
     </FormDialog>
@@ -192,7 +339,7 @@ const newProgram = ref({
   discipline: 'calisthenics',
   description: '',
   totalLevels: 12,
-  estimatedDurationWeeks: 144
+  estimatedDurationWeeks: 144,
 })
 
 // Options
@@ -233,8 +380,8 @@ const stats = computed(() => [
   { value: totalLevels.value, label: 'Niveles totales', icon: 'stairs', iconColor: 'teal' },
 ])
 
-const hasActiveFilters = computed(() =>
-  searchQuery.value || statusFilter.value !== 'all' || disciplineFilter.value !== 'all'
+const hasActiveFilters = computed(
+  () => searchQuery.value || statusFilter.value !== 'all' || disciplineFilter.value !== 'all',
 )
 
 const filteredPrograms = computed(() => {
@@ -242,56 +389,65 @@ const filteredPrograms = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.description.toLowerCase().includes(query)
+    result = result.filter(
+      (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query),
     )
   }
 
   if (statusFilter.value === 'active') {
-    result = result.filter(p => p.isActive)
+    result = result.filter((p) => p.isActive)
   } else if (statusFilter.value === 'inactive') {
-    result = result.filter(p => !p.isActive)
+    result = result.filter((p) => !p.isActive)
   }
 
   if (disciplineFilter.value !== 'all') {
-    result = result.filter(p => p.discipline === disciplineFilter.value)
+    result = result.filter((p) => p.discipline === disciplineFilter.value)
   }
 
   return result
 })
 
-const activePrograms = computed(() => programs.value.filter(p => p.isActive).length)
+const activePrograms = computed(() => programs.value.filter((p) => p.isActive).length)
 const totalUsers = computed(() => programs.value.reduce((sum, p) => sum + (p.usersCount || 0), 0))
 const totalLevels = computed(() => programs.value.reduce((sum, p) => sum + (p.totalLevels || 0), 0))
 
 // Methods
 const getProgramGradient = (program) => {
   const colors = {
-    'calisthenics': 'linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%)',
-    'crossfit': 'linear-gradient(135deg, #38b2ac 0%, #4299e1 100%)',
-    'fitness': 'linear-gradient(135deg, #9f7aea 0%, #ed64a6 100%)',
-    'powerlifting': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    calisthenics: 'linear-gradient(135deg, #ff8f38 0%, #ff6b6b 100%)',
+    crossfit: 'linear-gradient(135deg, #38b2ac 0%, #4299e1 100%)',
+    fitness: 'linear-gradient(135deg, #9f7aea 0%, #ed64a6 100%)',
+    powerlifting: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   }
   return colors[program.discipline] || colors.fitness
 }
 
-const getDisciplineIcon = (discipline) => ({
-  'calisthenics': '🤸', 'crossfit': '🏋️', 'fitness': '💪', 'powerlifting': '🏆'
-}[discipline] || '🎯')
+const getDisciplineIcon = (discipline) =>
+  ({
+    calisthenics: '🤸',
+    crossfit: '🏋️',
+    fitness: '💪',
+    powerlifting: '🏆',
+  })[discipline] || '🎯'
 
 const getDisciplineLabel = (discipline) => {
-  const option = disciplineOptions.find(d => d.value === discipline)
+  const option = disciplineOptions.find((d) => d.value === discipline)
   return option ? option.label : discipline
 }
 
-const getStatusColor = (status) => ({
-  'active': 'positive', 'inactive': 'grey', 'all': 'grey'
-}[status] || 'grey')
+const getStatusColor = (status) =>
+  ({
+    active: 'positive',
+    inactive: 'grey',
+    all: 'grey',
+  })[status] || 'grey'
 
-const getStatusLabel = (status) => ({
-  'active': 'Activo', 'inactive': 'Inactivo', 'all': 'Todos'
-}[status] || status)
+const getStatusLabel = (status) =>
+  ({
+    active: 'Activo',
+    inactive: 'Inactivo',
+    all: 'Todos',
+  })[status] || status
 
 const clearFilters = () => {
   searchQuery.value = ''
@@ -316,7 +472,8 @@ const fetchPrograms = async () => {
   }
 }
 
-const viewProgram = (program) => router.push(`/admin/training-programs/${program.slug || program.id}`)
+const viewProgram = (program) =>
+  router.push(`/admin/training-programs/${program.slug || program.id}`)
 const editProgram = (program) => router.push(`/admin/training-programs/${program.id}/edit`)
 
 const duplicateProgram = (program) => {
@@ -327,12 +484,19 @@ const toggleProgramStatus = (program) => {
   program.isActive = !program.isActive
   $q.notify({
     type: program.isActive ? 'positive' : 'warning',
-    message: `Programa "${program.name}" ${program.isActive ? 'activado' : 'desactivado'}`
+    message: `Programa "${program.name}" ${program.isActive ? 'activado' : 'desactivado'}`,
   })
 }
 
 const openCreateDialog = () => {
-  newProgram.value = { name: '', slug: '', discipline: 'calisthenics', description: '', totalLevels: 12, estimatedDurationWeeks: 144 }
+  newProgram.value = {
+    name: '',
+    slug: '',
+    discipline: 'calisthenics',
+    description: '',
+    totalLevels: 12,
+    estimatedDurationWeeks: 144,
+  }
   showCreateDialog.value = true
 }
 
@@ -344,10 +508,15 @@ const saveProgram = async () => {
 
   saving.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const response = await programService.create(newProgram.value)
     $q.notify({ type: 'positive', message: 'Programa creado correctamente' })
     showCreateDialog.value = false
-    fetchPrograms()
+    const createdId = response?.program?.id || response?.id
+    if (createdId) {
+      router.push(`/admin/training-programs/${createdId}`)
+    } else {
+      fetchPrograms()
+    }
   } catch {
     $q.notify({ type: 'negative', message: 'Error al crear programa' })
   } finally {

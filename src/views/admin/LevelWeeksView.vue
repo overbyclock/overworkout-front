@@ -158,9 +158,7 @@ const fetchData = async () => {
       levelName.value = levelData.name || `Nivel ${levelData.levelNumber}`
     }
     const allWeeks = Array.isArray(allWeeksData) ? allWeeksData : allWeeksData.member || []
-    weekInfos.value = allWeeks.filter(
-      (w) => w.trainingLevel?.id === levelId || w.levelId === levelId,
-    )
+    weekInfos.value = allWeeks.filter((w) => w.levelId === levelId)
   } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar datos' })
   } finally {

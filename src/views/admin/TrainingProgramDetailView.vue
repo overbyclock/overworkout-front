@@ -64,6 +64,9 @@
             :levels="program.levels"
             @add="addLevel"
             @edit="editLevel"
+            @duplicate="duplicateLevel"
+            @manage-weeks="manageLevelWeeks"
+            @manage-trainings="manageLevelTrainings"
           >
             <template #level-detail="{ level }">
               <LevelDetail :level="level" :level-data="getLevelData(level.levelNumber)" />
@@ -125,7 +128,7 @@ import {
   SkillTracker,
 } from '@/components/admin'
 import LevelDetail from '@/components/admin/program/LevelDetail.vue'
-import { programService } from '@/services'
+import { programService, levelService } from '@/services'
 import { adaptApiLevelToLegacy } from '@/utils/api-adapters'
 
 const $q = useQuasar()
@@ -401,6 +404,38 @@ const goBack = () => router.push('/admin/training-programs')
 const editProgram = () => router.push(`/admin/training-programs/${program.value.id}/edit`)
 const addLevel = () => router.push(`/admin/training-programs/${program.value.id}/levels/create`)
 const editLevel = (level) => router.push(`/admin/training-levels/${level.id}/edit`)
+const manageLevelWeeks = (level) => router.push(`/admin/training-levels/${level.id}/weeks`)
+const manageLevelTrainings = (level) => router.push(`/admin/training-levels/${level.id}/trainings`)
+
+const duplicateLevel = async (level) => {
+  try {
+    const fullLevel = await levelService.getById(level.id)
+    const maxLevelNumber = program.value.levels.reduce((max, l) => Math.max(max, l.levelNumber), 0)
+    const payload = {
+      programId: program.value.id,
+      levelNumber: maxLevelNumber + 1,
+      name: `${fullLevel.name || 'Nivel'} (copia)`,
+      title: fullLevel.title || '',
+      description: fullLevel.description || '',
+      objective: fullLevel.objective || '',
+      estimatedDurationWeeks: fullLevel.estimatedDurationWeeks ?? 12,
+      difficultyRating: fullLevel.difficultyRating ?? null,
+      color: fullLevel.color || '#ff8f38',
+      icon: fullLevel.icon || '',
+      requirementsSummary: fullLevel.requirementsSummary || '',
+      tips: fullLevel.tips || [],
+      testRequirements: fullLevel.testRequirements || null,
+      skillFocus: fullLevel.skillFocus || '',
+      programVersion: fullLevel.programVersion || 'v1',
+      isLockedByDefault: fullLevel.isLockedByDefault ?? true,
+    }
+    await levelService.create(payload)
+    $q.notify({ type: 'positive', message: 'Nivel duplicado correctamente' })
+    await fetchProgram()
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al duplicar el nivel' })
+  }
+}
 const viewUser = (user) => router.push(`/admin/user-progress/${user.id}`)
 const editUser = (user) => router.push(`/admin/users/${user.id}/edit`)
 const addUser = () => {}

@@ -6,9 +6,17 @@
     </div>
 
     <div class="levels-list">
-      <div v-for="level in levels" :key="level.id" class="level-wrapper"
-        :class="{ 'expanded': expandedLevel === level.id }">
-        <div class="level-card-compact" :class="{ 'locked': level.isLockedByDefault }" @click="toggleLevel(level)">
+      <div
+        v-for="level in levels"
+        :key="level.id"
+        class="level-wrapper"
+        :class="{ expanded: expandedLevel === level.id }"
+      >
+        <div
+          class="level-card-compact"
+          :class="{ locked: level.isLockedByDefault }"
+          @click="toggleLevel(level)"
+        >
           <div class="level-main">
             <div class="level-num">{{ level.levelNumber }}</div>
             <div class="level-content">
@@ -25,21 +33,66 @@
             </div>
           </div>
           <div class="level-actions-compact">
-            <q-btn flat round dense :icon="expandedLevel === level.id ? 'expand_less' : 'expand_more'" color="grey-5" />
+            <q-btn
+              flat
+              round
+              dense
+              :icon="expandedLevel === level.id ? 'expand_less' : 'expand_more'"
+              color="grey-5"
+            />
+            <q-btn
+              flat
+              round
+              dense
+              icon="calendar_today"
+              color="accent"
+              @click.stop="$emit('manage-weeks', level)"
+            >
+              <q-tooltip>Semanas</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              round
+              dense
+              icon="fitness_center"
+              color="secondary"
+              @click.stop="$emit('manage-trainings', level)"
+            >
+              <q-tooltip>Entrenamientos</q-tooltip>
+            </q-btn>
             <q-btn flat round dense icon="edit" color="primary" @click.stop="$emit('edit', level)">
               <q-tooltip>Editar</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              round
+              dense
+              icon="content_copy"
+              color="grey-6"
+              @click.stop="$emit('duplicate', level)"
+            >
+              <q-tooltip>Duplicar</q-tooltip>
             </q-btn>
           </div>
         </div>
 
         <!-- Expanded content -->
-        <div v-if="expandedLevel === level.id && level.hasDetailedTraining" class="training-expanded">
+        <div
+          v-if="expandedLevel === level.id && level.hasDetailedTraining"
+          class="training-expanded"
+        >
           <slot name="level-detail" :level="level" />
         </div>
 
         <div v-else-if="expandedLevel === level.id" class="level-simple-detail">
           <p>{{ level.description || 'Sin descripción detallada' }}</p>
-          <q-btn flat color="primary" icon="edit" label="Editar nivel" @click="$emit('edit', level)" />
+          <q-btn
+            flat
+            color="primary"
+            icon="edit"
+            label="Editar nivel"
+            @click="$emit('edit', level)"
+          />
         </div>
       </div>
     </div>
@@ -50,10 +103,10 @@
 import { ref } from 'vue'
 
 defineProps({
-  levels: { type: Array, required: true }
+  levels: { type: Array, required: true },
 })
 
-defineEmits(['add', 'edit'])
+defineEmits(['add', 'edit', 'duplicate', 'manage-weeks', 'manage-trainings'])
 
 const expandedLevel = ref(null)
 
