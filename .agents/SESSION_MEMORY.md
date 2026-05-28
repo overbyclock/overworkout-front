@@ -5,28 +5,39 @@
 
 ---
 
-## 📅 Sesión en curso (PENDIENTE DE CONTINUAR)
+## 📅 Última sesión completada (2026-05-28)
 
-- **Fecha**: 2026-05-27
-- **Focus**: Crear/editar programas COMPLETOS de forma manual desde el admin (fases, descansos, ejercicios, rondas, nombres, consejos)
-- **Estado**: Fases 1-6 completadas.
-- **Análisis realizado**:
-  - **Backend**: `TrainingProgram` solo tiene GET. `TrainingLevel`, `TrainingWeekInfo` no tienen controllers. `Training` tiene CRUD pero solo para entrenamientos sueltos (falta `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType` en DTOs).
-  - **Frontend**: `TrainingProgramEditView.vue` y `TrainingLevelEditView.vue` están hardcodeados/mock (no conectan a API). No existen vistas para gestionar fases/semanas ni trainings con rounds/ejercicios dentro de un nivel.
-- **Plan acordado** (ver detalle en "🎯 Próximos Pasos" → sección "Plan de implementación CRUD programa completo"):
-  - Fase 1: Backend CRUD `TrainingProgram` + `TrainingLevel` ✅ COMPLETADA
-  - Fase 2: Backend CRUD `TrainingWeekInfo` (fases/semanas) ✅ COMPLETADA
-  - Fase 3: Backend extender `TrainingCreateDto` para asociar a nivel/semana/día ✅ COMPLETADA
-  - Fase 4: Frontend conectar `TrainingProgramEditView` y `TrainingLevelEditView` ✅ COMPLETADA
-  - Fase 5: Frontend nueva vista constructor de trainings (rounds + ejercicios) ✅ COMPLETADA
-  - Fase 6: Frontend nueva vista constructor de fases/semanas ✅ COMPLETADA
-- **Decisiones**: UI con pantallas separadas.
+- **Focus**: Construcción completa del editor de programas (5 fases end-to-end)
+- **Estado**: ✅ Todo completado y commiteado
+- **Cambios Frontend** (`overworkout-front`):
+  - **Fase 1**: Conectar crear programa a API, navegación Semanas/Trainings desde detalle de nivel, fix filtrado de semanas, fix update de trainings sin borrar rounds.
+  - **Fase 3**: Nuevo componente `TrainingBuilder.vue` — editor visual completo de trainings con rounds, ejercicios, sets, reps, descansos, validaciones y payload exacto para backend.
+  - **Fase 4**: Preview en vivo con `SessionBlock`, botón "Duplicar training", botón "Duplicar nivel", test unitario de `TrainingBuilder`.
+  - **Fase 5**: Auto-navegación al detalle del programa tras crearlo.
+- **Cambios Backend** (`overworkout-back`):
+  - **Fase 1**: `TrainingLevelApiController` incluye grupo `training:read:detail` para devolver trainings completos en GET nivel. `TrainingWeekInfo` expone `levelId` en serialización.
+  - **Fase 2**: `TrainingMapper::updateRounds()` y `updateExercisesInRound()` reescritos para hacer **reemplazo completo** (elimina rounds/ejercicios que no estén en el DTO). 3 tests unitarios nuevos.
+- **Commits**:
+  - Frontend: `feat: TrainingBuilder completo + editor de programas end-to-end`
+  - Backend: `feat: reemplazo completo de rounds/ejercicios en TrainingMapper + fixes de serialización`
 
 ---
 
-## 📅 Última sesión completada
+## 📅 Sesión anterior (2026-05-27)
 
-- **Fecha**: 2026-05-25
+- **Focus**: Crear/editar programas COMPLETOS de forma manual desde el admin
+- **Estado**: Fases 1-6 del plan CRUD programa completo ✅
+- **Plan completado**:
+  - Backend CRUD `TrainingProgram` + `TrainingLevel`
+  - Backend CRUD `TrainingWeekInfo`
+  - Backend extender `TrainingCreateDto`
+  - Frontend conectar vistas de edición
+  - Frontend constructor de trainings y fases/semanas
+
+---
+
+## 📅 Sesión anterior (2026-05-25)
+
 - **Focus**: Arreglo de clasificación por grupo muscular en ejercicios + recalificación de ejercicios Handstand
 - **Resumen**:
   1. Fix: `primaryMuscleGroup` y `secondaryMuscleGroup` añadidos al grupo de serialización `GROUP_READ` en `Exercises.php`. El endpoint `GET /exercises` ya devuelve estos campos correctamente.
