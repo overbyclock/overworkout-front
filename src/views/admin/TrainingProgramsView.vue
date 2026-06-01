@@ -661,6 +661,7 @@ onMounted(fetchPrograms)
 
 .program-list-item:hover {
   background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
 }
 
 .program-list-item.inactive {

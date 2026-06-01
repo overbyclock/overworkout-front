@@ -148,6 +148,7 @@ const truncateText = (text, length) => {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 143, 56, 0.3);
+  cursor: pointer;
 }
 
 .program-card.inactive {
