@@ -88,6 +88,12 @@
             @view="viewSkill"
           />
 
+          <AchievementsTab
+            v-else-if="activeTab === 'achievements'"
+            :achievements="programAchievements"
+            @add="addAchievement"
+          />
+
           <AnalyticsTab
             v-else-if="activeTab === 'analytics'"
             :stats="stats"
@@ -117,11 +123,17 @@ import {
   LevelsTab,
   UsersTab,
   SkillsTab,
+  AchievementsTab,
   AnalyticsTab,
   SkillTracker,
 } from '@/components/admin'
 import LevelDetail from '@/components/admin/program/LevelDetail.vue'
-import { programService, levelService, programStatsService } from '@/services'
+import {
+  programService,
+  levelService,
+  programStatsService,
+  programAchievementService,
+} from '@/services'
 import { adaptApiLevelToLegacy } from '@/utils/api-adapters'
 
 const $q = useQuasar()
@@ -183,6 +195,12 @@ const tabs = computed(() => [
   { id: 'levels', label: 'Niveles', icon: 'stairs', count: program.value?.levels?.length || 0 },
   { id: 'users', label: 'Usuarios', icon: 'people', count: programStats.value.totalUsers },
   { id: 'skills', label: 'Skills', icon: 'emoji_events', count: totalSkills.value },
+  {
+    id: 'achievements',
+    label: 'Logros',
+    icon: 'military_tech',
+    count: programAchievements.value.length,
+  },
   { id: 'analytics', label: 'Analíticas', icon: 'analytics' },
 ])
 
@@ -194,6 +212,8 @@ const programStats = ref({
   paused: 0,
   dropped: 0,
 })
+
+const programAchievements = ref([])
 
 const statsList = computed(() => [
   { value: programStats.value.totalUsers, label: 'Usuarios activos', icon: 'people' },
@@ -363,14 +383,18 @@ const fetchProgram = async () => {
     }
     program.value = data
 
-    // Cargar estadísticas reales del programa
+    // Cargar estadísticas y logros reales del programa
     if (data?.id) {
       try {
-        const stats = await programStatsService.getStats(data.id)
+        const [stats, achievements] = await Promise.all([
+          programStatsService.getStats(data.id),
+          programAchievementService.getByProgram(data.id),
+        ])
         programStats.value = stats
+        programAchievements.value = achievements
       } catch (err) {
-        console.error('Error cargando estadísticas:', err)
-        // Mantener valores por defecto (0) si falla
+        console.error('Error cargando datos del programa:', err)
+        // Mantener valores por defecto si falla
       }
     }
   } catch (err) {
@@ -422,6 +446,7 @@ const editUser = (user) => router.push(`/admin/users/${user.id}/edit`)
 const addUser = () => {}
 const viewSkill = (skill) => router.push(`/admin/training-skills/${skill.id}`)
 const addSkill = () => router.push('/admin/training-skills/create')
+const addAchievement = () => router.push('/admin/achievements/create')
 const duplicateProgram = () => $q.notify({ message: 'Programa duplicado' })
 const toggleActive = () => {
   program.value.isActive = !program.value.isActive
