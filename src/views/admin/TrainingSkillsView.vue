@@ -7,7 +7,14 @@
           <h1 class="page-title">Skills Técnicos</h1>
           <p class="page-subtitle">Gestiona habilidades desbloqueables por nivel</p>
         </div>
-        <q-btn color="primary" icon="add" label="Nuevo Skill" class="action-btn" no-caps @click="openCreateDialog" />
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Nuevo Skill"
+          class="action-btn"
+          no-caps
+          @click="openCreateDialog"
+        />
       </div>
 
       <!-- Stats -->
@@ -46,18 +53,18 @@
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Buscar skills..." 
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar skills..."
               class="search-input"
-            >
-            <q-btn 
-              v-if="searchQuery" 
-              flat 
-              round 
-              dense 
-              icon="close" 
+            />
+            <q-btn
+              v-if="searchQuery"
+              flat
+              round
+              dense
+              icon="close"
               size="sm"
               class="clear-search"
               @click="searchQuery = ''"
@@ -72,11 +79,11 @@
               Familia
             </span>
             <div class="filter-pills">
-              <button 
-                v-for="family in familyOptions" 
+              <button
+                v-for="family in familyOptions"
                 :key="family.value"
                 class="filter-pill"
-                :class="{ 'active': familyFilter === family.value, [family.color]: true }"
+                :class="{ active: familyFilter === family.value, [family.color]: true }"
                 @click="familyFilter = family.value"
               >
                 {{ family.label }}
@@ -105,36 +112,79 @@
 
         <div v-for="skill in filteredSkills" :key="skill.id" class="skill-card">
           <div class="skill-header">
-            <q-chip size="sm" :color="getFamilyColor(skill.skillFamily || skill.family)" text-color="white" class="family-chip">
-              {{ formatFamily(skill.skillFamily || skill.family) }}
+            <q-chip
+              size="sm"
+              :color="getFamilyColor(skill.family || skill.skillFamily)"
+              text-color="white"
+              class="family-chip"
+            >
+              {{ formatFamily(skill.family || skill.skillFamily) }}
             </q-chip>
             <div class="difficulty-badge">
               <q-icon name="star" size="14px" color="orange" />
-              <span>{{ skill.difficultyScore || skill.difficulty || 50 }}</span>
+              <span>{{ skill.difficultyScore || 50 }}</span>
             </div>
           </div>
-          
+
           <h3 class="skill-name">{{ skill.name }}</h3>
           <p class="skill-description">{{ skill.description }}</p>
-          
+
           <div class="skill-meta">
             <div class="meta-item">
               <q-icon name="lock_open" size="16px" color="teal" />
-              <span>Nivel {{ skill.levelRequired || skill.unlockAtLevel || 1 }}</span>
+              <span>Nivel {{ skill.unlockAtLevel || 1 }}</span>
             </div>
-            <div v-if="skill.prerequisites?.length" class="meta-item">
-              <q-icon name="link" size="16px" color="orange" />
-              <span>{{ skill.prerequisites.length }} requisitos</span>
+            <div v-if="skill.programName" class="meta-item">
+              <q-icon name="folder" size="16px" color="blue" />
+              <span>{{ skill.programName }}</span>
+            </div>
+            <div v-if="skill.levelName" class="meta-item">
+              <q-icon name="stairs" size="16px" color="purple" />
+              <span>{{ skill.levelName }}</span>
             </div>
           </div>
-          
+
           <div class="skill-actions">
-            <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps @click="searchSkill(skill, 'youtube')" />
-            <q-btn flat dense icon="search" label="Google" color="grey-5" size="sm" no-caps @click="searchSkill(skill, 'google')" />
-            <q-btn flat dense icon="edit" color="primary" size="sm" no-caps @click="editSkill(skill)">
+            <q-btn
+              flat
+              dense
+              icon="play_circle"
+              label="YouTube"
+              color="grey-5"
+              size="sm"
+              no-caps
+              @click="searchSkill(skill, 'youtube')"
+            />
+            <q-btn
+              flat
+              dense
+              icon="search"
+              label="Google"
+              color="grey-5"
+              size="sm"
+              no-caps
+              @click="searchSkill(skill, 'google')"
+            />
+            <q-btn
+              flat
+              dense
+              icon="edit"
+              color="primary"
+              size="sm"
+              no-caps
+              @click="editSkill(skill)"
+            >
               <q-tooltip>Editar</q-tooltip>
             </q-btn>
-            <q-btn flat dense icon="delete" color="negative" size="sm" no-caps @click="confirmDelete(skill)">
+            <q-btn
+              flat
+              dense
+              icon="delete"
+              color="negative"
+              size="sm"
+              no-caps
+              @click="confirmDelete(skill)"
+            >
               <q-tooltip>Eliminar</q-tooltip>
             </q-btn>
           </div>
@@ -151,77 +201,118 @@
         </q-card-section>
 
         <q-card-section class="dialog-content">
-          <q-input v-model="skillForm.name" label="Nombre del skill *" outlined dense dark class="q-mb-md" />
-          
-          <q-select 
-            v-model="skillForm.skillFamily" 
-            :options="familySelectOptions" 
-            label="Familia *" 
-            outlined 
-            dense 
-            dark 
+          <q-input
+            v-model="skillForm.name"
+            label="Nombre del skill *"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
+          />
+
+          <q-select
+            v-model="skillForm.skillFamily"
+            :options="familySelectOptions"
+            label="Familia *"
+            outlined
+            dense
+            dark
             class="q-mb-md"
             emit-value
             map-options
           />
-          
-          <q-input 
-            v-model="skillForm.description" 
-            label="Descripción" 
-            type="textarea" 
-            outlined 
-            dense 
-            dark 
-            class="q-mb-md" 
+
+          <q-select
+            v-model="skillForm.programId"
+            :options="programs.map((p) => ({ label: p.name, value: p.id }))"
+            label="Programa *"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
+            emit-value
+            map-options
+            @update:model-value="
+              loadLevels($event)
+              skillForm.levelId = null
+            "
+          />
+
+          <q-select
+            v-model="skillForm.levelId"
+            :options="levels.map((l) => ({ label: `${l.levelNumber} - ${l.name}`, value: l.id }))"
+            label="Nivel *"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
+            emit-value
+            map-options
+            :disable="!skillForm.programId"
+          />
+
+          <q-input
+            v-model="skillForm.description"
+            label="Descripción"
+            type="textarea"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
             rows="3"
           />
-          
+
           <div class="row q-col-gutter-md q-mb-md">
             <div class="col-6">
-              <q-input 
-                v-model.number="skillForm.levelRequired" 
-                label="Nivel requerido *" 
-                type="number" 
-                outlined 
-                dense 
-                dark 
+              <q-input
+                v-model.number="skillForm.levelRequired"
+                label="Nivel de desbloqueo *"
+                type="number"
+                outlined
+                dense
+                dark
               />
             </div>
             <div class="col-6">
-              <q-input 
-                v-model.number="skillForm.difficultyScore" 
-                label="Dificultad (0-100)" 
-                type="number" 
-                outlined 
-                dense 
-                dark 
+              <q-input
+                v-model.number="skillForm.difficultyScore"
+                label="Dificultad (0-100)"
+                type="number"
+                outlined
+                dense
+                dark
               />
             </div>
           </div>
-          
-          <q-input 
-            v-model="skillForm.videoTutorialUrl" 
-            label="URL Video Tutorial" 
-            outlined 
-            dense 
-            dark 
+
+          <q-input
+            v-model="skillForm.videoTutorialUrl"
+            label="URL Video Tutorial"
+            outlined
+            dense
+            dark
             class="q-mb-md"
             placeholder="https://youtube.com/watch?v=..."
           />
-          
-          <q-toggle 
-            v-model="skillForm.isSecret" 
-            label="Skill secreto" 
-            color="orange" 
-            dark 
-            left-label 
+
+          <q-toggle
+            v-model="skillForm.isSecret"
+            label="Skill secreto"
+            color="orange"
+            dark
+            left-label
             class="q-mb-md"
           />
         </q-card-section>
 
         <q-card-section class="dialog-footer">
           <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn color="primary" :label="isEditing ? 'Guardar' : 'Crear'" :loading="saving" @click="saveSkill" />
+          <q-btn
+            color="primary"
+            :label="isEditing ? 'Guardar' : 'Crear'"
+            :loading="saving"
+            @click="saveSkill"
+          />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -231,7 +322,9 @@
       <q-card class="delete-dialog">
         <q-card-section class="row items-center">
           <q-avatar icon="warning" color="negative" text-color="white" />
-          <span class="q-ml-sm">¿Eliminar "{{ skillToDelete?.name }}"? Esta acción no se puede deshacer.</span>
+          <span class="q-ml-sm"
+            >¿Eliminar "{{ skillToDelete?.name }}"? Esta acción no se puede deshacer.</span
+          >
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
@@ -245,11 +338,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { skillService } from '@/services/skills'
+import { programService } from '@/services/programs'
 
 const $q = useQuasar()
 
 const loading = ref(false)
 const skills = ref([])
+const programs = ref([])
+const levels = ref([])
 const searchQuery = ref('')
 const familyFilter = ref('all')
 const skillDialog = ref(false)
@@ -267,7 +364,9 @@ const skillForm = ref({
   difficultyScore: 50,
   videoTutorialUrl: '',
   isSecret: false,
-  prerequisites: []
+  programId: null,
+  levelId: null,
+  prerequisites: [],
 })
 
 const familyOptions = [
@@ -314,25 +413,25 @@ const formatFamily = (family) => {
     legs: 'Legs',
     dip: 'Dip',
     rings: 'Rings',
-    human_flag: 'Human Flag'
+    human_flag: 'Human Flag',
   }
   return labels[family] || family
 }
 
 const getFamilyColor = (family) => {
-  const colors = { 
+  const colors = {
     core: 'red',
-    handstand: 'blue', 
+    handstand: 'blue',
     pull: 'green',
     push: 'orange',
-    muscle_up: 'deep-orange', 
-    planche: 'purple', 
+    muscle_up: 'deep-orange',
+    planche: 'purple',
     lever: 'cyan',
-    front_lever: 'teal', 
+    front_lever: 'teal',
     legs: 'brown',
     dip: 'pink',
     rings: 'indigo',
-    human_flag: 'lime'
+    human_flag: 'lime',
   }
   return colors[family] || 'grey'
 }
@@ -342,22 +441,23 @@ const filteredSkills = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(s => 
-      s.name?.toLowerCase().includes(query) || 
-      s.description?.toLowerCase().includes(query)
+    result = result.filter(
+      (s) => s.name?.toLowerCase().includes(query) || s.description?.toLowerCase().includes(query),
     )
   }
 
   if (familyFilter.value !== 'all') {
-    result = result.filter(s => 
-      (s.skillFamily || s.family) === familyFilter.value
-    )
+    result = result.filter((s) => (s.skillFamily || s.family) === familyFilter.value)
   }
 
-  return result.sort((a, b) => (a.levelRequired || a.unlockAtLevel || 1) - (b.levelRequired || b.unlockAtLevel || 1))
+  return result.sort(
+    (a, b) => (a.levelRequired || a.unlockAtLevel || 1) - (b.levelRequired || b.unlockAtLevel || 1),
+  )
 })
 
-const familiesCount = computed(() => new Set(skills.value.map(s => s.skillFamily || s.family)).size)
+const familiesCount = computed(
+  () => new Set(skills.value.map((s) => s.skillFamily || s.family)).size,
+)
 const avgUnlockLevel = computed(() => {
   if (skills.value.length === 0) return 0
   const sum = skills.value.reduce((acc, s) => acc + (s.levelRequired || s.unlockAtLevel || 1), 0)
@@ -367,51 +467,7 @@ const avgUnlockLevel = computed(() => {
 const fetchSkills = async () => {
   loading.value = true
   try {
-    // Simulación - aquí iría la llamada API
-    await new Promise(r => setTimeout(r, 500))
-    skills.value = [
-      // PRINCIPIANTE (1-4)
-      { id: 1, name: 'L-Sit', skillFamily: 'core', description: 'Sentado en manos con piernas en L. Base de compresión de cadera fundamental.', levelRequired: 2, difficultyScore: 25 },
-      { id: 2, name: 'Hollow Body Hold', skillFamily: 'core', description: 'Posición de banana invertida. Control lumbar esencial para calistenia.', levelRequired: 1, difficultyScore: 15 },
-      { id: 3, name: 'Pike Push-up', skillFamily: 'handstand', description: 'Flexiones en posición de pica. Preparación para el pino.', levelRequired: 3, difficultyScore: 35 },
-      { id: 4, name: 'Australian Pull-up', skillFamily: 'pull', description: 'Remo australiano en barra baja. Base técnica para dominadas.', levelRequired: 2, difficultyScore: 20 },
-      { id: 5, name: 'Handstand Prep', skillFamily: 'handstand', description: 'Preparación para el pino contra pared.', levelRequired: 3, difficultyScore: 30 },
-      { id: 6, name: 'Tuck Front Lever', skillFamily: 'front_lever', description: 'Palanca frontal con rodillas al pecho. Primer paso hacia el lever.', levelRequired: 4, difficultyScore: 40 },
-      
-      // INTERMEDIO (5-7)
-      { id: 7, name: 'Handstand Wall', skillFamily: 'handstand', description: 'Pino libre contra la pared. Equilibrio básico invertido.', levelRequired: 5, difficultyScore: 45 },
-      { id: 8, name: 'L-Sit to Handstand', skillFamily: 'handstand', description: 'Transición de L-sit a pino. Requiere fuerza de empuje y compresión.', levelRequired: 7, difficultyScore: 70 },
-      { id: 9, name: 'Back Lever', skillFamily: 'lever', description: 'Palanca dorsal horizontal. Contracción de espalda extensa.', levelRequired: 6, difficultyScore: 55 },
-      { id: 10, name: 'Archer Pull-up', skillFamily: 'pull', description: 'Dominada asimétrica. Preparación para dominada a una mano.', levelRequired: 6, difficultyScore: 50 },
-      { id: 11, name: 'Pistol Squat', skillFamily: 'legs', description: 'Sentadilla completa a una pierna. Movilidad y fuerza.', levelRequired: 5, difficultyScore: 45 },
-      { id: 12, name: 'V-Sit', skillFamily: 'core', description: 'L-sit con apertura de piernas en V. Compresión avanzada.', levelRequired: 7, difficultyScore: 65 },
-      { id: 13, name: 'Typewriter Pull-up', skillFamily: 'pull', description: 'Dominada con movimiento lateral. Control y resistencia.', levelRequired: 6, difficultyScore: 55 },
-      { id: 14, name: 'Muscle-up Journey', skillFamily: 'muscle_up', description: 'Transición explosiva de dominada a fondo en barra.', levelRequired: 5, difficultyScore: 55 },
-      { id: 15, name: 'Tuck Planche', skillFamily: 'planche', description: 'Plancha con rodillas al pecho. Base de proyección.', levelRequired: 7, difficultyScore: 65 },
-      { id: 16, name: 'Front Lever', skillFamily: 'front_lever', description: 'Palanca frontal extendida completa. Pure pulling strength.', levelRequired: 7, difficultyScore: 75 },
-      
-      // AVANZADO (8-10)
-      { id: 17, name: 'Freestanding Handstand', skillFamily: 'handstand', description: 'Pino libre sin apoyo. Equilibrio y alineación perfectos.', levelRequired: 8, difficultyScore: 80 },
-      { id: 18, name: 'One Arm Pull-up', skillFamily: 'pull', description: 'Dominada a una mano. Máxima fuerza de tracción.', levelRequired: 10, difficultyScore: 95 },
-      { id: 19, name: 'One Arm Push-up', skillFamily: 'push', description: 'Flexión a una mano. Empuje unilateral extremo.', levelRequired: 9, difficultyScore: 85 },
-      { id: 20, name: 'Dragon Flag', skillFamily: 'core', description: 'Bruce Lee special. Bandera dragón, core de hierro.', levelRequired: 8, difficultyScore: 85 },
-      { id: 21, name: 'Hefesto', skillFamily: 'rings', description: 'Dominada invertida en anillas. El pull más difícil.', levelRequired: 10, difficultyScore: 100 },
-      { id: 22, name: 'Korean Dip', skillFamily: 'dip', description: 'Fondos coreanos en barra recta. Extensión completa del hombro.', levelRequired: 8, difficultyScore: 70 },
-      { id: 23, name: '90 Degree Push-up', skillFamily: 'handstand', description: 'Flexión parada de manos a 90°. Control de HSPU.', levelRequired: 9, difficultyScore: 90 },
-      { id: 24, name: 'Manna', skillFamily: 'core', description: 'L-sit extremo con piernas elevadas. Compresión élite.', levelRequired: 10, difficultyScore: 95 },
-      { id: 25, name: 'Inverted Cross', skillFamily: 'rings', description: 'Cruz invertida en anillas. Fuerza de empuje invertida.', levelRequired: 10, difficultyScore: 90 },
-      { id: 26, name: 'Straddle Planche', skillFamily: 'planche', description: 'Plancha con piernas abiertas. Progresión a full.', levelRequired: 9, difficultyScore: 85 },
-      { id: 27, name: 'Full Planche', skillFamily: 'planche', description: 'Plancha completa extendida. Proyección máxima.', levelRequired: 10, difficultyScore: 95 },
-      { id: 28, name: 'Muscle-up Rings', skillFamily: 'rings', description: 'Muscle-up en anillas. Control y estabilidad extra.', levelRequired: 8, difficultyScore: 75 },
-      { id: 29, name: 'Human Flag', skillFamily: 'human_flag', description: 'Bandera humana lateral. Fuerza de agarre y core.', levelRequired: 9, difficultyScore: 80 },
-      
-      // ÉLITE (11-12)
-      { id: 30, name: 'Iron Cross', skillFamily: 'rings', description: 'Cruz de hierro en anillas. La habilidad más difícil.', levelRequired: 12, difficultyScore: 100 },
-      { id: 31, name: 'Victorian Cross', skillFamily: 'rings', description: 'Cruz victoriana. Cuerpo horizontal hacia atrás.', levelRequired: 12, difficultyScore: 100 },
-      { id: 32, name: 'Planche Push-up', skillFamily: 'planche', description: 'Flexión en posición de plancha. Empuje extremo.', levelRequired: 11, difficultyScore: 98 },
-      { id: 33, name: 'One Arm Handstand', skillFamily: 'handstand', description: 'Pino a una mano libre. Equilibrio supremo.', levelRequired: 12, difficultyScore: 100 },
-      { id: 34, name: 'Maltese', skillFamily: 'rings', description: 'Posición maltesa en anillas. Proyección máxima boca abajo.', levelRequired: 11, difficultyScore: 95 },
-    ]
+    skills.value = await skillService.getAll()
   } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar skills' })
   } finally {
@@ -419,11 +475,31 @@ const fetchSkills = async () => {
   }
 }
 
+const loadPrograms = async () => {
+  try {
+    programs.value = await programService.getAll()
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar programas' })
+  }
+}
+
+const loadLevels = async (programId) => {
+  levels.value = []
+  if (!programId) return
+  try {
+    const program = await programService.getById(programId)
+    levels.value = program.levels || []
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar niveles' })
+  }
+}
+
 const searchSkill = (skill, platform) => {
   const query = encodeURIComponent(skill.name)
-  const url = platform === 'youtube' 
-    ? `https://www.youtube.com/results?search_query=${query}`
-    : `https://www.google.com/search?q=${query}+tutorial`
+  const url =
+    platform === 'youtube'
+      ? `https://www.youtube.com/results?search_query=${query}`
+      : `https://www.google.com/search?q=${query}+tutorial`
   window.open(url, '_blank')
 }
 
@@ -438,38 +514,58 @@ const openCreateDialog = () => {
     difficultyScore: 50,
     videoTutorialUrl: '',
     isSecret: false,
-    prerequisites: []
+    programId: null,
+    levelId: null,
+    prerequisites: [],
   }
+  levels.value = []
   skillDialog.value = true
 }
 
 const editSkill = (skill) => {
   isEditing.value = true
-  skillForm.value = { 
-    ...skill,
-    skillFamily: skill.skillFamily || skill.family,
-    levelRequired: skill.levelRequired || skill.unlockAtLevel || 1,
-    difficultyScore: skill.difficultyScore || skill.difficulty || 50
+  skillForm.value = {
+    id: skill.id,
+    name: skill.name,
+    skillFamily: skill.family || skill.skillFamily,
+    description: skill.description || '',
+    levelRequired: skill.unlockAtLevel || 1,
+    difficultyScore: skill.difficultyScore || 50,
+    videoTutorialUrl: skill.videoTutorialUrl || '',
+    isSecret: skill.isKeySkill || false,
+    programId: skill.programId || null,
+    levelId: skill.levelId || null,
+    prerequisites: [],
   }
+  loadLevels(skillForm.value.programId)
   skillDialog.value = true
 }
 
 const saveSkill = async () => {
   saving.value = true
   try {
-    await new Promise(r => setTimeout(r, 800))
+    const payload = {
+      name: skillForm.value.name,
+      family: skillForm.value.skillFamily,
+      description: skillForm.value.description,
+      unlockAtLevel: skillForm.value.levelRequired,
+      difficultyScore: skillForm.value.difficultyScore,
+      videoTutorialUrl: skillForm.value.videoTutorialUrl,
+      isKeySkill: skillForm.value.isSecret,
+      programId: skillForm.value.programId,
+      levelId: skillForm.value.levelId,
+    }
     if (isEditing.value) {
-      const index = skills.value.findIndex(s => s.id === skillForm.value.id)
-      if (index !== -1) skills.value[index] = { ...skillForm.value }
+      await skillService.update(skillForm.value.id, payload)
       $q.notify({ type: 'positive', message: 'Skill actualizado' })
     } else {
-      const newSkill = { ...skillForm.value, id: Date.now() }
-      skills.value.push(newSkill)
+      await skillService.create(payload)
       $q.notify({ type: 'positive', message: 'Skill creado' })
     }
+    await fetchSkills()
     skillDialog.value = false
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error al guardar' })
+  } catch (err) {
+    $q.notify({ type: 'negative', message: err.response?.data?.error || 'Error al guardar' })
   } finally {
     saving.value = false
   }
@@ -482,8 +578,8 @@ const confirmDelete = (skill) => {
 
 const deleteSkill = async () => {
   try {
-    await new Promise(r => setTimeout(r, 500))
-    skills.value = skills.value.filter(s => s.id !== skillToDelete.value.id)
+    await skillService.delete(skillToDelete.value.id)
+    skills.value = skills.value.filter((s) => s.id !== skillToDelete.value.id)
     $q.notify({ type: 'positive', message: 'Skill eliminado' })
     deleteDialog.value = false
   } catch {
@@ -491,7 +587,10 @@ const deleteSkill = async () => {
   }
 }
 
-onMounted(fetchSkills)
+onMounted(() => {
+  fetchSkills()
+  loadPrograms()
+})
 </script>
 
 <style scoped>
@@ -640,18 +739,66 @@ onMounted(fetchSkills)
   font-weight: 600;
 }
 
-.filter-pill.active.red { background: #f85149; border-color: #f85149; color: #fff; }
-.filter-pill.active.blue { background: #58a6ff; border-color: #58a6ff; color: #fff; }
-.filter-pill.active.green { background: #3fb950; border-color: #3fb950; color: #fff; }
-.filter-pill.active.orange { background: #ff8f38; border-color: #ff8f38; color: #0d1117; }
-.filter-pill.active.deep-orange { background: #ff6b35; border-color: #ff6b35; color: #fff; }
-.filter-pill.active.purple { background: #a371f7; border-color: #a371f7; color: #fff; }
-.filter-pill.active.cyan { background: #39c5cf; border-color: #39c5cf; color: #0d1117; }
-.filter-pill.active.teal { background: #38b2ac; border-color: #38b2ac; color: #fff; }
-.filter-pill.active.brown { background: #8b4513; border-color: #8b4513; color: #fff; }
-.filter-pill.active.pink { background: #ff6b9d; border-color: #ff6b9d; color: #0d1117; }
-.filter-pill.active.indigo { background: #6366f1; border-color: #6366f1; color: #fff; }
-.filter-pill.active.lime { background: #84cc16; border-color: #84cc16; color: #0d1117; }
+.filter-pill.active.red {
+  background: #f85149;
+  border-color: #f85149;
+  color: #fff;
+}
+.filter-pill.active.blue {
+  background: #58a6ff;
+  border-color: #58a6ff;
+  color: #fff;
+}
+.filter-pill.active.green {
+  background: #3fb950;
+  border-color: #3fb950;
+  color: #fff;
+}
+.filter-pill.active.orange {
+  background: #ff8f38;
+  border-color: #ff8f38;
+  color: #0d1117;
+}
+.filter-pill.active.deep-orange {
+  background: #ff6b35;
+  border-color: #ff6b35;
+  color: #fff;
+}
+.filter-pill.active.purple {
+  background: #a371f7;
+  border-color: #a371f7;
+  color: #fff;
+}
+.filter-pill.active.cyan {
+  background: #39c5cf;
+  border-color: #39c5cf;
+  color: #0d1117;
+}
+.filter-pill.active.teal {
+  background: #38b2ac;
+  border-color: #38b2ac;
+  color: #fff;
+}
+.filter-pill.active.brown {
+  background: #8b4513;
+  border-color: #8b4513;
+  color: #fff;
+}
+.filter-pill.active.pink {
+  background: #ff6b9d;
+  border-color: #ff6b9d;
+  color: #0d1117;
+}
+.filter-pill.active.indigo {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+.filter-pill.active.lime {
+  background: #84cc16;
+  border-color: #84cc16;
+  color: #0d1117;
+}
 
 /* Skills Grid */
 .skills-grid {
@@ -731,7 +878,8 @@ onMounted(fetchSkills)
 }
 
 /* Dialogs */
-.skill-dialog, .delete-dialog {
+.skill-dialog,
+.delete-dialog {
   background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
   min-width: 500px;
   border-radius: 20px;
@@ -789,12 +937,12 @@ onMounted(fetchSkills)
   .skills-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .skill-dialog {
     min-width: auto;
     width: 90vw;
   }
-  
+
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }
