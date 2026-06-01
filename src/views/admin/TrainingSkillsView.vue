@@ -232,10 +232,7 @@
             class="q-mb-md"
             emit-value
             map-options
-            @update:model-value="
-              loadLevels($event)
-              skillForm.levelId = null
-            "
+            @update:model-value="onProgramChange"
           />
 
           <q-select
@@ -492,6 +489,11 @@ const loadLevels = async (programId) => {
   } catch {
     $q.notify({ type: 'negative', message: 'Error al cargar niveles' })
   }
+}
+
+const onProgramChange = (programId) => {
+  loadLevels(programId)
+  skillForm.value.levelId = null
 }
 
 const searchSkill = (skill, platform) => {
