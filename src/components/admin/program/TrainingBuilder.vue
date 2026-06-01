@@ -3,8 +3,18 @@
     <!-- Header -->
     <div class="builder-header">
       <div class="header-title">
-        <h2>{{ isEditing ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento' }}</h2>
-        <p class="text-grey-5">{{ form.name || 'Sin nombre' }}</p>
+        <q-btn
+          flat
+          round
+          icon="arrow_back"
+          color="grey-5"
+          class="q-mr-sm"
+          @click="$emit('cancel')"
+        />
+        <div>
+          <h2>{{ isEditing ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento' }}</h2>
+          <p class="text-grey-5">{{ form.name || 'Sin nombre' }}</p>
+        </div>
       </div>
       <div class="header-actions">
         <q-btn
@@ -579,6 +589,11 @@ onMounted(async () => {
 .builder-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  display: flex;
   align-items: center;
 }
 
