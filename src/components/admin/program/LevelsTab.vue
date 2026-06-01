@@ -44,11 +44,11 @@
               flat
               round
               dense
-              icon="calendar_today"
+              icon="layers"
               color="accent"
               @click.stop="$emit('manage-weeks', level)"
             >
-              <q-tooltip>Semanas</q-tooltip>
+              <q-tooltip>Fases</q-tooltip>
             </q-btn>
             <q-btn
               flat

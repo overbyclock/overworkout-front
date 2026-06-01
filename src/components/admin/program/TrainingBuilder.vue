@@ -53,7 +53,7 @@
             />
             <q-input
               v-model.number="form.weekNumber"
-              label="Semana"
+              label="Fase"
               type="number"
               outlined
               dark
@@ -61,7 +61,7 @@
             />
             <q-input
               v-model="form.dayKey"
-              label="Clave del día"
+              label="Clave del ciclo"
               outlined
               dark
               dense

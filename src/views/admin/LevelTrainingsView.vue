@@ -39,9 +39,9 @@
                   <q-badge color="primary" class="q-mr-xs">{{ training.discipline }}</q-badge>
                   <q-badge color="secondary" class="q-mr-xs">{{ training.target }}</q-badge>
                   <span v-if="training.weekNumber" class="q-mr-md"
-                    >Semana {{ training.weekNumber }}</span
+                    >Fase {{ training.weekNumber }}</span
                   >
-                  <span v-if="training.dayKey" class="q-mr-md">Día {{ training.dayKey }}</span>
+                  <span v-if="training.dayKey" class="q-mr-md">Ciclo {{ training.dayKey }}</span>
                   <span v-if="training.sessionType">{{ training.sessionType }}</span>
                 </q-item-label>
                 <q-item-label

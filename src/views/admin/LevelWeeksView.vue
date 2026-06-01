@@ -5,11 +5,11 @@
         <div class="header-left">
           <q-btn flat round icon="arrow_back" @click="goBack" />
           <div>
-            <h1 class="page-title">Semanas del Nivel</h1>
+            <h1 class="page-title">Fases del Nivel</h1>
             <p class="page-subtitle">{{ levelName }}</p>
           </div>
         </div>
-        <q-btn color="primary" icon="add" label="Nueva Semana" @click="openCreateDialog" />
+        <q-btn color="primary" icon="add" label="Nueva Fase" @click="openCreateDialog" />
       </div>
 
       <q-card class="form-card" flat bordered>
@@ -19,16 +19,16 @@
           </div>
 
           <div v-else-if="weekInfos.length === 0" class="empty-state">
-            <q-icon name="calendar_today" size="48px" color="grey-7" />
-            <p>No hay semanas definidas para este nivel</p>
-            <q-btn flat color="primary" label="Añadir primera semana" @click="openCreateDialog" />
+            <q-icon name="layers" size="48px" color="grey-7" />
+            <p>No hay fases definidas para este nivel</p>
+            <q-btn flat color="primary" label="Añadir primera fase" @click="openCreateDialog" />
           </div>
 
           <q-list v-else separator dark>
             <q-item v-for="week in sortedWeekInfos" :key="week.id" class="week-item">
               <q-item-section>
                 <q-item-label class="text-weight-bold"
-                  >Semana {{ week.weekNumber }}: {{ week.name }}</q-item-label
+                  >Fase {{ week.weekNumber }}: {{ week.name }}</q-item-label
                 >
                 <q-item-label caption>
                   <span v-if="week.focus" class="q-mr-md">Foco: {{ week.focus }}</span>
@@ -69,13 +69,13 @@
       <q-dialog v-model="dialogOpen" persistent>
         <q-card class="dialog-card" style="min-width: 400px">
           <q-card-section>
-            <div class="text-h6">{{ isEditing ? 'Editar Semana' : 'Nueva Semana' }}</div>
+            <div class="text-h6">{{ isEditing ? 'Editar Fase' : 'Nueva Fase' }}</div>
           </q-card-section>
           <q-card-section class="q-gutter-md">
             <q-input v-model="form.name" label="Nombre *" outlined dark />
             <q-input
               v-model.number="form.weekNumber"
-              label="Número de semana *"
+              label="Número de fase *"
               type="number"
               outlined
               dark
@@ -95,7 +95,7 @@
       <q-dialog v-model="deleteDialogOpen" persistent>
         <q-card class="dialog-card">
           <q-card-section>
-            <div class="text-h6">Eliminar Semana</div>
+            <div class="text-h6">Eliminar Fase</div>
             <p>
               ¿Estás seguro de que quieres eliminar <strong>{{ weekToDelete?.name }}</strong
               >?
@@ -201,10 +201,10 @@ const saveWeekInfo = async () => {
     }
     if (isEditing.value) {
       await weekInfoService.update(editingId.value, payload)
-      $q.notify({ type: 'positive', message: 'Semana actualizada' })
+      $q.notify({ type: 'positive', message: 'Fase actualizada' })
     } else {
       await weekInfoService.create(payload)
-      $q.notify({ type: 'positive', message: 'Semana creada' })
+      $q.notify({ type: 'positive', message: 'Fase creada' })
     }
     dialogOpen.value = false
     await fetchData()
@@ -226,7 +226,7 @@ const deleteWeekInfo = async () => {
   deleting.value = true
   try {
     await weekInfoService.delete(weekToDelete.value.id)
-    $q.notify({ type: 'positive', message: 'Semana eliminada' })
+    $q.notify({ type: 'positive', message: 'Fase eliminada' })
     deleteDialogOpen.value = false
     await fetchData()
   } catch {

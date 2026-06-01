@@ -404,7 +404,7 @@ const goBack = () => router.push('/admin/training-programs')
 const editProgram = () => router.push(`/admin/training-programs/${program.value.id}/edit`)
 const addLevel = () => router.push(`/admin/training-programs/${program.value.id}/levels/create`)
 const editLevel = (level) => router.push(`/admin/training-levels/${level.id}/edit`)
-const manageLevelWeeks = (level) => router.push(`/admin/training-levels/${level.id}/weeks`)
+const manageLevelWeeks = (level) => router.push(`/admin/training-levels/${level.id}/phases`)
 const manageLevelTrainings = (level) => router.push(`/admin/training-levels/${level.id}/trainings`)
 
 const duplicateLevel = async (level) => {

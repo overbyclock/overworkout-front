@@ -71,7 +71,7 @@
             />
             <q-input
               v-model.number="form.estimatedDurationWeeks"
-              label="Duración estimada (semanas)"
+              label="Duración estimada (fases)"
               type="number"
               outlined
               dark
