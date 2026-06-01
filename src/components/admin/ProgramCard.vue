@@ -1,5 +1,5 @@
 <template>
-  <div class="program-card" :class="{ inactive: !program.isActive }">
+  <div class="program-card" :class="{ inactive: !program.isActive }" @click="$emit('view')">
     <div class="card-gradient" :style="{ background: gradient }"></div>
     <div class="card-content">
       <div class="card-header">
@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="card-body" @click="$emit('view')">
+      <div class="card-body">
         <h3 class="program-name">
           {{ program.name }}
           <q-badge

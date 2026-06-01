@@ -179,6 +179,7 @@
           :key="program.id"
           class="program-list-item"
           :class="{ inactive: !program.isActive }"
+          @click="viewProgram(program)"
         >
           <div class="list-gradient" :style="{ background: getProgramGradient(program) }"></div>
           <div class="list-content">
@@ -201,18 +202,25 @@
                 {{ program.isActive ? 'Activo' : 'Inactivo' }}
               </q-chip>
             </div>
-            <div class="list-actions">
+            <div class="list-actions" @click.stop>
               <q-btn
                 flat
                 round
                 icon="visibility"
                 color="primary"
                 size="sm"
-                @click="viewProgram(program)"
+                @click.stop="viewProgram(program)"
               >
                 <q-tooltip>Ver</q-tooltip>
               </q-btn>
-              <q-btn flat round icon="edit" color="primary" size="sm" @click="editProgram(program)">
+              <q-btn
+                flat
+                round
+                icon="edit"
+                color="primary"
+                size="sm"
+                @click.stop="editProgram(program)"
+              >
                 <q-tooltip>Editar</q-tooltip>
               </q-btn>
               <q-btn
@@ -221,7 +229,7 @@
                 icon="content_copy"
                 color="grey-6"
                 size="sm"
-                @click="duplicateProgram(program)"
+                @click.stop="duplicateProgram(program)"
               >
                 <q-tooltip>Duplicar</q-tooltip>
               </q-btn>
@@ -229,7 +237,7 @@
                 :model-value="program.isActive"
                 color="positive"
                 dense
-                @update:model-value="toggleProgramStatus(program)"
+                @update:model-value.stop="toggleProgramStatus(program)"
               />
             </div>
           </div>
