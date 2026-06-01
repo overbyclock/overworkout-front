@@ -88,12 +88,6 @@
             @view="viewSkill"
           />
 
-          <AchievementsTab
-            v-else-if="activeTab === 'achievements'"
-            :achievements="achievements"
-            @add="addAchievement"
-          />
-
           <AnalyticsTab
             v-else-if="activeTab === 'analytics'"
             :stats="stats"
@@ -123,7 +117,6 @@ import {
   LevelsTab,
   UsersTab,
   SkillsTab,
-  AchievementsTab,
   AnalyticsTab,
   SkillTracker,
 } from '@/components/admin'
@@ -181,11 +174,15 @@ const getLevelData = (levelNumber) => {
   return adaptApiLevelToLegacy(apiLevel)
 }
 
+const totalSkills = computed(() => {
+  if (!program.value?.levels) return 0
+  return program.value.levels.reduce((sum, level) => sum + (level.skills?.length || 0), 0)
+})
+
 const tabs = computed(() => [
   { id: 'levels', label: 'Niveles', icon: 'stairs', count: program.value?.levels?.length || 0 },
   { id: 'users', label: 'Usuarios', icon: 'people', count: programStats.value.totalUsers },
-  { id: 'skills', label: 'Skills', icon: 'emoji_events', count: 18 },
-  { id: 'achievements', label: 'Logros', icon: 'military_tech', count: 29 },
+  { id: 'skills', label: 'Skills', icon: 'emoji_events', count: totalSkills.value },
   { id: 'analytics', label: 'Analíticas', icon: 'analytics' },
 ])
 
@@ -302,33 +299,6 @@ const familyEmojis = {
 }
 
 const getFamilyEmoji = (family) => familyEmojis[family] || '🎯'
-
-const achievements = ref([
-  {
-    id: 1,
-    name: 'Primeros Pasos',
-    description: 'Completa el nivel 1',
-    category: 'progress',
-    icon: '🎯',
-    xpReward: 100,
-  },
-  {
-    id: 2,
-    name: 'Handstand Master',
-    description: 'Desbloquea el handstand libre',
-    category: 'skill',
-    icon: '🤸',
-    xpReward: 500,
-  },
-  {
-    id: 3,
-    name: 'Constancia',
-    description: 'Entrena 7 días seguidos',
-    category: 'consistency',
-    icon: '🔥',
-    xpReward: 200,
-  },
-])
 
 const progressChart = [
   { month: 'Ene', value: 30 },
@@ -452,7 +422,6 @@ const editUser = (user) => router.push(`/admin/users/${user.id}/edit`)
 const addUser = () => {}
 const viewSkill = (skill) => router.push(`/admin/training-skills/${skill.id}`)
 const addSkill = () => router.push('/admin/training-skills/create')
-const addAchievement = () => router.push('/admin/achievements/create')
 const duplicateProgram = () => $q.notify({ message: 'Programa duplicado' })
 const toggleActive = () => {
   program.value.isActive = !program.value.isActive
