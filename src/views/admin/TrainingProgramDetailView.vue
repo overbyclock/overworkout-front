@@ -128,7 +128,7 @@ import {
   SkillTracker,
 } from '@/components/admin'
 import LevelDetail from '@/components/admin/program/LevelDetail.vue'
-import { programService, levelService } from '@/services'
+import { programService, levelService, programStatsService } from '@/services'
 import { adaptApiLevelToLegacy } from '@/utils/api-adapters'
 
 const $q = useQuasar()
@@ -183,26 +183,26 @@ const getLevelData = (levelNumber) => {
 
 const tabs = computed(() => [
   { id: 'levels', label: 'Niveles', icon: 'stairs', count: program.value?.levels?.length || 0 },
-  { id: 'users', label: 'Usuarios', icon: 'people', count: 156 },
+  { id: 'users', label: 'Usuarios', icon: 'people', count: programStats.value.totalUsers },
   { id: 'skills', label: 'Skills', icon: 'emoji_events', count: 18 },
   { id: 'achievements', label: 'Logros', icon: 'military_tech', count: 29 },
   { id: 'analytics', label: 'Analíticas', icon: 'analytics' },
 ])
 
-const stats = ref({
-  totalUsers: 156,
-  avgProgress: 42,
-  completions: 23,
-  avgTime: 45,
-  paused: 12,
-  dropped: 8,
+const programStats = ref({
+  totalUsers: 0,
+  avgProgress: 0,
+  completions: 0,
+  avgTime: 0,
+  paused: 0,
+  dropped: 0,
 })
 
 const statsList = computed(() => [
-  { value: stats.value.totalUsers, label: 'Usuarios activos', icon: 'people' },
-  { value: stats.value.avgProgress + '%', label: 'Progreso medio', icon: 'trending_up' },
-  { value: stats.value.completions, label: 'Completados', icon: 'emoji_events' },
-  { value: stats.value.avgTime + 'm', label: 'Tiempo medio/día', icon: 'schedule' },
+  { value: programStats.value.totalUsers, label: 'Usuarios activos', icon: 'people' },
+  { value: programStats.value.avgProgress + '%', label: 'Progreso medio', icon: 'trending_up' },
+  { value: programStats.value.completions, label: 'Completados', icon: 'emoji_events' },
+  { value: programStats.value.avgTime + 'm', label: 'Tiempo medio/día', icon: 'schedule' },
 ])
 
 const programGradient = computed(() => {
@@ -392,6 +392,17 @@ const fetchProgram = async () => {
       })
     }
     program.value = data
+
+    // Cargar estadísticas reales del programa
+    if (data?.id) {
+      try {
+        const stats = await programStatsService.getStats(data.id)
+        programStats.value = stats
+      } catch (err) {
+        console.error('Error cargando estadísticas:', err)
+        // Mantener valores por defecto (0) si falla
+      }
+    }
   } catch (err) {
     console.error('Error cargando programa:', err)
     $q.notify({ type: 'negative', message: 'Error al cargar el programa' })
