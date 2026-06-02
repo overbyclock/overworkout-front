@@ -7,7 +7,14 @@
           <h1 class="page-title">Benchmarks CrossFit</h1>
           <p class="page-subtitle">WODs con estándares de tiempo para medir progreso</p>
         </div>
-        <q-btn color="primary" icon="add" label="Nuevo Benchmark" class="action-btn" no-caps @click="openCreateDialog" />
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Nuevo Benchmark"
+          class="action-btn"
+          no-caps
+          @click="openCreateDialog"
+        />
       </div>
 
       <!-- Stats -->
@@ -46,18 +53,18 @@
         <div class="search-wrapper">
           <div class="search-box-modern">
             <q-icon name="search" class="search-icon" size="22px" />
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Buscar benchmarks..." 
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar benchmarks..."
               class="search-input"
-            >
-            <q-btn 
-              v-if="searchQuery" 
-              flat 
-              round 
-              dense 
-              icon="close" 
+            />
+            <q-btn
+              v-if="searchQuery"
+              flat
+              round
+              dense
+              icon="close"
               size="sm"
               class="clear-search"
               @click="searchQuery = ''"
@@ -72,11 +79,11 @@
               Tipo
             </span>
             <div class="filter-pills">
-              <button 
-                v-for="type in typeOptions" 
+              <button
+                v-for="type in typeOptions"
                 :key="type.value"
                 class="filter-pill"
-                :class="{ 'active': typeFilter === type.value, [type.color]: true }"
+                :class="{ active: typeFilter === type.value, [type.color]: true }"
                 @click="typeFilter = type.value"
               >
                 {{ type.label }}
@@ -100,64 +107,94 @@
           <q-icon name="timer" size="64px" color="grey-6" />
           <h3>No hay benchmarks</h3>
           <p>Crea tu primer WOD benchmark</p>
-          <q-btn color="primary" icon="add" label="Crear Benchmark" no-caps @click="openCreateDialog" />
+          <q-btn
+            color="primary"
+            icon="add"
+            label="Crear Benchmark"
+            no-caps
+            @click="openCreateDialog"
+          />
         </div>
 
         <div v-for="benchmark in filteredBenchmarks" :key="benchmark.id" class="benchmark-card">
           <div class="benchmark-header">
-            <q-chip 
-              size="sm" 
-              :color="getTypeColor(benchmark.benchmarkType)" 
+            <q-chip
+              size="sm"
+              :color="getTypeColor(benchmark.type)"
               text-color="white"
               class="type-chip"
             >
-              {{ formatType(benchmark.benchmarkType) }}
+              {{ formatType(benchmark.type) }}
             </q-chip>
             <div class="benchmark-difficulty">
               <q-icon name="fitness_center" size="14px" color="orange" />
-              <span>{{ benchmark.target }}</span>
+              <span>Benchmark</span>
             </div>
           </div>
-          
+
           <h3 class="benchmark-name">{{ benchmark.name }}</h3>
-          <p class="benchmark-description">{{ benchmark.target }} - {{ benchmark.rxWeightMale }}</p>
-          
+          <p class="benchmark-description">{{ benchmark.description || 'Sin descripción' }}</p>
+
           <div class="time-standards">
+            <div class="standard-row header-row">
+              <span class="rank-label">Rango</span>
+              <span class="time-male">♂</span>
+              <span class="time-female">♀</span>
+            </div>
             <div class="standard-row">
               <span class="rank elite">Élite</span>
-              <span class="time">{{ benchmark.eliteTime }}</span>
+              <span class="time">{{ benchmark.eliteTimeMale || '-' }}</span>
+              <span class="time">{{ benchmark.eliteTimeFemale || '-' }}</span>
             </div>
             <div class="standard-row">
               <span class="rank advanced">Avanzado</span>
-              <span class="time">{{ benchmark.advancedTime }}</span>
+              <span class="time">{{ benchmark.advancedTimeMale || '-' }}</span>
+              <span class="time">{{ benchmark.advancedTimeFemale || '-' }}</span>
             </div>
             <div class="standard-row">
               <span class="rank intermediate">Intermedio</span>
-              <span class="time">{{ benchmark.intermediateTime }}</span>
+              <span class="time">{{ benchmark.intermediateTimeMale || '-' }}</span>
+              <span class="time">{{ benchmark.intermediateTimeFemale || '-' }}</span>
             </div>
             <div class="standard-row">
               <span class="rank beginner">Principiante</span>
-              <span class="time">{{ benchmark.beginnerTime }}</span>
+              <span class="time">{{ benchmark.beginnerTimeMale || '-' }}</span>
+              <span class="time">{{ benchmark.beginnerTimeFemale || '-' }}</span>
             </div>
           </div>
-          
+
           <div class="rx-weights">
             <div class="rx-item">
               <q-icon name="male" size="16px" />
-              <span>{{ benchmark.rxWeightMale }}</span>
+              <span>{{ benchmark.rxWeightMale || 'N/A' }}</span>
             </div>
             <div class="rx-item">
               <q-icon name="female" size="16px" />
-              <span>{{ benchmark.rxWeightFemale }}</span>
+              <span>{{ benchmark.rxWeightFemale || 'N/A' }}</span>
             </div>
           </div>
-          
+
           <div class="benchmark-actions">
-            <q-btn flat dense icon="play_circle" label="Ver WOD" color="grey-5" size="sm" no-caps @click="viewWOD(benchmark)" />
-            <q-btn flat dense icon="edit" color="primary" size="sm" no-caps @click="editBenchmark(benchmark)">
+            <q-btn
+              flat
+              dense
+              icon="edit"
+              color="primary"
+              size="sm"
+              no-caps
+              @click="editBenchmark(benchmark)"
+            >
               <q-tooltip>Editar</q-tooltip>
             </q-btn>
-            <q-btn flat dense icon="delete" color="negative" size="sm" no-caps @click="confirmDelete(benchmark)">
+            <q-btn
+              flat
+              dense
+              icon="delete"
+              color="negative"
+              size="sm"
+              no-caps
+              @click="confirmDelete(benchmark)"
+            >
               <q-tooltip>Eliminar</q-tooltip>
             </q-btn>
           </div>
@@ -174,47 +211,55 @@
         </q-card-section>
 
         <q-card-section class="dialog-content">
-          <q-input v-model="benchmarkForm.name" label="Nombre del WOD *" outlined dense dark class="q-mb-md" />
-          
-          <q-select 
-            v-model="benchmarkForm.benchmarkType" 
-            :options="typeSelectOptions" 
-            label="Tipo *" 
-            outlined 
-            dense 
-            dark 
+          <q-input
+            v-model="benchmarkForm.name"
+            label="Nombre del WOD *"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
+          />
+
+          <q-select
+            v-model="benchmarkForm.type"
+            :options="typeSelectOptions"
+            label="Tipo *"
+            outlined
+            dense
+            dark
             class="q-mb-md"
             emit-value
             map-options
           />
-          
-          <q-input 
-            v-model="benchmarkForm.target" 
-            label="Descripción del WOD *" 
-            outlined 
-            dense 
-            dark 
+
+          <q-input
+            v-model="benchmarkForm.description"
+            label="Descripción del WOD"
+            outlined
+            dense
+            dark
             class="q-mb-md"
+            type="textarea"
             hint="Ej: 21-15-9 reps for time"
           />
-          
+
           <div class="row q-col-gutter-md q-mb-md">
             <div class="col-6">
-              <q-input 
-                v-model="benchmarkForm.rxWeightMale" 
-                label="RX Hombre" 
-                outlined 
-                dense 
+              <q-input
+                v-model="benchmarkForm.rxWeightMale"
+                label="RX Hombre"
+                outlined
+                dense
                 dark
                 hint="Ej: Thrusters 43kg"
               />
             </div>
             <div class="col-6">
-              <q-input 
-                v-model="benchmarkForm.rxWeightFemale" 
-                label="RX Mujer" 
-                outlined 
-                dense 
+              <q-input
+                v-model="benchmarkForm.rxWeightFemale"
+                label="RX Mujer"
+                outlined
+                dense
                 dark
                 hint="Ej: Thrusters 29kg"
               />
@@ -222,35 +267,108 @@
           </div>
 
           <div class="time-standards-input q-mb-md">
-            <label class="section-label">Estándares de Tiempo</label>
+            <label class="section-label">Estándares de Tiempo (Hombre / Mujer)</label>
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.eliteTimeMale"
+                  label="Élite ♂"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.eliteTimeFemale"
+                  label="Élite ♀"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.advancedTimeMale"
+                  label="Avanzado ♂"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.advancedTimeFemale"
+                  label="Avanzado ♀"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.intermediateTimeMale"
+                  label="Intermedio ♂"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.intermediateTimeFemale"
+                  label="Intermedio ♀"
+                  outlined
+                  dense
+                  dark
+                />
+              </div>
+            </div>
             <div class="row q-col-gutter-sm">
-              <div class="col-3">
-                <q-input v-model="benchmarkForm.eliteTime" label="Élite" outlined dense dark />
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.beginnerTimeMale"
+                  label="Principiante ♂"
+                  outlined
+                  dense
+                  dark
+                />
               </div>
-              <div class="col-3">
-                <q-input v-model="benchmarkForm.advancedTime" label="Avanzado" outlined dense dark />
-              </div>
-              <div class="col-3">
-                <q-input v-model="benchmarkForm.intermediateTime" label="Intermedio" outlined dense dark />
-              </div>
-              <div class="col-3">
-                <q-input v-model="benchmarkForm.beginnerTime" label="Principiante" outlined dense dark />
+              <div class="col-6">
+                <q-input
+                  v-model="benchmarkForm.beginnerTimeFemale"
+                  label="Principiante ♀"
+                  outlined
+                  dense
+                  dark
+                />
               </div>
             </div>
           </div>
-          
-          <q-toggle 
-            v-model="benchmarkForm.isBenchmark" 
-            label="Activar como Benchmark (genera logros)" 
-            color="orange" 
-            dark 
-            left-label 
+
+          <q-input
+            v-model="benchmarkForm.videoUrl"
+            label="URL del vídeo tutorial"
+            outlined
+            dense
+            dark
+            class="q-mb-md"
+            hint="Ej: https://youtube.com/watch?v=..."
           />
         </q-card-section>
 
         <q-card-section class="dialog-footer">
           <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
-          <q-btn color="primary" :label="isEditing ? 'Guardar' : 'Crear'" :loading="saving" @click="saveBenchmark" />
+          <q-btn
+            color="primary"
+            :label="isEditing ? 'Guardar' : 'Crear'"
+            :loading="saving"
+            @click="saveBenchmark"
+          />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -260,7 +378,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { trainingService } from '@/services/trainings'
+import { benchmarkService } from '@/services/benchmarks'
 
 const $q = useQuasar()
 
@@ -275,21 +393,26 @@ const isEditing = ref(false)
 const benchmarkForm = ref({
   id: null,
   name: '',
-  benchmarkType: 'girl',
-  target: '',
+  type: 'girl',
+  description: '',
   rxWeightMale: '',
   rxWeightFemale: '',
-  eliteTime: '',
-  advancedTime: '',
-  intermediateTime: '',
-  beginnerTime: '',
-  isBenchmark: true
+  eliteTimeMale: '',
+  eliteTimeFemale: '',
+  advancedTimeMale: '',
+  advancedTimeFemale: '',
+  intermediateTimeMale: '',
+  intermediateTimeFemale: '',
+  beginnerTimeMale: '',
+  beginnerTimeFemale: '',
+  videoUrl: '',
 })
 
 const typeOptions = [
   { label: 'Todos', value: 'all' },
   { label: 'The Girls', value: 'girl', color: 'pink' },
   { label: 'Hero WODs', value: 'hero', color: 'purple' },
+  { label: 'Benchmarks', value: 'benchmark', color: 'orange' },
 ]
 
 const typeSelectOptions = [
@@ -313,40 +436,27 @@ const filteredBenchmarks = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(b => b.name?.toLowerCase().includes(query))
+    result = result.filter((b) => b.name?.toLowerCase().includes(query))
   }
 
   if (typeFilter.value !== 'all') {
-    result = result.filter(b => b.benchmarkType === typeFilter.value)
+    result = result.filter((b) => b.type === typeFilter.value)
   }
 
   return result.sort((a, b) => a.name.localeCompare(b.name))
 })
 
-const girlCount = computed(() => benchmarks.value.filter(b => b.benchmarkType === 'girl').length)
-const heroCount = computed(() => benchmarks.value.filter(b => b.benchmarkType === 'hero').length)
+const girlCount = computed(() => benchmarks.value.filter((b) => b.type === 'girl').length)
+const heroCount = computed(() => benchmarks.value.filter((b) => b.type === 'hero').length)
 
 const fetchBenchmarks = async () => {
   loading.value = true
   try {
-    const response = await trainingService.getBenchmarks()
-    // API Platform format
-    const data = Array.isArray(response) ? response : (response.member || response['hydra:member'] || [])
-    benchmarks.value = data.map(b => ({
-      id: b.id,
-      name: b.name,
-      benchmarkType: b.benchmarkType || b.benchmark_type,
-      target: b.target,
-      rxWeightMale: b.rxWeightMale || b.rx_weight_male,
-      rxWeightFemale: b.rxWeightFemale || b.rx_weight_female,
-      eliteTime: b.eliteTime || b.elite_time,
-      advancedTime: b.advancedTime || b.advanced_time,
-      intermediateTime: b.intermediateTime || b.intermediate_time,
-      beginnerTime: b.beginnerTime || b.beginner_time,
-      isBenchmark: b.isBenchmark || b.is_benchmark
-    }))
-  } catch {
+    const data = await benchmarkService.getAll()
+    benchmarks.value = Array.isArray(data) ? data : data.member || data['hydra:member'] || []
+  } catch (err) {
     $q.notify({ type: 'negative', message: 'Error al cargar benchmarks' })
+    console.error(err)
   } finally {
     loading.value = false
   }
@@ -357,15 +467,19 @@ const openCreateDialog = () => {
   benchmarkForm.value = {
     id: null,
     name: '',
-    benchmarkType: 'girl',
-    target: '',
+    type: 'girl',
+    description: '',
     rxWeightMale: '',
     rxWeightFemale: '',
-    eliteTime: '',
-    advancedTime: '',
-    intermediateTime: '',
-    beginnerTime: '',
-    isBenchmark: true
+    eliteTimeMale: '',
+    eliteTimeFemale: '',
+    advancedTimeMale: '',
+    advancedTimeFemale: '',
+    intermediateTimeMale: '',
+    intermediateTimeFemale: '',
+    beginnerTimeMale: '',
+    beginnerTimeFemale: '',
+    videoUrl: '',
   }
   benchmarkDialog.value = true
 }
@@ -377,28 +491,31 @@ const editBenchmark = (benchmark) => {
 }
 
 const saveBenchmark = async () => {
+  if (!benchmarkForm.value.name || !benchmarkForm.value.type) {
+    $q.notify({ type: 'warning', message: 'Nombre y tipo son obligatorios' })
+    return
+  }
+
   saving.value = true
   try {
-    await new Promise(r => setTimeout(r, 800))
+    const payload = { ...benchmarkForm.value }
+    delete payload.id
+
     if (isEditing.value) {
-      const index = benchmarks.value.findIndex(b => b.id === benchmarkForm.value.id)
-      if (index !== -1) benchmarks.value[index] = { ...benchmarkForm.value }
+      await benchmarkService.update(benchmarkForm.value.id, payload)
       $q.notify({ type: 'positive', message: 'Benchmark actualizado' })
     } else {
-      benchmarks.value.push({ ...benchmarkForm.value, id: Date.now() })
+      await benchmarkService.create(payload)
       $q.notify({ type: 'positive', message: 'Benchmark creado' })
     }
     benchmarkDialog.value = false
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error al guardar' })
+    await fetchBenchmarks()
+  } catch (err) {
+    const msg = err.response?.data?.message || err.message || 'Error al guardar'
+    $q.notify({ type: 'negative', message: msg })
   } finally {
     saving.value = false
   }
-}
-
-const viewWOD = (benchmark) => {
-  // Navegar al detalle del WOD
-  console.log('Ver WOD:', benchmark.name)
 }
 
 const confirmDelete = (benchmark) => {
@@ -406,10 +523,16 @@ const confirmDelete = (benchmark) => {
     title: 'Confirmar',
     message: `¿Eliminar benchmark "${benchmark.name}"?`,
     cancel: true,
-    persistent: true
-  }).onOk(() => {
-    benchmarks.value = benchmarks.value.filter(b => b.id !== benchmark.id)
-    $q.notify({ type: 'positive', message: 'Benchmark eliminado' })
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await benchmarkService.delete(benchmark.id)
+      $q.notify({ type: 'positive', message: 'Benchmark eliminado' })
+      await fetchBenchmarks()
+    } catch (err) {
+      console.error(err)
+      $q.notify({ type: 'negative', message: 'Error al eliminar benchmark' })
+    }
   })
 }
 
@@ -551,12 +674,25 @@ onMounted(fetchBenchmarks)
   font-weight: 600;
 }
 
-.filter-pill.active.pink { background: #ff6b9d; border-color: #ff6b9d; color: #0d1117; }
-.filter-pill.active.purple { background: #a371f7; border-color: #a371f7; color: #fff; }
+.filter-pill.active.pink {
+  background: #ff6b9d;
+  border-color: #ff6b9d;
+  color: #0d1117;
+}
+.filter-pill.active.purple {
+  background: #a371f7;
+  border-color: #a371f7;
+  color: #fff;
+}
+.filter-pill.active.orange {
+  background: #ff8f38;
+  border-color: #ff8f38;
+  color: #0d1117;
+}
 
 .benchmarks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 20px;
 }
 
@@ -617,8 +753,8 @@ onMounted(fetchBenchmarks)
 }
 
 .standard-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   padding: 6px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -628,22 +764,45 @@ onMounted(fetchBenchmarks)
   border-bottom: none;
 }
 
+.header-row {
+  font-size: 11px;
+  color: #8b949e;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 4px;
+}
+
 .rank {
   font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
+  justify-self: start;
 }
 
-.rank.elite { background: #ffd700; color: #0d1117; }
-.rank.advanced { background: #c0c0c0; color: #0d1117; }
-.rank.intermediate { background: #cd7f32; color: #fff; }
-.rank.beginner { background: #4a9eff; color: #fff; }
+.rank.elite {
+  background: #ffd700;
+  color: #0d1117;
+}
+.rank.advanced {
+  background: #c0c0c0;
+  color: #0d1117;
+}
+.rank.intermediate {
+  background: #cd7f32;
+  color: #fff;
+}
+.rank.beginner {
+  background: #4a9eff;
+  color: #fff;
+}
 
 .time {
   font-size: 14px;
   font-weight: 600;
   color: #fff;
+  text-align: center;
 }
 
 .rx-weights {
@@ -663,11 +822,12 @@ onMounted(fetchBenchmarks)
 .benchmark-actions {
   display: flex;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .benchmark-dialog {
   background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
-  min-width: 500px;
+  min-width: 600px;
   border-radius: 20px;
 }
 
@@ -717,7 +877,7 @@ onMounted(fetchBenchmarks)
   .benchmarks-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .benchmark-dialog {
     min-width: auto;
     width: 90vw;

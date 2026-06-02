@@ -14,15 +14,13 @@ export const trainingService = {
 
   async getByUser(userId) {
     const response = await apiClient.get(
-      API_ENDPOINTS.TRAININGS.USER_TRAININGS.replace('{userId}', userId)
+      API_ENDPOINTS.TRAININGS.USER_TRAININGS.replace('{userId}', userId),
     )
     return response.data
   },
 
   async getById(id) {
-    const response = await apiClient.get(
-      API_ENDPOINTS.TRAININGS.SHOW.replace('{id}', id)
-    )
+    const response = await apiClient.get(API_ENDPOINTS.TRAININGS.SHOW.replace('{id}', id))
     return response.data
   },
 
@@ -32,22 +30,12 @@ export const trainingService = {
   },
 
   async update(id, data) {
-    const response = await apiClient.patch(
-      API_ENDPOINTS.TRAININGS.UPDATE.replace('{id}', id),
-      data
-    )
+    const response = await apiClient.patch(API_ENDPOINTS.TRAININGS.UPDATE.replace('{id}', id), data)
     return response.data
   },
 
   async delete(id) {
     await apiClient.delete(API_ENDPOINTS.TRAININGS.DELETE.replace('{id}', id))
-  },
-
-  async getBenchmarks() {
-    const response = await apiClient.get(API_ENDPOINTS.TRAININGS.LIST, { 
-      params: { isBenchmark: true } 
-    })
-    return response.data
   },
 
   handleError(error) {

@@ -5,7 +5,32 @@
 
 ---
 
-## 📅 Última sesión completada (2026-05-28)
+## 📅 Última sesión completada (2026-06-02)
+
+- **Focus**: Refactor completo del sistema de benchmarks — separación de entrenamientos sueltos, programas y WODs CrossFit
+- **Estado**: ✅ Todo completado y commiteado
+- **Problema identificado**: La entidad `Training` almacenaba 3 conceptos distintos mezclados (entrenamientos sueltos, sesiones de programa y benchmarks CrossFit), generando confusión arquitectónica.
+- **Cambios Backend** (`overworkout-back`):
+  - **Backup**: Script PHP generó backup SQL completo en `var/backups/backup_pre_benchmark_refactor_20260602_164435.sql`.
+  - **Migración de datos**: 39 benchmarks reales (Fran, Grace, Helen, Murph, DT, etc.) migrados de `training` a `benchmark` sin pérdida de información.
+  - **Limpieza BD**: Eliminados 39 registros benchmark de `training` y removidas 8 columnas (`is_benchmark`, `benchmark_type`, `rx_weight_male`, `rx_weight_female`, `elite_time`, `advanced_time`, `intermediate_time`, `beginner_time`).
+  - **Entidad `Training`**: Depurada de campos de benchmark. Comandos de generación de programas actualizados.
+  - **API Benchmarks nueva**: `BenchmarkController` con endpoints CRUD (`GET /benchmarks`, `POST`, `GET /{id}`, `PUT`, `DELETE`).
+  - **Arquitectura**: DTOs (`BenchmarkCreateDto`, `BenchmarkUpdateDto`), `BenchmarkMapper`, `BenchmarkVoter` (solo admin escribe, todos leen), grupos de serialización `benchmark:read`.
+  - **Tests**: 22 tests unitarios nuevos (DTOs, Mapper, Voter). Total backend: **595 tests pasando**.
+  - **Migración**: `Version20260602164500` documenta el DROP de columnas.
+- **Cambios Frontend** (`overworkout-front`):
+  - **Nuevo servicio**: `benchmarkService.js` conectado a `/benchmarks`.
+  - **`BenchmarksView.vue` refactorizada**: CRUD real contra API (antes era mock/local). UI adaptada a tiempos separados por género (♂/♀). Filtros por tipo funcionales.
+  - **Constantes**: Añadidos endpoints `BENCHMARKS` a `API_ENDPOINTS`.
+  - **Eliminado**: `getBenchmarks` de `trainingService.js`.
+- **Commits**:
+  - Backend: `feat(api): endpoint CRUD benchmarks + refactor separación entidad Training`
+  - Frontend: `feat(admin): conectar BenchmarksView a API real + servicio benchmarks`
+
+---
+
+## 📅 Sesión anterior (2026-05-28)
 
 - **Focus**: Construcción completa del editor de programas (5 fases end-to-end)
 - **Estado**: ✅ Todo completado y commiteado
@@ -74,7 +99,7 @@
 | **Framework**       | Symfony 8.0                                      |
 | **ORM**             | Doctrine 3.6+                                    |
 | **Auth**            | JWT custom (firebase/php-jwt)                    |
-| **Tests**           | 570 tests pasando (PHPUnit)                      |
+| **Tests**           | 595 tests pasando (PHPUnit)                      |
 | **Code style**      | PHP-CS-Fixer activo (PSR12 + Symfony)            |
 | **Static analysis** | PHPStan nivel 5, sin errores                     |
 | **CI/CD**           | GitHub Actions (code-style, phpstan, unit-tests) |
@@ -112,6 +137,7 @@
 - Trainings: CRUD `/trainings`, `/trainings/public`, `/trainings/user/{userId}`
 - Equipments: CRUD `/equipments`
 - Training Programs: CRUD `/training-programs`, `/training-programs/{id}`, `/training-programs/by-slug/{slug}`, `/training-programs/{id}/levels`
+- Benchmarks: CRUD `/benchmarks` (WODs CrossFit separados de trainings)
 - Training Levels: CRUD `/training-levels`, `/training-levels/{id}`
 - Training Week Infos: CRUD `/training-week-infos`, `/training-week-infos/{id}`
 - Trainings: CRUD `/trainings` (ahora soporta `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`)
@@ -122,7 +148,11 @@
 
 - DTOs + Mappers + Voters en toda la API.
 - Serialización con Symfony Serializer y Groups.
-- Voters: `UserVoter`, `TrainingVoter`, `ExerciseVoter`, `EquipmentVoter`, `TrainingSkillVoter`, `TrainingProgramVoter`, `TrainingLevelVoter`.
+- Voters: `UserVoter`, `TrainingVoter`, `ExerciseVoter`, `EquipmentVoter`, `TrainingSkillVoter`, `TrainingProgramVoter`, `TrainingLevelVoter`, `BenchmarkVoter`.
+- **Arquitectura limpia**: 3 conceptos separados
+  - `Training` = entrenamientos sueltos + sesiones de programa (`trainingLevel IS NULL` → suelto; `NOT NULL` → programa)
+  - `Benchmark` = WODs CrossFit con tiempos estándar por género
+  - `TrainingProgram` = programas estructurados con niveles, semanas y sesiones A/B/C/D
 
 ### Sistema Calistenia (muy desarrollado)
 
@@ -174,21 +204,18 @@
 
 ## 🎯 Próximos Pasos
 
-### Plan de implementación CRUD programa completo (NUEVO - prioridad alta)
+### Completados recientemente ✅
 
-1. **Fase 1 — Backend base**: CRUD de `TrainingProgram` (POST/PUT/DELETE) + CRUD de `TrainingLevel` (nuevo controller)
-2. **Fase 2 — Backend fases**: CRUD de `TrainingWeekInfo` (controller + DTOs + mapper)
-3. **Fase 3 — Backend trainings en niveles**: Extender `TrainingCreateDto`/`TrainingUpdateDto` con `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`
-4. **Fase 4 — Frontend programas/niveles**: Conectar `TrainingProgramEditView.vue` y `TrainingLevelEditView.vue` a API real
-5. **Fase 5 — Frontend constructor de trainings**: Nueva vista dentro del nivel para crear/editar trainings con rounds, ejercicios, sets, reps, descansos
-6. **Fase 6 — Frontend constructor de fases**: Nueva vista para gestionar semanas/fases (`TrainingWeekInfo`)
+- **CRUD programa completo**: Fases 1-6 finalizadas (sesión 2026-05-28).
+- **Refactor benchmarks**: Separación limpia de Training/Benchmark/Programa (sesión 2026-06-02).
 
-### Pendientes anteriores (baja prioridad)
+### Pendientes activos (baja/media prioridad)
 
-- **Siguiente Skill Program**: Muscle-up, Planche, Front Lever, Back Lever, etc. (el `Front Lever Mastery` ya fue creado en la sesión del 2026-05-25)
-- **Tests funcionales**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa.
+- **Siguiente Skill Program**: Muscle-up, Planche, Back Lever, etc. (el `Front Lever Mastery` ya fue creado en la sesión del 2026-05-25)
+- **Tests funcionales backend**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa y benchmarks.
 - **Auditoría de ejercicios**: Revisar si otros programas (Calistenia Master V1/V2/V3) tienen ejercicios con clasificación inconsistente respecto a la progresión donde se usan.
 - **Refinamiento V3**: Ajustar sets/reps de algún nivel si el experto entrenador lo solicita.
+- **Ajustar tiempos femeninos benchmarks**: Los 39 benchmarks migrados tienen tiempos duplicados (mismo valor en male/female). Revisar con estándares reales de CrossFit y actualizar.
 
 ---
 
@@ -196,6 +223,7 @@
 
 - Tests funcionales requieren base de datos SQLite configurada en `phpunit.dist.xml` (actualmente intenta conectar a MySQL en entorno de test y falla).
 - **Frontend**: `TrainingProgramDetailView.vue` ahora usa `computed` para tabs dinámicos (count de niveles). `WeekPanel.vue` reconoce `session_a/b/c/d`. `api-adapters.js` infiere goals y muscle groups para handstand sessions. `Training::isCircuit` ahora tiene grupo de serialización para que el frontend detecte circuitos correctamente.
+- ~~Entidad `Training` mezclaba benchmarks, entrenamientos sueltos y sesiones de programa~~ ✅ **RESUELTO** (2026-06-02): Separados en 3 conceptos claros.
 
 ---
 
@@ -204,6 +232,7 @@
 - **Backend**: Se mantiene el enfoque de controladores Symfony personalizados (aunque API Platform está instalado, no se usa para los recursos actuales).
 - **Skill Programs**: Cada skill es un `TrainingProgram` independiente con su propio Blueprint + Content + Command. Patrón replicable para las 14 skills identificadas.
 - **Frontend**: El `BACKEND_REFACTOR_PLAN.md` (marzo 2026) ya está superado; el backend ya implementó DTOs, Voters, tests, PHP-CS-Fixer y PHPStan.
+- **Separación de responsabilidades** (2026-06-02): `Training` (entrenamientos/sesiones), `Benchmark` (WODs CrossFit) y `TrainingProgram` (programas estructurados) son 3 conceptos independientes. Nunca más mezclar campos de benchmark en `Training`.
 
 ---
 
@@ -218,7 +247,7 @@
 
 ---
 
-_Actualizado: 2026-05-27_
+_Actualizado: 2026-06-02_
 
 ---
 

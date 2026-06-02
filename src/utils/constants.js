@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
   // Autenticación
   AUTH: {
     LOGIN: '/login',
-    REGISTER: '/register'
+    REGISTER: '/register',
   },
 
   // Usuarios
@@ -13,7 +13,7 @@ export const API_ENDPOINTS = {
     SHOW: '/user/{id}',
     CREATE: '/register',
     UPDATE: '/user/{id}',
-    DELETE: '/user/{id}'
+    DELETE: '/user/{id}',
   },
 
   // Ejercicios
@@ -22,7 +22,7 @@ export const API_ENDPOINTS = {
     SHOW: '/exercises/{id}',
     CREATE: '/exercises',
     UPDATE: '/exercises/{id}',
-    DELETE: '/exercises/{id}'
+    DELETE: '/exercises/{id}',
   },
 
   // Entrenamientos
@@ -33,7 +33,7 @@ export const API_ENDPOINTS = {
     SHOW: '/trainings/{id}',
     CREATE: '/trainings',
     UPDATE: '/trainings/{id}',
-    DELETE: '/trainings/{id}'
+    DELETE: '/trainings/{id}',
   },
 
   // Equipamiento
@@ -42,7 +42,16 @@ export const API_ENDPOINTS = {
     SHOW: '/equipments/{id}',
     CREATE: '/equipments',
     UPDATE: '/equipments/{id}',
-    DELETE: '/equipments/{id}'
+    DELETE: '/equipments/{id}',
+  },
+
+  // Benchmarks
+  BENCHMARKS: {
+    LIST: '/benchmarks',
+    SHOW: '/benchmarks/{id}',
+    CREATE: '/benchmarks',
+    UPDATE: '/benchmarks/{id}',
+    DELETE: '/benchmarks/{id}',
   },
 }
 
