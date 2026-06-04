@@ -126,15 +126,37 @@
             >
               {{ formatType(benchmark.type) }}
             </q-chip>
-            <div class="benchmark-difficulty">
+            <div class="benchmark-meta">
               <q-icon name="fitness_center" size="14px" color="orange" />
-              <span>Benchmark</span>
+              <span>{{ benchmark.exercises?.length || 0 }} ejercicios</span>
             </div>
           </div>
 
           <h3 class="benchmark-name">{{ benchmark.name }}</h3>
-          <p class="benchmark-description">{{ benchmark.description || 'Sin descripción' }}</p>
+          <p class="benchmark-description">
+            {{ benchmark.description || 'Sin descripción' }}
+          </p>
 
+          <!-- Ejercicios del WOD -->
+          <div v-if="benchmark.exercises?.length" class="exercise-list">
+            <div v-for="ex in benchmark.exercises" :key="ex.position" class="exercise-item">
+              <span class="exercise-position">{{ ex.position }}.</span>
+              <span class="exercise-name">{{ ex.exercise?.name }}</span>
+              <span v-if="ex.reps" class="exercise-detail">{{ ex.reps }} reps</span>
+              <span v-if="ex.distanceMeters" class="exercise-detail"
+                >{{ ex.distanceMeters }} m</span
+              >
+              <span v-if="ex.durationSeconds" class="exercise-detail"
+                >{{ ex.durationSeconds }} s</span
+              >
+              <span v-if="ex.calories" class="exercise-detail">{{ ex.calories }} cal</span>
+              <span v-if="ex.rxWeightMale || ex.rxWeightFemale" class="exercise-rx">
+                @ {{ ex.rxWeightMale || '—' }} / {{ ex.rxWeightFemale || '—' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Tiempos -->
           <div class="time-standards">
             <div class="standard-row header-row">
               <span class="rank-label">Rango</span>
@@ -163,18 +185,18 @@
             </div>
           </div>
 
-          <div class="rx-weights">
-            <div class="rx-item">
-              <q-icon name="male" size="16px" />
-              <span>{{ benchmark.rxWeightMale || 'N/A' }}</span>
-            </div>
-            <div class="rx-item">
-              <q-icon name="female" size="16px" />
-              <span>{{ benchmark.rxWeightFemale || 'N/A' }}</span>
-            </div>
-          </div>
-
           <div class="benchmark-actions">
+            <q-btn
+              flat
+              dense
+              icon="visibility"
+              color="grey-5"
+              size="sm"
+              no-caps
+              @click="openPreview(benchmark)"
+            >
+              <q-tooltip>Previsualizar</q-tooltip>
+            </q-btn>
             <q-btn
               flat
               dense
@@ -202,170 +224,331 @@
       </div>
     </div>
 
+    <!-- Preview Dialog -->
+    <q-dialog v-model="previewDialog">
+      <q-card class="benchmark-dialog" style="max-width: 600px; width: 90vw">
+        <q-card-section class="dialog-header">
+          <div>
+            <h3>{{ previewBenchmark?.name }}</h3>
+            <q-chip size="sm" :color="getTypeColor(previewBenchmark?.type)" text-color="white">
+              {{ formatType(previewBenchmark?.type) }}
+            </q-chip>
+          </div>
+          <q-btn flat round icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="dialog-content">
+          <pre class="description-text">{{ previewBenchmark?.description }}</pre>
+
+          <div v-if="previewBenchmark?.exercises?.length" class="preview-exercises">
+            <h4>Estructura</h4>
+            <div
+              v-for="ex in previewBenchmark.exercises"
+              :key="ex.position"
+              class="preview-exercise-item"
+            >
+              <span class="pos">{{ ex.position }}.</span>
+              <span class="name">{{ ex.exercise?.name }}</span>
+              <span class="detail">
+                <template v-if="ex.reps">{{ ex.reps }} reps</template>
+                <template v-if="ex.distanceMeters">{{ ex.distanceMeters }} m</template>
+                <template v-if="ex.durationSeconds">{{ ex.durationSeconds }} s</template>
+                <template v-if="ex.calories">{{ ex.calories }} cal</template>
+                <template v-if="ex.rxWeightMale || ex.rxWeightFemale">
+                  @ {{ ex.rxWeightMale || '—' }} / {{ ex.rxWeightFemale || '—' }}
+                </template>
+              </span>
+            </div>
+          </div>
+
+          <div v-if="previewBenchmark?.scalingOptions" class="preview-scaling">
+            <h4>Escalado</h4>
+            <pre class="scaling-text">{{ previewBenchmark.scalingOptions }}</pre>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- Create/Edit Dialog -->
-    <q-dialog v-model="benchmarkDialog" persistent>
-      <q-card class="benchmark-dialog">
+    <q-dialog v-model="benchmarkDialog" persistent maximized>
+      <q-card class="benchmark-dialog fullscreen-dialog">
         <q-card-section class="dialog-header">
           <h3>{{ isEditing ? 'Editar Benchmark' : 'Nuevo Benchmark' }}</h3>
           <q-btn flat round icon="close" v-close-popup />
         </q-card-section>
 
         <q-card-section class="dialog-content">
-          <q-input
-            v-model="benchmarkForm.name"
-            label="Nombre del WOD *"
-            outlined
+          <q-tabs
+            v-model="activeTab"
             dense
-            dark
-            class="q-mb-md"
-          />
+            class="text-grey-5"
+            active-color="primary"
+            indicator-color="primary"
+          >
+            <q-tab name="general" icon="info" label="General" />
+            <q-tab name="structure" icon="fitness_center" label="Estructura" />
+            <q-tab name="times" icon="timer" label="Tiempos" />
+            <q-tab name="scaling" icon="trending_down" label="Escalado" />
+          </q-tabs>
 
-          <q-select
-            v-model="benchmarkForm.type"
-            :options="typeSelectOptions"
-            label="Tipo *"
-            outlined
-            dense
-            dark
-            class="q-mb-md"
-            emit-value
-            map-options
-          />
+          <q-separator dark class="q-my-md" />
 
-          <q-input
-            v-model="benchmarkForm.description"
-            label="Descripción del WOD"
-            outlined
-            dense
-            dark
-            class="q-mb-md"
-            type="textarea"
-            hint="Ej: 21-15-9 reps for time"
-          />
-
-          <div class="row q-col-gutter-md q-mb-md">
-            <div class="col-6">
+          <q-tab-panels v-model="activeTab" animated class="bg-transparent">
+            <!-- TAB: GENERAL -->
+            <q-tab-panel name="general">
               <q-input
-                v-model="benchmarkForm.rxWeightMale"
-                label="RX Hombre"
+                v-model="benchmarkForm.name"
+                label="Nombre del WOD *"
                 outlined
                 dense
                 dark
-                hint="Ej: Thrusters 43kg"
+                class="q-mb-md"
+                :rules="[(val) => !!val || 'El nombre es obligatorio']"
               />
-            </div>
-            <div class="col-6">
-              <q-input
-                v-model="benchmarkForm.rxWeightFemale"
-                label="RX Mujer"
+
+              <q-select
+                v-model="benchmarkForm.type"
+                :options="typeSelectOptions"
+                label="Tipo *"
                 outlined
                 dense
                 dark
-                hint="Ej: Thrusters 29kg"
+                class="q-mb-md"
+                emit-value
+                map-options
+                :rules="[(val) => !!val || 'El tipo es obligatorio']"
               />
-            </div>
-          </div>
 
-          <div class="time-standards-input q-mb-md">
-            <label class="section-label">Estándares de Tiempo (Hombre / Mujer)</label>
-            <div class="row q-col-gutter-sm q-mb-sm">
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.eliteTimeMale"
-                  label="Élite ♂"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.eliteTimeFemale"
-                  label="Élite ♀"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-            </div>
-            <div class="row q-col-gutter-sm q-mb-sm">
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.advancedTimeMale"
-                  label="Avanzado ♂"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.advancedTimeFemale"
-                  label="Avanzado ♀"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-            </div>
-            <div class="row q-col-gutter-sm q-mb-sm">
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.intermediateTimeMale"
-                  label="Intermedio ♂"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.intermediateTimeFemale"
-                  label="Intermedio ♀"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-            </div>
-            <div class="row q-col-gutter-sm">
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.beginnerTimeMale"
-                  label="Principiante ♂"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="benchmarkForm.beginnerTimeFemale"
-                  label="Principiante ♀"
-                  outlined
-                  dense
-                  dark
-                />
-              </div>
-            </div>
-          </div>
+              <q-input
+                v-model="benchmarkForm.description"
+                label="Descripción del WOD"
+                outlined
+                dense
+                dark
+                class="q-mb-md"
+                type="textarea"
+                rows="6"
+                hint="Describe el WOD paso a paso. Se respetan los saltos de línea."
+              />
 
-          <q-input
-            v-model="benchmarkForm.videoUrl"
-            label="URL del vídeo tutorial"
-            outlined
-            dense
-            dark
-            class="q-mb-md"
-            hint="Ej: https://youtube.com/watch?v=..."
-          />
+              <q-input
+                v-model="benchmarkForm.videoUrl"
+                label="URL del vídeo tutorial"
+                outlined
+                dense
+                dark
+                hint="Ej: https://youtube.com/watch?v=..."
+              />
+            </q-tab-panel>
+
+            <!-- TAB: ESTRUCTURA -->
+            <q-tab-panel name="structure">
+              <div class="section-header">
+                <span class="section-label">Ejercicios del WOD</span>
+                <q-btn
+                  color="primary"
+                  icon="add"
+                  label="Añadir ejercicio"
+                  size="sm"
+                  no-caps
+                  dense
+                  @click="addExercise"
+                />
+              </div>
+
+              <div v-if="benchmarkForm.exercises.length === 0" class="empty-exercises">
+                <q-icon name="fitness_center" size="48px" color="grey-7" />
+                <p>No hay ejercicios añadidos</p>
+              </div>
+
+              <div
+                v-for="(ex, index) in benchmarkForm.exercises"
+                :key="index"
+                class="exercise-form-row"
+              >
+                <div class="exercise-form-header">
+                  <span class="exercise-number">#{{ ex.position }}</span>
+                  <q-space />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="arrow_upward"
+                    size="sm"
+                    color="grey-5"
+                    :disable="index === 0"
+                    @click="moveExercise(index, -1)"
+                  >
+                    <q-tooltip>Subir</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="arrow_downward"
+                    size="sm"
+                    color="grey-5"
+                    :disable="index === benchmarkForm.exercises.length - 1"
+                    @click="moveExercise(index, 1)"
+                  >
+                    <q-tooltip>Bajar</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="delete"
+                    size="sm"
+                    color="negative"
+                    @click="removeExercise(index)"
+                  >
+                    <q-tooltip>Eliminar</q-tooltip>
+                  </q-btn>
+                </div>
+
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-md-4">
+                    <q-select
+                      v-model="ex.exerciseId"
+                      :options="availableExercises"
+                      option-value="id"
+                      option-label="name"
+                      label="Ejercicio *"
+                      outlined
+                      dense
+                      dark
+                      emit-value
+                      map-options
+                      :rules="[(val) => !!val || 'Selecciona un ejercicio']"
+                    />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input
+                      v-model.number="ex.reps"
+                      label="Reps"
+                      outlined
+                      dense
+                      dark
+                      type="number"
+                    />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input
+                      v-model.number="ex.distanceMeters"
+                      label="Distancia (m)"
+                      outlined
+                      dense
+                      dark
+                      type="number"
+                    />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input v-model="ex.rxWeightMale" label="Peso RX ♂" outlined dense dark />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input v-model="ex.rxWeightFemale" label="Peso RX ♀" outlined dense dark />
+                  </div>
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- TAB: TIEMPOS -->
+            <q-tab-panel name="times">
+              <label class="section-label">Estándares de Tiempo</label>
+
+              <div class="times-grid">
+                <div class="time-level-row">
+                  <span class="rank elite">Élite</span>
+                  <q-input
+                    v-model="benchmarkForm.eliteTimeMale"
+                    label="Hombre ♂"
+                    outlined
+                    dense
+                    dark
+                  />
+                  <q-input
+                    v-model="benchmarkForm.eliteTimeFemale"
+                    label="Mujer ♀"
+                    outlined
+                    dense
+                    dark
+                  />
+                </div>
+                <div class="time-level-row">
+                  <span class="rank advanced">Avanzado</span>
+                  <q-input
+                    v-model="benchmarkForm.advancedTimeMale"
+                    label="Hombre ♂"
+                    outlined
+                    dense
+                    dark
+                  />
+                  <q-input
+                    v-model="benchmarkForm.advancedTimeFemale"
+                    label="Mujer ♀"
+                    outlined
+                    dense
+                    dark
+                  />
+                </div>
+                <div class="time-level-row">
+                  <span class="rank intermediate">Intermedio</span>
+                  <q-input
+                    v-model="benchmarkForm.intermediateTimeMale"
+                    label="Hombre ♂"
+                    outlined
+                    dense
+                    dark
+                  />
+                  <q-input
+                    v-model="benchmarkForm.intermediateTimeFemale"
+                    label="Mujer ♀"
+                    outlined
+                    dense
+                    dark
+                  />
+                </div>
+                <div class="time-level-row">
+                  <span class="rank beginner">Principiante</span>
+                  <q-input
+                    v-model="benchmarkForm.beginnerTimeMale"
+                    label="Hombre ♂"
+                    outlined
+                    dense
+                    dark
+                  />
+                  <q-input
+                    v-model="benchmarkForm.beginnerTimeFemale"
+                    label="Mujer ♀"
+                    outlined
+                    dense
+                    dark
+                  />
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- TAB: ESCALADO -->
+            <q-tab-panel name="scaling">
+              <q-input
+                v-model="benchmarkForm.scalingOptions"
+                label="Opciones de escalado"
+                outlined
+                dense
+                dark
+                type="textarea"
+                rows="8"
+                hint="Describe las opciones de escalado para cada nivel (RX, Intermediate, Beginner)"
+              />
+            </q-tab-panel>
+          </q-tab-panels>
         </q-card-section>
 
         <q-card-section class="dialog-footer">
           <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
           <q-btn
             color="primary"
-            :label="isEditing ? 'Guardar' : 'Crear'"
+            :label="isEditing ? 'Guardar cambios' : 'Crear benchmark'"
             :loading="saving"
             @click="saveBenchmark"
           />
@@ -379,6 +562,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { benchmarkService } from '@/services/benchmarks'
+import { exerciseService } from '@/services/exercises'
 
 const $q = useQuasar()
 
@@ -387,8 +571,12 @@ const benchmarks = ref([])
 const searchQuery = ref('')
 const typeFilter = ref('all')
 const benchmarkDialog = ref(false)
+const previewDialog = ref(false)
 const saving = ref(false)
 const isEditing = ref(false)
+const activeTab = ref('general')
+const availableExercises = ref([])
+const previewBenchmark = ref(null)
 
 const benchmarkForm = ref({
   id: null,
@@ -406,6 +594,8 @@ const benchmarkForm = ref({
   beginnerTimeMale: '',
   beginnerTimeFemale: '',
   videoUrl: '',
+  scalingOptions: '',
+  exercises: [],
 })
 
 const typeOptions = [
@@ -462,8 +652,20 @@ const fetchBenchmarks = async () => {
   }
 }
 
+const fetchExercises = async () => {
+  try {
+    const data = await exerciseService.getAll()
+    availableExercises.value = Array.isArray(data)
+      ? data
+      : data.member || data['hydra:member'] || []
+  } catch (err) {
+    console.error('Error cargando ejercicios:', err)
+  }
+}
+
 const openCreateDialog = () => {
   isEditing.value = false
+  activeTab.value = 'general'
   benchmarkForm.value = {
     id: null,
     name: '',
@@ -480,27 +682,107 @@ const openCreateDialog = () => {
     beginnerTimeMale: '',
     beginnerTimeFemale: '',
     videoUrl: '',
+    scalingOptions: '',
+    exercises: [],
   }
   benchmarkDialog.value = true
 }
 
 const editBenchmark = (benchmark) => {
   isEditing.value = true
-  benchmarkForm.value = { ...benchmark }
+  activeTab.value = 'general'
+  benchmarkForm.value = {
+    ...benchmark,
+    exercises: benchmark.exercises
+      ? benchmark.exercises.map((ex) => ({
+          exerciseId: ex.exercise?.id || ex.exerciseId,
+          position: ex.position,
+          reps: ex.reps,
+          distanceMeters: ex.distanceMeters,
+          durationSeconds: ex.durationSeconds,
+          calories: ex.calories,
+          rxWeightMale: ex.rxWeightMale || '',
+          rxWeightFemale: ex.rxWeightFemale || '',
+          restSeconds: ex.restSeconds,
+        }))
+      : [],
+  }
   benchmarkDialog.value = true
+}
+
+const addExercise = () => {
+  benchmarkForm.value.exercises.push({
+    exerciseId: null,
+    position: benchmarkForm.value.exercises.length + 1,
+    reps: null,
+    distanceMeters: null,
+    durationSeconds: null,
+    calories: null,
+    rxWeightMale: '',
+    rxWeightFemale: '',
+    restSeconds: null,
+  })
+}
+
+const removeExercise = (index) => {
+  benchmarkForm.value.exercises.splice(index, 1)
+  reindexExercises()
+}
+
+const moveExercise = (index, direction) => {
+  const exercises = benchmarkForm.value.exercises
+  const newIndex = index + direction
+  if (newIndex < 0 || newIndex >= exercises.length) return
+  const temp = exercises[index]
+  exercises[index] = exercises[newIndex]
+  exercises[newIndex] = temp
+  reindexExercises()
+}
+
+const reindexExercises = () => {
+  benchmarkForm.value.exercises.forEach((ex, idx) => {
+    ex.position = idx + 1
+  })
 }
 
 const saveBenchmark = async () => {
   if (!benchmarkForm.value.name || !benchmarkForm.value.type) {
     $q.notify({ type: 'warning', message: 'Nombre y tipo son obligatorios' })
+    activeTab.value = 'general'
     return
+  }
+
+  const payload = {
+    name: benchmarkForm.value.name,
+    type: benchmarkForm.value.type,
+    description: benchmarkForm.value.description,
+    rxWeightMale: benchmarkForm.value.rxWeightMale || null,
+    rxWeightFemale: benchmarkForm.value.rxWeightFemale || null,
+    eliteTimeMale: benchmarkForm.value.eliteTimeMale || null,
+    eliteTimeFemale: benchmarkForm.value.eliteTimeFemale || null,
+    advancedTimeMale: benchmarkForm.value.advancedTimeMale || null,
+    advancedTimeFemale: benchmarkForm.value.advancedTimeFemale || null,
+    intermediateTimeMale: benchmarkForm.value.intermediateTimeMale || null,
+    intermediateTimeFemale: benchmarkForm.value.intermediateTimeFemale || null,
+    beginnerTimeMale: benchmarkForm.value.beginnerTimeMale || null,
+    beginnerTimeFemale: benchmarkForm.value.beginnerTimeFemale || null,
+    videoUrl: benchmarkForm.value.videoUrl || null,
+    scalingOptions: benchmarkForm.value.scalingOptions || null,
+    exercises: benchmarkForm.value.exercises.map((ex) => ({
+      exerciseId: ex.exerciseId,
+      position: ex.position,
+      reps: ex.reps,
+      distanceMeters: ex.distanceMeters,
+      durationSeconds: ex.durationSeconds,
+      calories: ex.calories,
+      rxWeightMale: ex.rxWeightMale || null,
+      rxWeightFemale: ex.rxWeightFemale || null,
+      restSeconds: ex.restSeconds,
+    })),
   }
 
   saving.value = true
   try {
-    const payload = { ...benchmarkForm.value }
-    delete payload.id
-
     if (isEditing.value) {
       await benchmarkService.update(benchmarkForm.value.id, payload)
       $q.notify({ type: 'positive', message: 'Benchmark actualizado' })
@@ -536,7 +818,15 @@ const confirmDelete = (benchmark) => {
   })
 }
 
-onMounted(fetchBenchmarks)
+const openPreview = (benchmark) => {
+  previewBenchmark.value = benchmark
+  previewDialog.value = true
+}
+
+onMounted(() => {
+  fetchBenchmarks()
+  fetchExercises()
+})
 </script>
 
 <style scoped>
@@ -692,7 +982,7 @@ onMounted(fetchBenchmarks)
 
 .benchmarks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
 }
 
@@ -721,7 +1011,7 @@ onMounted(fetchBenchmarks)
   text-transform: capitalize;
 }
 
-.benchmark-difficulty {
+.benchmark-meta {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -743,6 +1033,52 @@ onMounted(fetchBenchmarks)
   font-size: 14px;
   color: #8b949e;
   margin: 0 0 16px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.exercise-list {
+  background: #0d1117;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.exercise-item:last-child {
+  border-bottom: none;
+}
+
+.exercise-position {
+  color: #8b949e;
+  min-width: 20px;
+}
+
+.exercise-name {
+  color: #fff;
+  font-weight: 600;
+  flex: 1;
+}
+
+.exercise-detail {
+  color: #ff8f38;
+  font-weight: 600;
+}
+
+.exercise-rx {
+  color: #8b949e;
+  font-size: 12px;
 }
 
 .time-standards {
@@ -805,20 +1141,6 @@ onMounted(fetchBenchmarks)
   text-align: center;
 }
 
-.rx-weights {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.rx-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #8b949e;
-}
-
 .benchmark-actions {
   display: flex;
   gap: 8px;
@@ -827,8 +1149,16 @@ onMounted(fetchBenchmarks)
 
 .benchmark-dialog {
   background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
-  min-width: 600px;
   border-radius: 20px;
+}
+
+.fullscreen-dialog {
+  min-width: 800px;
+  max-width: 900px;
+  width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .dialog-header {
@@ -837,6 +1167,7 @@ onMounted(fetchBenchmarks)
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 .dialog-header h3 {
@@ -848,6 +1179,8 @@ onMounted(fetchBenchmarks)
 
 .dialog-content {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .section-label {
@@ -858,12 +1191,20 @@ onMounted(fetchBenchmarks)
   text-transform: uppercase;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .dialog-footer {
   padding: 16px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .empty-state {
@@ -873,14 +1214,116 @@ onMounted(fetchBenchmarks)
   color: #8b949e;
 }
 
+/* Exercise form */
+.exercise-form-row {
+  background: #0d1117;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.exercise-form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.exercise-number {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ff8f38;
+}
+
+.empty-exercises {
+  text-align: center;
+  padding: 40px;
+  color: #8b949e;
+}
+
+/* Times grid */
+.times-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-level-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Preview */
+.description-text {
+  white-space: pre-wrap;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.preview-exercises h4,
+.preview-scaling h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.preview-exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.preview-exercise-item .pos {
+  color: #8b949e;
+  min-width: 24px;
+}
+
+.preview-exercise-item .name {
+  color: #fff;
+  font-weight: 600;
+  flex: 1;
+}
+
+.preview-exercise-item .detail {
+  color: #ff8f38;
+}
+
+.scaling-text {
+  white-space: pre-wrap;
+  color: #8b949e;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #0d1117;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .benchmarks-grid {
     grid-template-columns: 1fr;
   }
 
-  .benchmark-dialog {
+  .fullscreen-dialog {
     min-width: auto;
-    width: 90vw;
+    width: 95vw;
+  }
+
+  .time-level-row {
+    grid-template-columns: 80px 1fr 1fr;
   }
 }
 </style>
