@@ -15,10 +15,10 @@ export const useExercisesStore = defineStore('exercises', () => {
   const totalExercises = computed(() => exercises.value.length)
   const isEmpty = computed(() => exercises.value.length === 0)
   const hasError = computed(() => !!error.value)
-  
+
   const exercisesByCategory = computed(() => {
     const grouped = {}
-    exercises.value.forEach(ex => {
+    exercises.value.forEach((ex) => {
       const category = ex.category || 'general'
       if (!grouped[category]) grouped[category] = []
       grouped[category].push(ex)
@@ -28,7 +28,7 @@ export const useExercisesStore = defineStore('exercises', () => {
 
   const exercisesByMuscleGroup = computed(() => {
     const grouped = {}
-    exercises.value.forEach(ex => {
+    exercises.value.forEach((ex) => {
       const muscle = ex.muscleGroup || ex.primaryMuscle || 'general'
       if (!grouped[muscle]) grouped[muscle] = []
       grouped[muscle].push(ex)
@@ -40,12 +40,12 @@ export const useExercisesStore = defineStore('exercises', () => {
   const fetchExercises = async () => {
     loading.value = true
     error.value = null
-    
+
     try {
       const response = await exerciseService.getAll()
-      
+
       exercises.value = extractItems(response)
-      
+
       return exercises.value
     } catch (err) {
       error.value = extractErrorMessage(err)
@@ -56,7 +56,22 @@ export const useExercisesStore = defineStore('exercises', () => {
   }
 
   const getExerciseById = (id) => {
-    return exercises.value.find(e => e.id === id)
+    return exercises.value.find((e) => e.id === id)
+  }
+
+  const fetchExerciseDetail = async (id) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await exerciseService.getById(id)
+      return response
+    } catch (err) {
+      error.value = extractErrorMessage(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
   }
 
   const createExercise = async (exerciseData) => {
@@ -101,7 +116,7 @@ export const useExercisesStore = defineStore('exercises', () => {
     loading,
     error,
     selectedExercise,
-    
+
     // Getters
     allExercises,
     totalExercises,
@@ -109,10 +124,11 @@ export const useExercisesStore = defineStore('exercises', () => {
     hasError,
     exercisesByCategory,
     exercisesByMuscleGroup,
-    
+
     // Actions
     fetchExercises,
     getExerciseById,
+    fetchExerciseDetail,
     createExercise,
     updateExercise,
     deleteExercise,

@@ -188,105 +188,14 @@
           />
         </div>
 
-        <div v-for="exercise in paginatedExercises" :key="exercise.id" class="exercise-card">
-          <div class="exercise-header" :class="exercise.level">
-            <h3 class="exercise-name">{{ normalizeName(exercise.name) }}</h3>
-            <p v-if="exercise.description" class="exercise-description">
-              {{ exercise.description }}
-            </p>
-          </div>
-
-          <div class="exercise-actions">
-            <q-btn
-              flat
-              dense
-              icon="play_circle"
-              label="YouTube"
-              color="grey-5"
-              size="sm"
-              no-caps
-              @click="searchExercise(exercise, 'youtube')"
-            />
-            <q-btn
-              flat
-              dense
-              icon="search"
-              label="Google"
-              color="grey-5"
-              size="sm"
-              no-caps
-              @click="searchExercise(exercise, 'google')"
-            />
-            <q-btn
-              flat
-              dense
-              icon="edit"
-              label="Editar"
-              color="primary"
-              size="sm"
-              no-caps
-              @click="editExercise(exercise)"
-            />
-            <q-btn
-              flat
-              dense
-              icon="delete"
-              label="Eliminar"
-              color="negative"
-              size="sm"
-              no-caps
-              @click="confirmDelete(exercise)"
-            />
-          </div>
-
-          <div class="exercise-difficulty">
-            <div class="fire-row">
-              <q-icon
-                v-for="n in 3"
-                :key="n"
-                name="local_fire_department"
-                :color="
-                  n <= (exercise.difficultyRating || 1)
-                    ? getFireColor(exercise.level, true)
-                    : 'grey-7'
-                "
-                size="20px"
-              />
-            </div>
-            <span class="level-badge" :class="exercise.level">{{
-              getLevelLabel(exercise.level)
-            }}</span>
-          </div>
-
-          <div class="exercise-muscles">
-            <div class="muscle-tag primary">
-              <span>{{ getMuscleGroupLabel(exercise.primaryMuscleGroup) }}</span>
-            </div>
-            <div v-if="exercise.secondaryMuscleGroup" class="muscle-tag secondary">
-              <span>{{ getMuscleGroupLabel(exercise.secondaryMuscleGroup) }}</span>
-            </div>
-          </div>
-
-          <div v-if="exercise.disciplines?.length" class="exercise-disciplines">
-            <div
-              v-for="discipline in exercise.disciplines"
-              :key="discipline"
-              class="discipline-tag"
-              :class="discipline"
-            >
-              {{ getDisciplineLabel(discipline) }}
-            </div>
-          </div>
-
-          <div class="exercise-equipment">
-            <q-icon
-              :name="exercise.equipment ? 'sports_gymnastics' : 'block'"
-              size="14px"
-              color="grey-5"
-            />
-            <span>{{ exercise.equipment ? exercise.equipment.name : 'Sin equipamiento' }}</span>
-          </div>
-        </div>
+        <ExerciseCard
+          v-for="exercise in paginatedExercises"
+          :key="exercise.id"
+          :exercise="exercise"
+          @edit="editExercise(exercise)"
+          @delete="confirmDelete(exercise)"
+          @view-guide="openGuide(exercise)"
+        />
 
         <!-- Pagination -->
         <div v-if="filteredExercises.length > 10" class="pagination-wrapper">
@@ -535,6 +444,13 @@
       :loading="deleting"
       @confirm="deleteExercise"
     />
+
+    <!-- Guide Drawer -->
+    <ExerciseGuideDrawer
+      v-model="guideDrawerOpen"
+      :exercise="selectedExerciseForGuide"
+      :loading="guideLoading"
+    />
   </q-page>
 </template>
 
@@ -549,6 +465,8 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import StatsCards from '@/components/common/StatsCards.vue'
 import FilterPills from '@/components/common/FilterPills.vue'
 import FormDialog from '@/components/common/FormDialog.vue'
+import ExerciseCard from '@/components/admin/ExerciseCard.vue'
+import ExerciseGuideDrawer from '@/components/admin/ExerciseGuideDrawer.vue'
 
 const $q = useQuasar()
 const exercisesStore = useExercisesStore()
@@ -571,6 +489,11 @@ const exerciseDialog = ref(false)
 const deleteDialog = ref(false)
 const isEditing = ref(false)
 const exerciseToDelete = ref(null)
+
+// Guide Drawer
+const guideDrawerOpen = ref(false)
+const selectedExerciseForGuide = ref(null)
+const guideLoading = ref(false)
 
 // Form
 const exerciseForm = ref({
@@ -781,7 +704,7 @@ const clearAllFilters = () => {
   sortBy.value = 'difficulty_asc'
 }
 
-const { normalizeName } = useHelpers()
+useHelpers()
 
 const getFireColor = (level, isActive) => getLevelColor(level, isActive)
 
@@ -821,6 +744,25 @@ const searchExercise = (exercise, platform) => {
       ? `https://www.youtube.com/results?search_query=${query}`
       : `https://www.google.com/search?q=${query}&tbm=vid`
   window.open(url, '_blank')
+}
+
+const openGuide = async (exercise) => {
+  guideDrawerOpen.value = true
+  guideLoading.value = true
+  selectedExerciseForGuide.value = exercise
+
+  try {
+    const detail = await exercisesStore.fetchExerciseDetail(exercise.id)
+    selectedExerciseForGuide.value = detail.exercise || detail
+  } catch {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar la guía del ejercicio',
+      position: 'top',
+    })
+  } finally {
+    guideLoading.value = false
+  }
 }
 
 const saveExercise = async () => {

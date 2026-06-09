@@ -1,23 +1,76 @@
 <template>
-  <div class="exercise-card" :class="{ 'inactive': exercise.isArchived }">
+  <div class="exercise-card" :class="{ inactive: exercise.isArchived }">
     <div class="card-header" :class="exercise.level">
       <h3 class="exercise-name">{{ normalizeName(exercise.name) }}</h3>
-      <p v-if="exercise.description" class="exercise-description">{{ truncateText(exercise.description, 60) }}</p>
+      <p v-if="exercise.description" class="exercise-description">
+        {{ truncateText(exercise.description, 60) }}
+      </p>
     </div>
 
     <div class="card-actions">
-      <q-btn flat dense icon="play_circle" label="YouTube" color="grey-5" size="sm" no-caps
-        @click="searchOn('youtube')" />
-      <q-btn flat dense icon="search" label="Google" color="grey-5" size="sm" no-caps
-        @click="searchOn('google')" />
-      <q-btn flat dense icon="edit" label="Editar" color="primary" size="sm" no-caps @click="$emit('edit')" />
-      <q-btn flat dense icon="delete" label="Eliminar" color="negative" size="sm" no-caps @click="$emit('delete')" />
+      <q-btn
+        flat
+        dense
+        icon="play_circle"
+        label="YouTube"
+        color="grey-5"
+        size="sm"
+        no-caps
+        @click="searchOn('youtube')"
+      />
+      <q-btn
+        flat
+        dense
+        icon="search"
+        label="Google"
+        color="grey-5"
+        size="sm"
+        no-caps
+        @click="searchOn('google')"
+      />
+      <q-btn
+        flat
+        dense
+        icon="menu_book"
+        label="Guía"
+        color="secondary"
+        size="sm"
+        no-caps
+        @click="$emit('view-guide')"
+      />
+      <q-btn
+        flat
+        dense
+        icon="edit"
+        label="Editar"
+        color="primary"
+        size="sm"
+        no-caps
+        @click="$emit('edit')"
+      />
+      <q-btn
+        flat
+        dense
+        icon="delete"
+        label="Eliminar"
+        color="negative"
+        size="sm"
+        no-caps
+        @click="$emit('delete')"
+      />
     </div>
 
     <div class="exercise-difficulty">
       <div class="fire-row">
-        <q-icon v-for="n in 3" :key="n" name="local_fire_department"
-          :color="n <= (exercise.difficultyRating || 1) ? getFireColor(exercise.level, true) : 'grey-7'" size="20px" />
+        <q-icon
+          v-for="n in 3"
+          :key="n"
+          name="local_fire_department"
+          :color="
+            n <= (exercise.difficultyRating || 1) ? getFireColor(exercise.level, true) : 'grey-7'
+          "
+          size="20px"
+        />
       </div>
       <span class="level-badge" :class="exercise.level">{{ getLevelLabel(exercise.level) }}</span>
     </div>
@@ -32,26 +85,26 @@
     </div>
 
     <div v-if="exercise.disciplines?.length" class="exercise-disciplines">
-      <div v-for="discipline in exercise.disciplines" :key="discipline" class="discipline-tag" :class="discipline">
+      <div
+        v-for="discipline in exercise.disciplines"
+        :key="discipline"
+        class="discipline-tag"
+        :class="discipline"
+      >
         {{ getDisciplineLabel(discipline) }}
       </div>
     </div>
 
-    <div class="exercise-equipment">
-      <q-icon :name="exercise.equipment ? 'sports_gymnastics' : 'block'" size="14px" color="grey-5" />
-      <span>{{ exercise.equipment ? exercise.equipment.name : 'Sin equipamiento' }}</span>
+    <div v-if="exercise.equipment" class="exercise-equipment">
+      <q-icon name="sports_gymnastics" size="14px" color="grey-5" />
+      <span>{{ exercise.equipment.name }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useHelpers } from '@/composables/useHelpers'
-import { 
-  getMuscleGroupLabel,
-  getLevelLabel,
-  getDisciplineLabel,
-  getLevelColor,
-} from '@/constants'
+import { getMuscleGroupLabel, getLevelLabel, getDisciplineLabel, getLevelColor } from '@/constants'
 
 const props = defineProps({
   exercise: {
@@ -60,7 +113,7 @@ const props = defineProps({
   },
 })
 
-defineEmits(['edit', 'delete'])
+defineEmits(['edit', 'delete', 'view-guide'])
 
 const { normalizeName, truncateText } = useHelpers()
 
@@ -71,9 +124,10 @@ const getFireColor = (level, isActive) => {
 
 const searchOn = (platform) => {
   const query = encodeURIComponent(`${props.exercise.name} exercise tutorial`)
-  const url = platform === 'youtube'
-    ? `https://www.youtube.com/results?search_query=${query}`
-    : `https://www.google.com/search?q=${query}&tbm=vid`
+  const url =
+    platform === 'youtube'
+      ? `https://www.youtube.com/results?search_query=${query}`
+      : `https://www.google.com/search?q=${query}&tbm=vid`
   window.open(url, '_blank')
 }
 </script>
@@ -115,9 +169,15 @@ const searchOn = (platform) => {
   transition: all 0.3s ease;
 }
 
-.card-header.beginner::before { background: linear-gradient(90deg, #3fb950, #2ea043); }
-.card-header.intermediate::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
-.card-header.expert::before { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+.card-header.beginner::before {
+  background: linear-gradient(90deg, #3fb950, #2ea043);
+}
+.card-header.intermediate::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+.card-header.expert::before {
+  background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+}
 
 .exercise-name {
   font-size: 1.25rem;
@@ -138,11 +198,6 @@ const searchOn = (platform) => {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.exercise-card:hover .card-actions {
   opacity: 1;
 }
 
@@ -171,9 +226,18 @@ const searchOn = (platform) => {
   border-radius: 20px;
 }
 
-.level-badge.beginner { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
-.level-badge.intermediate { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-.level-badge.expert { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+.level-badge.beginner {
+  background: rgba(63, 185, 80, 0.2);
+  color: #3fb950;
+}
+.level-badge.intermediate {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+.level-badge.expert {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
 
 .exercise-muscles {
   display: flex;
@@ -215,9 +279,18 @@ const searchOn = (platform) => {
   letter-spacing: 0.5px;
 }
 
-.discipline-tag.calisthenics { background: rgba(255, 143, 56, 0.15); color: #ff8f38; }
-.discipline-tag.crossfit { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
-.discipline-tag.fitness { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+.discipline-tag.calisthenics {
+  background: rgba(255, 143, 56, 0.15);
+  color: #ff8f38;
+}
+.discipline-tag.crossfit {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+.discipline-tag.fitness {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
 
 .exercise-equipment {
   display: flex;

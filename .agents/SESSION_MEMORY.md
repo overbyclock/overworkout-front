@@ -5,6 +5,51 @@
 
 ---
 
+## 📅 Última sesión completada (2026-06-09) — Parte 3
+
+- **Focus**: Rellenar contenido de guía en los **704 ejercicios vacíos** + Drawer de guía en el frontend
+- **Estado**: ✅ Todo completado
+- **Cambios Backend** (`overworkout-back`):
+  - **Seeder `fill_all_exercises.php`**: 40 familias de ejercicios con templates de guía en español. 738/738 ejercicios ahora tienen `description`, `setupInstructions`, `executionInstructions`, `movementStandards`, `commonFaults`, `safetyTips`.
+  - **Tests**: 642 tests unitarios pasando (sin regressiones).
+- **Cambios Frontend** (`overworkout-front`):
+  - **Nuevo componente `ExerciseGuideDrawer.vue`**: Drawer lateral que muestra la guía completa del ejercicio (descripción, preparación, ejecución, estándares, errores comunes, seguridad, recursos externos).
+  - **Nuevo método `fetchExerciseDetail`** en store `exercises.js`: Hace `GET /exercises/{id}` para obtener los campos de guía (`GROUP_READ_DETAIL`).
+  - **Modificado `ExerciseCard.vue`**: Añadido botón "Guía" (icono `menu_book`) junto a YouTube/Google/Editar/Eliminar.
+  - **Refactor `ExercisesView.vue`**: Reemplazado el markup inline de cards por `<ExerciseCard>` + integración del drawer. Al hacer clic en "Guía" se abre el drawer y carga el detalle del ejercicio dinámicamente.
+  - **Lint y build**: Ambos pasan sin errores.
+
+---
+
+## 📅 Última sesión completada (2026-06-09) — Parte 2
+
+- **Focus**: Seed de los **15 benchmarks restantes** con ejercicios + cierre completo del sistema de benchmarks
+- **Estado**: ✅ Todo completado
+- **Cambios Backend** (`overworkout-back`):
+  - **Girl WODs restantes (10)**: Angie, Barbara, Chelsea, Eva, Jackie, Karen, Kelly, Linda, Nancy, Nicole — todos con ejercicios, tiempos y scaling.
+  - **Otros benchmarks (5)**: Fight Gone Bad, Filthy 50, The Seven, Lynne, Tabata Something — estructura completa.
+  - **Total**: Los **39 benchmarks** de la BD ahora tienen ejercicios relacionados en `benchmark_exercise`. Ningún benchmark queda vacío.
+  - **Fallback de ejercicios**: Añadido mecanismo de fallback por ID en `seed_remaining_benchmarks.php` para evitar discrepancias de nombres (ej. `Knees to Elbows`).
+  - **Tests**: 607 tests unitarios pasando (sin regressiones).
+
+---
+
+## 📅 Última sesión completada (2026-06-09) — Parte 1
+
+- **Focus**: Seed completo de 23 benchmarks con estructura de ejercicios + corrección de tiempos femeninos duplicados
+- **Estado**: ✅ Todo completado
+- **Cambios Backend** (`overworkout-back`):
+  - **Infraestructura**: `BenchmarkSeederHelper.php` reutilizable en `scripts/seeders/`. Encapsula boot del kernel, búsqueda/creación de ejercicios, seed de benchmarks con ejercicios, y corrección masiva de tiempos.
+  - **Hero WODs (14)**: Murph, DT, Michael, Ryan, JT, Randy, Roy, Jason, Badger, Clovis, Holleyman, Kalsu, Tommy V, Zachary — todos con descripción, tiempos por nivel (♂/♀) y ejercicios detallados en `benchmark_exercise`.
+  - **Girl WODs (9)**: Fran, Grace, Helen, Diane, Elizabeth, Amanda, Mary, Cindy, Annie — mismos campos completos.
+  - **Ejercicios nuevos creados**: `Back Extension`, `Sit-up`, `Bench Press`, `Hang Power Clean`, `Burpee Pull-up` (5 ejercicios).
+  - **Tiempos femeninos corregidos**: Los 16 benchmarks restantes (Cindy, Mary, Nicole, Angie, Barbara, Kelly, Eva, Jackie, Karen, Linda, Nancy, Chelsea, Fight Gone Bad, Filthy 50, The Seven, Lynne, Tabata Something) ya no tienen tiempos duplicados. Se aplicaron estándares reales de CrossFit diferenciados por género.
+  - **Datos investigados**: Tiempos RX, pesos, scaling options y estructura de cada WOD validados contra fuentes oficiales de CrossFit y wodwell.com.
+  - **Tests**: 607 tests unitarios pasando (sin regressiones).
+- **Commits**: Pendientes de push (trabajo en local, working tree limpio)
+
+---
+
 ## 📅 Última sesión completada (2026-06-02)
 
 - **Focus**: Refactor completo del sistema de benchmarks — separación de entrenamientos sueltos, programas y WODs CrossFit
