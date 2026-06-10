@@ -11,6 +11,7 @@ import '@quasar/extras/mdi-v7/mdi-v7.css'
 import 'quasar/dist/quasar.css'
 
 import './assets/global.css'
+import './assets/mobile-theme.css'
 
 import App from './App.vue'
 import router from './router'

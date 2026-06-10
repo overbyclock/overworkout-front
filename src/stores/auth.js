@@ -50,6 +50,12 @@ export const useAuthStore = defineStore('auth', () => {
         nick: userData.nick || response.nick,
         avatar: userData.avatar || response.avatar,
         roles: userData.roles || response.roles,
+        xp: userData.xp ?? 0,
+        streakDays: userData.streakDays ?? 0,
+        totalWorkouts: userData.totalWorkouts ?? 0,
+        athleteLevel: userData.athleteLevel ?? 1,
+        trainingGoal: userData.trainingGoal ?? null,
+        estimatedLevel: userData.estimatedLevel ?? null,
       }
       isAuthenticated.value = true
 
@@ -95,13 +101,13 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     loading,
     error,
-    
+
     // Getters
     isAdmin,
     userInitials,
     userDisplayName,
     hasRole,
-    
+
     // Actions
     login,
     logout,

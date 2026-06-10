@@ -5,6 +5,38 @@
 
 ---
 
+## 📅 Sesión en progreso (2026-06-10) — Fase 0 + Fase 1: App de usuario mobile-first
+
+- **Focus**: Pivotar de la gestión admin a la **interfaz del usuario final**. Diseñar y construir la base mobile-first + onboarding completo.
+- **Estado**: ✅ Fase 0 completada · ✅ Fase 1 completada · 🔄 Pendiente conectar datos reales en siguientes sesiones
+- **Cambios Frontend** (`overworkout-front`):
+  - **Nuevo Design System mobile** (`mobile-theme.css`): Variables CSS para superficies, tipografía mobile, espaciado 8px, botones táctiles, animaciones, safe areas.
+  - **Nuevo `UserLayout.vue`** con navegación inferior tipo app (5 pestañas: Inicio, Programa, Entrenar-FAB, Logros, Perfil).
+  - **5 componentes base mobile** en `src/components/mobile/`: `MobileBottomNav`, `MobilePageHeader`, `MobileCard`, `ProgressRing`, `StreakBadge`.
+  - **Nuevas rutas de usuario**: `/user/home`, `/user/program`, `/user/train`, `/user/achievements`, `/user/profile` + flujo de onboarding (`/user/welcome`, `/user/onboarding/goal`, `/user/onboarding/level`, `/user/onboarding/stats`, `/user/assessment`).
+  - **6 nuevas vistas de usuario**: `DashboardView`, `ProgramView`, `TrainView`, `AchievementsView`, `ProfileView`.
+  - **5 vistas de onboarding**: `WelcomeView`, `OnboardingGoalView`, `OnboardingLevelView`, `OnboardingStatsView`, `AssessmentView`.
+  - **Nuevo store `userProfile.js`** + servicio `userProfile.js`: gestiona perfil, progreso activo, onboarding y llamadas a API.
+  - **Dashboard con gamificación inicial**: streak, XP, nivel de atleta, recompensa diaria por conexión, tarjeta de entrenamiento de hoy, progreso de nivel.
+  - **Workout player mock**: Pantalla de pre-workout, timer, lista de ejercicios, completar/saltar ejercicios.
+  - **Tests**: 143 tests pasando (18 test files), incluyendo 5 nuevos tests para componentes mobile + store.
+- **Cambios Backend** (`overworkout-back`):
+  - **Nuevos campos en entidad `User`**: `trainingGoal`, `estimatedLevel`, `gender`, `weightKg`, `heightCm`, `birthDate`, `trainingLocation`, `xp`, `streakDays`, `totalWorkouts`, `athleteLevel`, `lastWorkoutAt`.
+  - **Nueva migración** `Version20260610090449` con todos los campos del perfil.
+  - **Nuevo `UserProfileService`**: lógica de recomendación de programa basada en tests + objetivo + nivel.
+  - **Nuevo `UserProfileApiController`** con endpoints:
+    - `POST /user/profile/setup` — Guarda datos del onboarding.
+    - `POST /user/profile/assessment` — Recibe resultados de tests y devuelve programa recomendado.
+  - **Tests**: 642 tests pasando. PHPStan nivel 5 sin errores.
+- **Próximos pasos**:
+  1. Conectar Dashboard con progreso activo real del backend.
+  2. Mejorar Workout Player con datos reales del training (rounds, ejercicios, timers inteligentes).
+  3. Implementar historial de entrenamientos y persistencia de workouts completados.
+  4. Añadir sistema de streaks/XP real basado en actividad.
+  5. Integrar benchmarks en la app de usuario.
+
+---
+
 ## 📅 Última sesión completada (2026-06-09) — Parte 3
 
 - **Focus**: Rellenar contenido de guía en los **704 ejercicios vacíos** + Drawer de guía en el frontend
@@ -148,7 +180,7 @@
 | **Code style**      | PHP-CS-Fixer activo (PSR12 + Symfony)            |
 | **Static analysis** | PHPStan nivel 5, sin errores                     |
 | **CI/CD**           | GitHub Actions (code-style, phpstan, unit-tests) |
-| **Migrations**      | 19 migraciones                                   |
+| **Migrations**      | 20 migraciones                                   |
 
 ### Programa Handstand Balance Mastery — IMPLEMENTADO ✅
 
@@ -188,6 +220,7 @@
 - Trainings: CRUD `/trainings` (ahora soporta `trainingLevelId`, `weekNumber`, `dayKey`, `sessionType`)
 - Training Skills: CRUD `/training-skills`
 - User Progress: `/user/progress`, `/user/progress/active`, `/user/progress/{levelId}/test`, `/user/progress/{levelId}/advance-week`, `/user/progress/init/{programId}`
+- User Profile: `POST /user/profile/setup`, `POST /user/profile/assessment`
 
 ### Arquitectura sólida
 
@@ -217,7 +250,7 @@
 | **UI**        | Quasar 2.18+                                 |
 | **State**     | Pinia 3                                      |
 | **Router**    | Vue Router 5                                 |
-| **Tests**     | 116 unitarios (Vitest) + 7 E2E (Playwright)  |
+| **Tests**     | 143 unitarios (Vitest) + 7 E2E (Playwright)  |
 | **Linting**   | ESLint 9 + Prettier 3                        |
 | **Hooks**     | Husky + lint-staged                          |
 
@@ -238,11 +271,25 @@
 - `/admin/user-progress`
 - `/admin/benchmarks`
 
+### Rutas de Usuario implementadas (nuevo)
+
+- `/user/home` — Dashboard con gamificación
+- `/user/program` — Mi programa y niveles
+- `/user/train` — Workout player
+- `/user/achievements` — Logros y stats
+- `/user/profile` — Perfil y ajustes
+- `/user/welcome` — Onboarding bienvenida
+- `/user/onboarding/goal` — Objetivo de entrenamiento
+- `/user/onboarding/level` — Nivel estimado
+- `/user/onboarding/stats` — Datos físicos
+- `/user/assessment` — Evaluación diagnóstica
+
 ### Patrones establecidos
 
 - Composables: `useCRUD`, `useFilters`, `usePagination`, `useForm`, `useSearch`, `useHelpers`.
-- Componentes comunes: `PageHeader`, `DataTable`, `StatsCards`, `SearchFilters`, `FormDialog`, `FilterPills`.
-- Stores: `auth`, `users`, `exercises`, `trainings`, `equipments`, `programs`.
+- Componentes comunes admin: `PageHeader`, `DataTable`, `StatsCards`, `SearchFilters`, `FormDialog`, `FilterPills`.
+- Componentes mobile usuario: `MobileBottomNav`, `MobilePageHeader`, `MobileCard`, `ProgressRing`, `StreakBadge`.
+- Stores: `auth`, `users`, `exercises`, `trainings`, `equipments`, `programs`, `userProfile`.
 - API base: `http://localhost:8000`.
 
 ---
@@ -251,16 +298,24 @@
 
 ### Completados recientemente ✅
 
+- **Fase 0 + Fase 1 app de usuario**: Base mobile-first + onboarding completo + dashboard gamificado + workout player inicial (sesión 2026-06-10).
 - **CRUD programa completo**: Fases 1-6 finalizadas (sesión 2026-05-28).
 - **Refactor benchmarks**: Separación limpia de Training/Benchmark/Programa (sesión 2026-06-02).
 
+### Pendientes activos (prioridad alta — app de usuario)
+
+- **Conectar Dashboard con datos reales**: Progreso activo, entrenamiento de hoy, próximos días.
+- **Workout Player real**: Cargar training actual con rounds/ejercicios/timers del backend, guardar sesión completada.
+- **Historial de entrenamientos**: Calendario de actividad, estadísticas, PRs por ejercicio.
+- **Sistema de streaks/XP real**: Actualizar al completar entrenos, recompensas diarias.
+- **Integrar benchmarks**: Pantalla de benchmarks, intentos con timer, historial de PBs.
+
 ### Pendientes activos (baja/media prioridad)
 
-- **Siguiente Skill Program**: Muscle-up, Planche, Back Lever, etc. (el `Front Lever Mastery` ya fue creado en la sesión del 2026-05-25)
-- **Tests funcionales backend**: Configurar SQLite en `phpunit.dist.xml` y añadir tests funcionales para endpoints de programa y benchmarks.
-- **Auditoría de ejercicios**: Revisar si otros programas (Calistenia Master V1/V2/V3) tienen ejercicios con clasificación inconsistente respecto a la progresión donde se usan.
-- **Refinamiento V3**: Ajustar sets/reps de algún nivel si el experto entrenador lo solicita.
-- **Ajustar tiempos femeninos benchmarks**: Los 39 benchmarks migrados tienen tiempos duplicados (mismo valor en male/female). Revisar con estándares reales de CrossFit y actualizar.
+- **Siguiente Skill Program**: Muscle-up, Planche, Back Lever, etc.
+- **Tests funcionales backend**: Configurar SQLite en `phpunit.dist.xml`.
+- **Auditoría de ejercicios**: Revisar clasificación en programas V1/V2/V3.
+- **Refinamiento V3**: Ajustar sets/reps si el experto lo solicita.
 
 ---
 

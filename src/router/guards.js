@@ -1,5 +1,34 @@
 import { useAuthStore } from '@/stores/auth'
-import { USER_ROLES } from '@/utils/constants'
+import { STORAGE_KEYS, USER_ROLES } from '@/utils/constants'
+
+/**
+ * Verifica si el usuario ha completado el onboarding básico.
+ * Usamos trainingGoal como indicador principal.
+ * También permite usuarios que hayan elegido saltarlo.
+ */
+const hasCompletedOnboarding = (authStore) => {
+  if (!authStore.isAuthenticated) return false
+
+  // Si el usuario explícitamente saltó el onboarding, respetamos su decisión
+  const skipped = localStorage.getItem(STORAGE_KEYS.ONBOARDING_SKIPPED)
+  if (skipped === 'true') return true
+
+  const user = authStore.user
+  if (!user) return false
+  // Si no tiene trainingGoal ni estimatedLevel, no ha completado onboarding
+  return !!(user.trainingGoal && user.estimatedLevel)
+}
+
+/**
+ * Lista de rutas de onboarding (para no redirigir en bucle).
+ */
+const ONBOARDING_ROUTES = [
+  'user-welcome',
+  'user-onboarding-goal',
+  'user-onboarding-level',
+  'user-onboarding-stats',
+  'user-assessment',
+]
 
 export const authGuard = (to) => {
   const authStore = useAuthStore()
@@ -24,6 +53,31 @@ export const authGuard = (to) => {
         }
       }
     }
+  }
+}
+
+/**
+ * Redirige a onboarding si el usuario no ha completado su perfil inicial.
+ * Solo aplica a usuarios con ROLE_USER que intenten acceder a rutas normales.
+ * Si ya completó onboarding pero no tiene programa, lo deja navegar libremente
+ * (el Dashboard mostrará CTA al catálogo de programas).
+ */
+export const onboardingGuard = (to) => {
+  const authStore = useAuthStore()
+
+  // Solo aplicar a usuarios autenticados con rol USER
+  if (!authStore.isAuthenticated) return
+  const userRoles = authStore.user?.roles || []
+  if (!userRoles.includes(USER_ROLES.USER)) return
+
+  // No redirigir si ya está en una ruta de onboarding o en catálogo de programas
+  const allowedRoutesWithoutProgram = [...ONBOARDING_ROUTES, 'user-programs-catalog']
+  if (allowedRoutesWithoutProgram.includes(to.name)) return
+
+  // Si no ha completado onboarding (ni siquiera lo saltó), redirigir a bienvenida
+  if (!hasCompletedOnboarding(authStore)) {
+    console.log('Onboarding incompleto, redirigiendo a bienvenida')
+    return { name: 'user-welcome' }
   }
 }
 

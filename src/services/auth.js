@@ -7,7 +7,7 @@ export const authService = {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
       const { token, user, userId, nick, avatar, roles, expiresAt } = response.data
-      
+
       // El backend devuelve el usuario anidado en response.user
       const userData = user || {
         id: userId,
@@ -15,6 +15,12 @@ export const authService = {
         avatar,
         roles,
       }
+
+      // Normalizar campos de gamificación con defaults
+      userData.xp = userData.xp ?? 0
+      userData.streakDays = userData.streakDays ?? 0
+      userData.totalWorkouts = userData.totalWorkouts ?? 0
+      userData.athleteLevel = userData.athleteLevel ?? 1
 
       localStorage.setItem(STORAGE_KEYS.TOKEN, token)
       localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt?.toString() || '')
@@ -25,6 +31,12 @@ export const authService = {
           nick: userData.nick,
           avatar: userData.avatar,
           roles: userData.roles,
+          xp: userData.xp ?? 0,
+          streakDays: userData.streakDays ?? 0,
+          totalWorkouts: userData.totalWorkouts ?? 0,
+          athleteLevel: userData.athleteLevel ?? 1,
+          trainingGoal: userData.trainingGoal ?? null,
+          estimatedLevel: userData.estimatedLevel ?? null,
         }),
       )
 
@@ -62,7 +74,12 @@ export const authService = {
       const data = error.response.data
       let message = 'Error en el servidor'
       if (data) {
-        message = data['hydra:description'] || data.detail || data.message || data.title || JSON.stringify(data)
+        message =
+          data['hydra:description'] ||
+          data.detail ||
+          data.message ||
+          data.title ||
+          JSON.stringify(data)
       }
       return new Error(message)
     } else if (error.request) {
