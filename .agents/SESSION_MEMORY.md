@@ -5,10 +5,10 @@
 
 ---
 
-## 📅 Sesión en progreso (2026-06-10) — Fase 0 + Fase 1: App de usuario mobile-first
+## 📅 Última sesión completada (2026-06-10) — Fase 0 + Fase 1: App de usuario mobile-first
 
-- **Focus**: Pivotar de la gestión admin a la **interfaz del usuario final**. Diseñar y construir la base mobile-first + onboarding completo.
-- **Estado**: ✅ Fase 0 completada · ✅ Fase 1 completada · 🔄 Pendiente conectar datos reales en siguientes sesiones
+- **Focus**: Pivotar de la gestión admin a la **interfaz del usuario final**. Diseñar y construir la base mobile-first + onboarding completo + catálogo de programas.
+- **Estado**: ✅ Todo completado y commiteado
 - **Cambios Frontend** (`overworkout-front`):
   - **Nuevo Design System mobile** (`mobile-theme.css`): Variables CSS para superficies, tipografía mobile, espaciado 8px, botones táctiles, animaciones, safe areas.
   - **Nuevo `UserLayout.vue`** con navegación inferior tipo app (5 pestañas: Inicio, Programa, Entrenar-FAB, Logros, Perfil).
@@ -17,8 +17,10 @@
   - **6 nuevas vistas de usuario**: `DashboardView`, `ProgramView`, `TrainView`, `AchievementsView`, `ProfileView`.
   - **5 vistas de onboarding**: `WelcomeView`, `OnboardingGoalView`, `OnboardingLevelView`, `OnboardingStatsView`, `AssessmentView`.
   - **Nuevo store `userProfile.js`** + servicio `userProfile.js`: gestiona perfil, progreso activo, onboarding y llamadas a API.
-  - **Dashboard con gamificación inicial**: streak, XP, nivel de atleta, recompensa diaria por conexión, tarjeta de entrenamiento de hoy, progreso de nivel.
+  - **Dashboard con estados vacíos limpios**: sin datos mock falsos. Muestra CTA al catálogo cuando no hay programa.
   - **Workout player mock**: Pantalla de pre-workout, timer, lista de ejercicios, completar/saltar ejercicios.
+  - **Catálogo de programas** (`/user/programs`): Lista de programas de la BD con filtros por nivel. Muestra recomendación del assessment arriba.
+  - **Guard `onboardingGuard` refinado**: redirige a onboarding solo si no está completado. Permite saltar y navegar libremente después.
   - **Tests**: 143 tests pasando (18 test files), incluyendo 5 nuevos tests para componentes mobile + store.
 - **Cambios Backend** (`overworkout-back`):
   - **Nuevos campos en entidad `User`**: `trainingGoal`, `estimatedLevel`, `gender`, `weightKg`, `heightCm`, `birthDate`, `trainingLocation`, `xp`, `streakDays`, `totalWorkouts`, `athleteLevel`, `lastWorkoutAt`.
@@ -28,6 +30,9 @@
     - `POST /user/profile/setup` — Guarda datos del onboarding.
     - `POST /user/profile/assessment` — Recibe resultados de tests y devuelve programa recomendado.
   - **Tests**: 642 tests pasando. PHPStan nivel 5 sin errores.
+- **Commits**:
+  - Frontend: `5804bf7` feat(user-app): Fase 0 + Fase 1 — app mobile-first, onboarding y catálogo de programas
+  - Backend: `2e04d12` feat(api): endpoints de perfil de usuario y campos de onboarding en entidad User
 - **Próximos pasos**:
   1. Conectar Dashboard con progreso activo real del backend.
   2. Mejorar Workout Player con datos reales del training (rounds, ejercicios, timers inteligentes).
