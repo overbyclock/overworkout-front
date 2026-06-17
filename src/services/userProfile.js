@@ -40,12 +40,40 @@ export const userProfileService = {
   },
 
   /**
+   * Obtiene la lista de programas activos del usuario.
+   */
+  async getActivePrograms() {
+    const response = await apiClient.get(API_ENDPOINTS.USER_PROGRESS.GET_ACTIVE_PROGRAMS)
+    return response.data
+  },
+
+  /**
    * Inicia el progreso en un programa.
    * @param {number} programId
    */
   async initProgress(programId) {
     const url = API_ENDPOINTS.USER_PROGRESS.INIT.replace('{programId}', programId)
     const response = await apiClient.post(url)
+    return response.data
+  },
+
+  /**
+   * Cambia el programa activo del usuario, abandonando el anterior.
+   * @param {number} programId
+   */
+  async switchProgram(programId) {
+    const url = API_ENDPOINTS.USER_PROGRESS.SWITCH.replace('{programId}', programId)
+    const response = await apiClient.post(url)
+    return response.data
+  },
+
+  /**
+   * Abandona un programa activo del usuario sin iniciar uno nuevo.
+   * @param {number} programId
+   */
+  async abandonActiveProgram(programId) {
+    const url = API_ENDPOINTS.USER_PROGRESS.ABANDON_ACTIVE.replace('{programId}', programId)
+    const response = await apiClient.delete(url)
     return response.data
   },
 

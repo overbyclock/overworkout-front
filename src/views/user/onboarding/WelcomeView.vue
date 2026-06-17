@@ -42,7 +42,7 @@
           </div>
           <div>
             <strong>Logros y recompensas</strong>
-            <p>Mantén la motivación día a día</p>
+            <p>Mantén la motivación</p>
           </div>
         </li>
       </ul>

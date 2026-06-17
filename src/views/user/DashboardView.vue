@@ -1,29 +1,29 @@
 <template>
   <div class="mobile-view">
-    <MobilePageHeader title="Buenos días, atleta" subtitle="Tu resumen diario" :centered="true" />
+    <MobilePageHeader title="Hola, atleta" subtitle="Tu resumen" :centered="true" />
 
     <div class="mobile-container">
-      <!-- Estado: Sin programa activo -->
+      <!-- Estado: Sin programas activos -->
       <template v-if="!userProfileStore.hasActiveProgram">
         <div class="empty-state animate-fadeInUp">
           <div class="empty-state__icon">
             <q-icon name="fitness_center" size="64px" />
           </div>
-          <h2 class="mobile-h2">Bienvenido a tu entrenamiento</h2>
+          <h2 class="mobile-h2">Aún no tienes un programa</h2>
           <p class="mobile-body" style="text-align: center; max-width: 300px">
-            Todavía no tienes un programa activo. Completa tu evaluación para que podamos
-            recomendarte el mejor plan.
+            Elige un programa de nuestro catálogo o completa tu evaluación para que te recomendemos
+            el mejor plan.
           </p>
           <div class="empty-state__actions">
             <button
               class="btn-mobile btn-mobile--large btn-mobile--primary"
               @click="startOnboarding"
             >
-              Encontrar mi programa
+              Hacer test de evaluación
               <q-icon name="arrow_forward" size="20px" />
             </button>
             <button class="btn-mobile btn-mobile--ghost" @click="explorePrograms">
-              Explorar programas disponibles
+              Explorar programas
             </button>
           </div>
         </div>
@@ -34,7 +34,7 @@
             <div class="stat-card stat-card--empty">
               <q-icon name="local_fire_department" size="28px" color="muted" />
               <span class="stat-card__value">0</span>
-              <span class="stat-card__label">Días seguidos</span>
+              <span class="stat-card__label">Racha</span>
             </div>
             <div class="stat-card stat-card--empty">
               <q-icon name="military_tech" size="28px" color="muted" />
@@ -50,13 +50,13 @@
         </section>
       </template>
 
-      <!-- Estado: Con programa activo -->
+      <!-- Estado: Con programas activos -->
       <template v-else>
         <!-- Recompensa diaria -->
         <div v-if="showDailyReward" class="daily-reward animate-fadeIn">
           <q-icon name="redeem" size="24px" class="daily-reward__icon" />
           <div class="daily-reward__text">
-            <strong>+{{ dailyXp }} XP</strong> por conectarte hoy
+            <strong>+{{ dailyXp }} XP</strong> por conectarte
           </div>
         </div>
 
@@ -75,59 +75,43 @@
           </div>
         </section>
 
-        <!-- Tarjeta principal: entrenamiento de hoy -->
-        <section class="mobile-section animate-fadeInUp" style="animation-delay: 0.2s">
-          <MobileCard variant="primary" clickable @click="goToTrain">
-            <template #icon>
-              <q-icon name="play_arrow" size="32px" />
-            </template>
-            <template #default>
-              <h2 class="today-card__title">Hoy toca entrenar</h2>
-              <p class="today-card__session">{{ todaySessionName }}</p>
-              <p class="today-card__meta">{{ todaySessionMeta }}</p>
-            </template>
-            <template #action>
-              <q-icon name="arrow_forward" size="24px" />
-            </template>
-          </MobileCard>
-        </section>
-
-        <!-- Progreso del nivel -->
-        <section class="mobile-section animate-fadeInUp" style="animation-delay: 0.3s">
+        <!-- Mis programas activos -->
+        <section class="mobile-section animate-fadeInUp" style="animation-delay: 0.25s">
           <div class="section-header">
-            <h3 class="mobile-h4">Tu progreso</h3>
-            <router-link :to="{ name: 'user-program' }" class="section-link"
-              >Ver programa</router-link
-            >
+            <h3 class="mobile-h4">Mis programas</h3>
+            <button class="section-link" @click="explorePrograms">Añadir</button>
           </div>
 
-          <div class="progress-card">
-            <ProgressRing :value="levelProgress" :max="100" :size="100" :stroke-width="8" />
-            <div class="progress-card__info">
-              <p class="progress-card__level">{{ currentLevelName }}</p>
-              <p class="progress-card__week">Semana {{ userProfileStore.currentWeek + 1 }} de 4</p>
-              <p class="progress-card__cycles">Ciclo {{ cyclesCompleted + 1 }}</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Próximos entrenamientos (solo si hay datos reales) -->
-        <section
-          v-if="upcomingDays.length > 0"
-          class="mobile-section animate-fadeInUp"
-          style="animation-delay: 0.4s"
-        >
-          <h3 class="mobile-h4" style="margin-bottom: var(--space-4)">Próximos días</h3>
-          <div class="upcoming-list">
+          <div class="programs-grid">
             <div
-              v-for="(day, index) in upcomingDays"
-              :key="index"
-              class="upcoming-day"
-              :class="{ 'upcoming-day--today': day.isToday }"
+              v-for="program in userProfileStore.activePrograms"
+              :key="program.id"
+              class="program-card"
+              @click="openProgram(program)"
             >
-              <div class="upcoming-day__name">{{ day.name }}</div>
-              <div class="upcoming-day__session">{{ day.session }}</div>
-              <div v-if="day.isToday" class="upcoming-day__badge">Hoy</div>
+              <div class="program-card__progress">
+                <ProgressRing
+                  :value="program.progress?.percentage || 0"
+                  :max="100"
+                  :size="44"
+                  :stroke-width="6"
+                  fill-color="#ff8f38"
+                  track-color="rgba(0, 0, 0, 0.08)"
+                />
+              </div>
+
+              <div class="program-card__icon">
+                <q-icon :name="getProgramIcon(program.discipline)" size="28px" />
+              </div>
+              <div class="program-card__content">
+                <h4 class="program-card__name">{{ program.name }}</h4>
+                <p class="program-card__desc">{{ truncateText(program.description, 60) }}</p>
+                <div class="program-card__meta">
+                  <span class="program-card__level">{{ formatLevel(program.difficulty) }}</span>
+                  <span class="program-card__levels">{{ program.totalLevels }} niveles</span>
+                </div>
+              </div>
+              <q-icon name="chevron_right" size="20px" color="muted" />
             </div>
           </div>
         </section>
@@ -137,41 +121,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MobilePageHeader from '@/components/mobile/MobilePageHeader.vue'
-import MobileCard from '@/components/mobile/MobileCard.vue'
 import ProgressRing from '@/components/mobile/ProgressRing.vue'
 import StreakBadge from '@/components/mobile/StreakBadge.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
+import { getDisciplineIcon } from '@/constants/disciplines'
 
 const router = useRouter()
 const userProfileStore = useUserProfileStore()
 
 const showDailyReward = ref(false)
 const dailyXp = ref(10)
-
-// Datos del programa activo (mock temporal hasta conectar backend real)
-const todaySessionName = computed(() => 'Sesión A — Push + Core')
-const todaySessionMeta = computed(() => '45 min · 6 ejercicios')
-const currentLevelName = computed(() => userProfileStore.currentLevel?.name || 'Nivel 1')
-const cyclesCompleted = computed(() => userProfileStore.activeProgress?.cyclesCompleted || 0)
-const levelProgress = computed(() => {
-  const week = userProfileStore.currentWeek || 0
-  return (week / 4) * 100
-})
-
-// Upcoming days vacío por defecto — se llenará cuando conectemos con backend
-const upcomingDays = computed(() => {
-  if (!userProfileStore.hasActiveProgram) return []
-  // TODO: Cargar desde backend cuando esté disponible
-  return [
-    { name: 'Hoy', session: todaySessionName.value, isToday: true },
-    { name: 'Mañana', session: 'Sesión B — Pull', isToday: false },
-    { name: 'Miércoles', session: 'Descanso activo', isToday: false },
-    { name: 'Jueves', session: 'Sesión C — Legs', isToday: false },
-  ]
-})
 
 onMounted(async () => {
   await userProfileStore.fetchActiveProgress()
@@ -185,8 +147,27 @@ const explorePrograms = () => {
   router.push({ name: 'user-programs-catalog' })
 }
 
-const goToTrain = () => {
-  router.push({ name: 'user-train' })
+const openProgram = (program) => {
+  userProfileStore.selectProgram(program.id)
+  router.push({ name: 'user-program' })
+}
+
+const getProgramIcon = (discipline) => {
+  return getDisciplineIcon(discipline)
+}
+
+const formatLevel = (difficulty) => {
+  const labels = {
+    beginner: 'Principiante',
+    intermediate: 'Intermedio',
+    advanced: 'Avanzado',
+  }
+  return labels[difficulty] || difficulty
+}
+
+const truncateText = (text, maxLength) => {
+  if (!text) return ''
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }
 
 setTimeout(() => {
@@ -297,25 +278,6 @@ setTimeout(() => {
   font-weight: var(--font-medium);
 }
 
-.today-card__title {
-  font-size: var(--font-xl);
-  font-weight: var(--font-bold);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.today-card__session {
-  font-size: var(--font-base);
-  font-weight: var(--font-medium);
-  margin: 0 0 var(--space-1) 0;
-  opacity: 0.95;
-}
-
-.today-card__meta {
-  font-size: var(--font-sm);
-  margin: 0;
-  opacity: 0.85;
-}
-
 .section-header {
   display: flex;
   align-items: center;
@@ -328,77 +290,90 @@ setTimeout(() => {
   font-size: var(--font-sm);
   font-weight: var(--font-medium);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
-.progress-card {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-}
-
-.progress-card__info {
-  flex: 1;
-}
-
-.progress-card__level {
-  font-size: var(--font-lg);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.progress-card__week,
-.progress-card__cycles {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.upcoming-list {
+.programs-grid {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.upcoming-day {
+.program-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-4);
+  padding-top: var(--space-6);
   background-color: var(--surface-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
 }
 
-.upcoming-day--today {
+.program-card:hover {
   border-color: var(--color-primary);
   background-color: rgba(255, 143, 56, 0.06);
 }
 
-.upcoming-day__name {
-  width: 70px;
-  font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  color: var(--text-muted);
+.program-card__progress {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+}
+
+.program-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 143, 56, 0.1);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.upcoming-day__session {
+.program-card__content {
   flex: 1;
-  font-size: var(--font-base);
-  color: var(--text-primary);
+  min-width: 0;
 }
 
-.upcoming-day__badge {
-  background-color: var(--color-primary);
-  color: #000;
+.program-card__name {
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.program-card__desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-normal);
+}
+
+.program-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.program-card__level {
   font-size: var(--font-xs);
   font-weight: var(--font-bold);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.program-card__levels {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 </style>

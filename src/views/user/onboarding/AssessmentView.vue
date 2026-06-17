@@ -103,9 +103,10 @@
       <button
         v-else
         class="btn-mobile btn-mobile--large btn-mobile--primary"
+        :disabled="accepting"
         @click="acceptRecommendation"
       >
-        Empezar este programa
+        {{ accepting ? 'Iniciando...' : 'Empezar este programa' }}
       </button>
       <button v-if="showResults" class="btn-mobile btn-mobile--secondary" @click="goToCatalog">
         Ver todos los programas
@@ -182,13 +183,20 @@ const submitAssessment = async () => {
   }
 }
 
+const accepting = ref(false)
+
 const acceptRecommendation = async () => {
+  if (!recommendedProgram.value?.id) {
+    router.push({ name: 'user-programs-catalog' })
+    return
+  }
+
+  accepting.value = true
   try {
-    // TODO: Conectar con backend para iniciar el programa recomendado
-    // await userProfileStore.initProgram(recommendedProgram.value.id)
+    await userProfileStore.switchProgram(recommendedProgram.value.id)
     router.push({ name: 'user-home' })
   } catch {
-    router.push({ name: 'user-home' })
+    accepting.value = false
   }
 }
 

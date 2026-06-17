@@ -8,7 +8,7 @@
         <div class="stat-card">
           <q-icon name="local_fire_department" size="32px" color="primary" />
           <span class="stat-card__value">{{ userProfileStore.streakDays }}</span>
-          <span class="stat-card__label">Días seguidos</span>
+          <span class="stat-card__label">Racha</span>
         </div>
         <div class="stat-card">
           <q-icon name="military_tech" size="32px" color="accent" />
@@ -33,8 +33,8 @@
         </div>
         <h3 class="mobile-h3">Aún no tienes logros</h3>
         <p class="mobile-body" style="text-align: center; max-width: 300px">
-          Completa tu primer entrenamiento, supera un benchmark o mantén una racha de días para
-          desbloquear tu primera medalla.
+          Completa tu primer entrenamiento, supera un benchmark o mantén una racha para desbloquear
+          tu primera medalla.
         </p>
       </section>
 

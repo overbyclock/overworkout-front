@@ -2,7 +2,7 @@
   <div class="streak-badge" :class="[`streak-badge--${size}`]">
     <q-icon name="local_fire_department" class="streak-badge__icon" />
     <span class="streak-badge__count">{{ count }}</span>
-    <span v-if="showLabel" class="streak-badge__label">días</span>
+    <span v-if="showLabel" class="streak-badge__label">racha</span>
   </div>
 </template>
 

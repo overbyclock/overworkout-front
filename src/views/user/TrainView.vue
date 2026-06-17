@@ -21,7 +21,7 @@
           </div>
           <h2 class="mobile-h2">¿Listo para entrenar?</h2>
           <p class="mobile-body" style="text-align: center; max-width: 280px">
-            Sesión de hoy: <strong>{{ sessionTitle }}</strong>
+            Sesión: <strong>{{ sessionTitle }}</strong>
           </p>
           <ul class="train-start__summary">
             <li><q-icon name="schedule" size="20px" /> ~45 minutos</li>
@@ -112,7 +112,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const sessionTitle = 'Sesión A — Push + Core'
-const sessionSubtitle = 'Nivel 3 · Semana 2'
+const sessionSubtitle = 'Nivel 3 · Fase 2'
 
 const hasStarted = ref(false)
 const currentExerciseIndex = ref(0)

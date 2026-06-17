@@ -61,7 +61,10 @@ export const API_ENDPOINTS = {
   USER_PROGRESS: {
     GET: '/user/progress',
     GET_ACTIVE: '/user/progress/active',
+    GET_ACTIVE_PROGRAMS: '/user/programs/active',
     INIT: '/user/progress/init/{programId}',
+    SWITCH: '/user/programs/{programId}/switch',
+    ABANDON_ACTIVE: '/user/programs/active/{programId}',
     TEST: '/user/progress/{levelId}/test',
     ADVANCE_WEEK: '/user/progress/{levelId}/advance-week',
   },

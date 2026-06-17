@@ -34,6 +34,16 @@ export default [
         },
       },
       {
+        path: 'programs/:programId/levels/:levelId',
+        name: 'user-level',
+        component: () => import('@/views/user/LevelView.vue'),
+        meta: {
+          title: 'Nivel',
+          requiresAuth: true,
+          requiresRole: USER_ROLES.USER,
+        },
+      },
+      {
         path: 'train',
         name: 'user-train',
         component: () => import('@/views/user/TrainView.vue'),

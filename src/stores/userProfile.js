@@ -4,29 +4,43 @@ import { extractErrorMessage } from '@/utils/api-helpers'
 import { userProfileService } from '@/services/userProfile'
 
 /**
- * Store para gestionar el perfil de usuario, onboarding y progreso activo.
+ * Store para gestionar el perfil de usuario, onboarding y progresos activos.
  */
 export const useUserProfileStore = defineStore('userProfile', () => {
   // === STATE ===
   const profile = ref(null)
   const progress = ref([])
   const activeProgress = ref(null)
+  const activePrograms = ref([])
+  const selectedProgramId = ref(null)
   const loading = ref(false)
   const error = ref(null)
   const onboardingCompleted = ref(false)
   const assessmentCompleted = ref(false)
 
   // === GETTERS ===
-  const hasActiveProgram = computed(() => {
-    return activeProgress.value !== null && activeProgress.value.status !== 'completed'
+  const hasActiveProgram = computed(() => activePrograms.value.length > 0)
+
+  const selectedProgram = computed(() => {
+    if (!selectedProgramId.value) {
+      return activePrograms.value[0] || null
+    }
+
+    return (
+      activePrograms.value.find((p) => p.id === selectedProgramId.value) ||
+      activePrograms.value[0] ||
+      null
+    )
   })
+
+  const currentProgram = computed(() => selectedProgram.value)
 
   const currentLevel = computed(() => {
-    return activeProgress.value?.trainingLevel || null
-  })
+    if (!selectedProgram.value || !activeProgress.value) return null
 
-  const currentProgram = computed(() => {
-    return activeProgress.value?.trainingLevel?.trainingProgram || null
+    return activeProgress.value.trainingLevel?.trainingProgram?.id === selectedProgram.value.id
+      ? activeProgress.value.trainingLevel
+      : null
   })
 
   const currentWeek = computed(() => {
@@ -53,6 +67,10 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   // === ACTIONS ===
   const setProfile = (data) => {
     profile.value = data
+  }
+
+  const selectProgram = (programId) => {
+    selectedProgramId.value = programId
   }
 
   const completeSetup = async (data) => {
@@ -107,18 +125,51 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     }
   }
 
+  const fetchActivePrograms = async () => {
+    try {
+      const response = await userProfileService.getActivePrograms()
+      activePrograms.value = Array.isArray(response) ? response : response['hydra:member'] || []
+
+      // Asegurar que el programa seleccionado sigue siendo válido
+      if (
+        selectedProgramId.value &&
+        !activePrograms.value.some((p) => p.id === selectedProgramId.value)
+      ) {
+        selectedProgramId.value = activePrograms.value[0]?.id || null
+      }
+
+      return activePrograms.value
+    } catch {
+      activePrograms.value = []
+      selectedProgramId.value = null
+      return []
+    }
+  }
+
   const fetchActiveProgress = async () => {
     loading.value = true
     error.value = null
 
     try {
-      const response = await userProfileService.getActiveProgress()
-      activeProgress.value = response
-      return response
+      const [progressResponse, programsResponse] = await Promise.all([
+        userProfileService.getActiveProgress(),
+        fetchActivePrograms(),
+      ])
+
+      activeProgress.value = progressResponse
+
+      // Si no hay programa seleccionado, seleccionar el del progreso activo o el primero
+      if (!selectedProgramId.value && programsResponse.length > 0) {
+        const programFromProgress = progressResponse?.trainingLevel?.trainingProgram
+        selectedProgramId.value = programFromProgress?.id || programsResponse[0]?.id
+      }
+
+      return progressResponse
     } catch (err) {
       // Si no hay progreso activo, es un estado válido, no un error crítico
       if (err.response?.status === 404) {
         activeProgress.value = null
+        await fetchActivePrograms()
       } else {
         error.value = extractErrorMessage(err)
       }
@@ -134,7 +185,41 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
     try {
       const response = await userProfileService.initProgress(programId)
-      activeProgress.value = response
+      await fetchActiveProgress()
+      selectProgram(programId)
+      return response
+    } catch (err) {
+      error.value = extractErrorMessage(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const switchProgram = async (programId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await userProfileService.switchProgram(programId)
+      await fetchActiveProgress()
+      selectProgram(programId)
+      return response
+    } catch (err) {
+      error.value = extractErrorMessage(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const abandonActiveProgram = async (programId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await userProfileService.abandonActiveProgram(programId)
+      await fetchActiveProgress()
       return response
     } catch (err) {
       error.value = extractErrorMessage(err)
@@ -185,6 +270,8 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     profile.value = null
     progress.value = []
     activeProgress.value = null
+    activePrograms.value = []
+    selectedProgramId.value = null
     loading.value = false
     error.value = null
     onboardingCompleted.value = false
@@ -196,6 +283,8 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     profile,
     progress,
     activeProgress,
+    activePrograms,
+    selectedProgramId,
     loading,
     error,
     onboardingCompleted,
@@ -203,8 +292,9 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
     // Getters
     hasActiveProgram,
-    currentLevel,
+    selectedProgram,
     currentProgram,
+    currentLevel,
     currentWeek,
     streakDays,
     totalWorkouts,
@@ -213,11 +303,15 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
     // Actions
     setProfile,
+    selectProgram,
     completeSetup,
     submitAssessment,
     fetchProgress,
     fetchActiveProgress,
+    fetchActivePrograms,
     initProgram,
+    switchProgram,
+    abandonActiveProgram,
     submitTest,
     advanceWeek,
     clearError,

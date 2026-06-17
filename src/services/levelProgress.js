@@ -31,4 +31,14 @@ export const levelProgressService = {
     const response = await apiClient.post(`${BASE_URL}/init/${programId}`)
     return response.data
   },
+
+  async getLevelDetail(programId, levelId) {
+    const response = await apiClient.get(`/user/programs/${programId}/levels/${levelId}`)
+    return response.data
+  },
+
+  async getProgramLevels(programId) {
+    const response = await apiClient.get(`/user/programs/${programId}/levels`)
+    return response.data
+  },
 }
