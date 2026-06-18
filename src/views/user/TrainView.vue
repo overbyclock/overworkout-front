@@ -71,9 +71,9 @@
                 <span class="exercise-card__count"
                   >Ejercicio {{ currentExerciseIndex + 1 }} de {{ exercises.length }}</span
                 >
-                <span v-if="currentExercise?.sets" class="exercise-card__round"
-                  >Set 1 de {{ currentExercise.sets }}</span
-                >
+                <span v-if="currentExercise?.sets" class="exercise-card__round">
+                  {{ currentExercise.sets }} sets
+                </span>
               </div>
 
               <div class="exercise-card__body">
