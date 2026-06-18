@@ -15,7 +15,19 @@
       </header>
 
       <main class="train-view__content">
-        <div v-if="!hasStarted" class="train-start animate-fadeIn">
+        <div v-if="isLoading" class="train-start animate-fadeIn">
+          <q-spinner color="primary" size="48px" />
+          <p class="mobile-body q-mt-md">Cargando sesión...</p>
+        </div>
+
+        <div v-else-if="error" class="train-start animate-fadeIn">
+          <q-icon name="error_outline" size="48px" color="negative" />
+          <p class="mobile-body q-mt-md" style="text-align: center">{{ error }}</p>
+          <button class="btn-mobile btn-mobile--primary" @click="fetchTraining">Reintentar</button>
+          <button class="btn-mobile btn-mobile--ghost" @click="goBack">Volver</button>
+        </div>
+
+        <div v-else-if="!hasStarted" class="train-start animate-fadeIn">
           <div class="train-start__illustration">
             <q-icon name="fitness_center" size="80px" color="primary" />
           </div>
@@ -24,8 +36,15 @@
             Sesión: <strong>{{ sessionTitle }}</strong>
           </p>
           <ul class="train-start__summary">
-            <li><q-icon name="schedule" size="20px" /> ~45 minutos</li>
-            <li><q-icon name="sports_gymnastics" size="20px" /> 6 ejercicios</li>
+            <li>
+              <q-icon name="schedule" size="20px" /> ~{{
+                training?.estimatedDurationMin || 45
+              }}
+              minutos
+            </li>
+            <li>
+              <q-icon name="sports_gymnastics" size="20px" /> {{ exercises.length }} ejercicios
+            </li>
             <li><q-icon name="whatshot" size="20px" /> Dificultad media</li>
           </ul>
           <button class="btn-mobile btn-mobile--large btn-mobile--primary" @click="startTraining">
@@ -34,7 +53,7 @@
           <button class="btn-mobile btn-mobile--ghost" @click="goBack">Volver</button>
         </div>
 
-        <div v-else class="train-active animate-fadeIn">
+        <div v-else-if="hasStarted" class="train-active animate-fadeIn">
           <div class="exercise-card">
             <div class="exercise-card__header">
               <span class="exercise-card__count"
@@ -72,6 +91,10 @@
                 Completar {{ currentExercise.reps }}
               </button>
               <button class="btn-mobile btn-mobile--ghost" @click="skipExercise">Saltar</button>
+              <button class="btn-mobile btn-mobile--ghost" @click="openGuide">
+                <q-icon name="help_outline" size="18px" class="q-mr-sm" />
+                Ver guía
+              </button>
             </div>
           </div>
 
@@ -79,7 +102,7 @@
           <div class="exercise-list">
             <div
               v-for="(ex, index) in exercises"
-              :key="index"
+              :key="ex.id ?? index"
               class="exercise-list__item"
               :class="{
                 'exercise-list__item--completed': index < currentExerciseIndex,
@@ -101,18 +124,32 @@
           </div>
         </div>
       </main>
+
+      <ExerciseGuideDrawer v-model="guideOpen" :exercise="selectedExercise" :loading="false" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { trainingService } from '@/services/trainings'
+import ExerciseGuideDrawer from '@/components/common/ExerciseGuideDrawer.vue'
 
 const router = useRouter()
+const route = useRoute()
+const $q = useQuasar()
 
-const sessionTitle = 'Sesión A — Push + Core'
-const sessionSubtitle = 'Nivel 3 · Fase 2'
+const sessionId = computed(() => Number(route.params.sessionId))
+const training = ref(null)
+const isLoading = ref(true)
+const error = ref('')
+const guideOpen = ref(false)
+const selectedExercise = ref(null)
+
+const sessionTitle = computed(() => training.value?.name || 'Sesión de entrenamiento')
+const sessionSubtitle = computed(() => 'Nivel 3 · Fase 2')
 
 const hasStarted = ref(false)
 const currentExerciseIndex = ref(0)
@@ -122,26 +159,36 @@ const timerRunning = ref(false)
 let mainTimer = null
 let exerciseTimerInterval = null
 
-const exercises = [
-  { name: 'Flexiones', detail: '3 sets x 12 reps', reps: '3x12', hasTimer: false },
-  {
-    name: 'Plancha',
-    detail: '3 sets x 45 segundos',
-    reps: '3x45"',
-    hasTimer: true,
-    targetSeconds: 45,
-  },
-  { name: 'Fondos en paralelas', detail: '3 sets x 8 reps', reps: '3x8', hasTimer: false },
-  {
-    name: 'Hollow Body Hold',
-    detail: '3 sets x 30 segundos',
-    reps: '3x30"',
-    hasTimer: true,
-    targetSeconds: 30,
-  },
-]
+const exercises = computed(() => {
+  if (!training.value?.trainingRounds) return []
 
-const currentExercise = computed(() => exercises[currentExerciseIndex.value] || exercises[0])
+  const list = []
+  training.value.trainingRounds.forEach((round) => {
+    round.trainingExerciseConfigurations?.forEach((config) => {
+      const exercise = config.exercise
+      if (!exercise) return
+
+      const isTimeBased = config.reps === null && config.maxTimeForReps !== null
+
+      list.push({
+        id: config.id,
+        name: exercise.name,
+        detail: `${config.sets} sets x ${isTimeBased ? config.maxTimeForReps + ' seg' : config.reps + ' reps'}`,
+        sets: config.sets,
+        reps: isTimeBased ? config.maxTimeForReps : config.reps,
+        hasTimer: isTimeBased,
+        targetSeconds: isTimeBased ? config.maxTimeForReps : null,
+        exercise,
+      })
+    })
+  })
+
+  return list
+})
+
+const currentExercise = computed(
+  () => exercises.value[currentExerciseIndex.value] || exercises.value[0],
+)
 
 const formattedElapsedTime = computed(() => {
   const m = Math.floor(elapsedTime.value / 60)
@@ -153,6 +200,30 @@ const formattedElapsedTime = computed(() => {
 
 const exerciseTimerDisplay = computed(() => {
   return exerciseTime.value.toString().padStart(2, '0')
+})
+
+const fetchTraining = async () => {
+  isLoading.value = true
+  error.value = ''
+
+  try {
+    const data = await trainingService.getById(sessionId.value)
+    training.value = data
+  } catch (err) {
+    error.value = err.response?.data?.error || 'Error al cargar la sesión de entrenamiento'
+    console.error('Error cargando training:', err)
+    $q.notify({
+      type: 'negative',
+      message: error.value,
+      position: 'top',
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchTraining()
 })
 
 const startTraining = () => {
@@ -171,7 +242,7 @@ const stopTimer = () => {
 }
 
 const completeExercise = () => {
-  if (currentExerciseIndex.value < exercises.length - 1) {
+  if (currentExerciseIndex.value < exercises.value.length - 1) {
     currentExerciseIndex.value++
     exerciseTime.value = 0
     timerRunning.value = false
@@ -182,8 +253,15 @@ const completeExercise = () => {
 }
 
 const skipExercise = () => {
-  if (currentExerciseIndex.value < exercises.length - 1) {
+  if (currentExerciseIndex.value < exercises.value.length - 1) {
     currentExerciseIndex.value++
+  }
+}
+
+const openGuide = () => {
+  selectedExercise.value = currentExercise.value?.exercise || null
+  if (selectedExercise.value) {
+    guideOpen.value = true
   }
 }
 
