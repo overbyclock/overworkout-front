@@ -104,10 +104,13 @@
               <p class="session-card__name">{{ session.name || 'Sesión sin nombre' }}</p>
               <p class="session-card__meta">
                 <span v-if="session.estimatedDurationMin && session.estimatedDurationMax">
-                  {{ session.estimatedDurationMin }}-{{ session.estimatedDurationMax }} min
+                  {{ Math.round(session.estimatedDurationMin / 60) }}-{{
+                    Math.round(session.estimatedDurationMax / 60)
+                  }}
+                  min
                 </span>
                 <span v-else-if="session.estimatedDurationMin">
-                  {{ session.estimatedDurationMin }} min
+                  {{ Math.round(session.estimatedDurationMin / 60) }} min
                 </span>
                 <span v-if="session.sessionType">· {{ session.sessionType }}</span>
               </p>

@@ -44,7 +44,7 @@ export default [
         },
       },
       {
-        path: 'train',
+        path: 'train/:sessionId',
         name: 'user-train',
         component: () => import('@/views/user/TrainView.vue'),
         meta: {

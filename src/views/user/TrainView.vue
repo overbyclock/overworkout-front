@@ -37,7 +37,9 @@
           </p>
           <ul class="train-start__summary">
             <li>
-              <q-icon name="schedule" size="20px" /> ~{{ training?.estimatedDurationMin || 45 }}
+              <q-icon name="schedule" size="20px" /> ~{{
+                Math.round(training?.estimatedDurationMin / 60) || 45
+              }}
               minutos
             </li>
             <li>
