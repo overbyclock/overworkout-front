@@ -269,7 +269,7 @@ const startTraining = () => {
 }
 
 const startTimer = () => {
-  if (exerciseTimerInterval || timerRunning.value) return
+  if (exerciseTimerInterval) return
 
   timerRunning.value = true
   exerciseTimerInterval = setInterval(() => exerciseTime.value++, 1000)
@@ -278,25 +278,32 @@ const startTimer = () => {
 const stopTimer = () => {
   timerRunning.value = false
   clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
 }
 
 const completeExercise = () => {
+  clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
+  exerciseTime.value = 0
+  timerRunning.value = false
+
   if (currentExerciseIndex.value < exercises.value.length - 1) {
     currentExerciseIndex.value++
-    exerciseTime.value = 0
-    timerRunning.value = false
-    clearInterval(exerciseTimerInterval)
   } else {
     finishTraining()
   }
 }
 
 const skipExercise = () => {
+  clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
+  exerciseTime.value = 0
+  timerRunning.value = false
+
   if (currentExerciseIndex.value < exercises.value.length - 1) {
     currentExerciseIndex.value++
-    exerciseTime.value = 0
-    timerRunning.value = false
-    clearInterval(exerciseTimerInterval)
+  } else {
+    finishTraining()
   }
 }
 
@@ -309,19 +316,25 @@ const openGuide = () => {
 
 const finishTraining = () => {
   clearInterval(mainTimer)
+  mainTimer = null
   clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
   router.push({ name: 'user-home' })
 }
 
 const goBack = () => {
   clearInterval(mainTimer)
+  mainTimer = null
   clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
   router.back()
 }
 
 onUnmounted(() => {
   clearInterval(mainTimer)
+  mainTimer = null
   clearInterval(exerciseTimerInterval)
+  exerciseTimerInterval = null
 })
 </script>
 
