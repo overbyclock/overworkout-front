@@ -37,91 +37,106 @@
           </p>
           <ul class="train-start__summary">
             <li>
-              <q-icon name="schedule" size="20px" /> ~{{
-                training?.estimatedDurationMin || 45
-              }}
+              <q-icon name="schedule" size="20px" /> ~{{ training?.estimatedDurationMin || 45 }}
               minutos
             </li>
             <li>
               <q-icon name="sports_gymnastics" size="20px" /> {{ exercises.length }} ejercicios
             </li>
-            <li><q-icon name="whatshot" size="20px" /> Dificultad media</li>
+            <li>
+              <q-icon name="whatshot" size="20px" />
+              {{ training?.difficultyLabel || training?.difficulty || 'Dificultad variable' }}
+            </li>
           </ul>
-          <button class="btn-mobile btn-mobile--large btn-mobile--primary" @click="startTraining">
+          <button
+            class="btn-mobile btn-mobile--large btn-mobile--primary"
+            :disabled="exercises.length === 0"
+            @click="startTraining"
+          >
             Empezar entrenamiento
           </button>
           <button class="btn-mobile btn-mobile--ghost" @click="goBack">Volver</button>
         </div>
 
         <div v-else-if="hasStarted" class="train-active animate-fadeIn">
-          <div class="exercise-card">
-            <div class="exercise-card__header">
-              <span class="exercise-card__count"
-                >Ejercicio {{ currentExerciseIndex + 1 }} de {{ exercises.length }}</span
-              >
-              <span class="exercise-card__round">Round 1/3</span>
-            </div>
+          <div v-if="exercises.length === 0" class="train-start">
+            <q-icon name="fitness_center" size="80px" color="primary" />
+            <h2 class="mobile-h2">No hay ejercicios en esta sesión</h2>
+            <button class="btn-mobile btn-mobile--ghost" @click="goBack">Volver</button>
+          </div>
 
-            <div class="exercise-card__body">
-              <h2 class="exercise-card__name">{{ currentExercise.name }}</h2>
-              <p class="exercise-card__detail">{{ currentExercise.detail }}</p>
+          <template v-else>
+            <div class="exercise-card">
+              <div class="exercise-card__header">
+                <span class="exercise-card__count"
+                  >Ejercicio {{ currentExerciseIndex + 1 }} de {{ exercises.length }}</span
+                >
+                <span v-if="currentExercise?.sets" class="exercise-card__round"
+                  >Set 1 de {{ currentExercise.sets }}</span
+                >
+              </div>
 
-              <div v-if="currentExercise.hasTimer" class="timer-display">
-                <div class="timer-display__value">{{ exerciseTimerDisplay }}</div>
-                <div class="timer-display__label">segundos</div>
+              <div class="exercise-card__body">
+                <h2 class="exercise-card__name">{{ currentExercise?.name }}</h2>
+                <p class="exercise-card__detail">{{ currentExercise?.detail }}</p>
+
+                <div v-if="currentExercise?.hasTimer" class="timer-display">
+                  <div class="timer-display__value">{{ exerciseTimerDisplay }}</div>
+                  <div class="timer-display__label">segundos</div>
+                </div>
+              </div>
+
+              <div class="exercise-card__actions">
+                <button
+                  v-if="currentExercise?.hasTimer && !timerRunning"
+                  class="btn-mobile btn-mobile--primary"
+                  @click="startTimer"
+                >
+                  Iniciar timer
+                </button>
+                <button
+                  v-else-if="currentExercise?.hasTimer && timerRunning"
+                  class="btn-mobile btn-mobile--secondary"
+                  @click="stopTimer"
+                >
+                  Pausar
+                </button>
+                <button v-else class="btn-mobile btn-mobile--primary" @click="completeExercise">
+                  Completar {{ currentExercise?.reps }}
+                </button>
+                <button class="btn-mobile btn-mobile--ghost" @click="skipExercise">Saltar</button>
+                <button class="btn-mobile btn-mobile--ghost" @click="openGuide">
+                  <q-icon name="help_outline" size="18px" class="q-mr-sm" />
+                  Ver guía
+                </button>
               </div>
             </div>
 
-            <div class="exercise-card__actions">
-              <button
-                v-if="currentExercise.hasTimer && !timerRunning"
-                class="btn-mobile btn-mobile--primary"
-                @click="startTimer"
+            <!-- Lista de ejercicios abajo -->
+            <div class="exercise-list">
+              <div
+                v-for="(ex, index) in exercises"
+                :key="ex.id ?? index"
+                class="exercise-list__item"
+                :class="{
+                  'exercise-list__item--completed': index < currentExerciseIndex,
+                  'exercise-list__item--current': index === currentExerciseIndex,
+                }"
               >
-                Iniciar timer
-              </button>
-              <button
-                v-else-if="currentExercise.hasTimer && timerRunning"
-                class="btn-mobile btn-mobile--secondary"
-                @click="stopTimer"
-              >
-                Pausar
-              </button>
-              <button v-else class="btn-mobile btn-mobile--primary" @click="completeExercise">
-                Completar {{ currentExercise.reps }}
-              </button>
-              <button class="btn-mobile btn-mobile--ghost" @click="skipExercise">Saltar</button>
-              <button class="btn-mobile btn-mobile--ghost" @click="openGuide">
-                <q-icon name="help_outline" size="18px" class="q-mr-sm" />
-                Ver guía
-              </button>
+                <q-icon
+                  :name="
+                    index < currentExerciseIndex
+                      ? 'check'
+                      : index === currentExerciseIndex
+                        ? 'play_arrow'
+                        : 'circle'
+                  "
+                  size="20px"
+                />
+                <span>{{ ex.name }}</span>
+              </div>
             </div>
-          </div>
-
-          <!-- Lista de ejercicios abajo -->
-          <div class="exercise-list">
-            <div
-              v-for="(ex, index) in exercises"
-              :key="ex.id ?? index"
-              class="exercise-list__item"
-              :class="{
-                'exercise-list__item--completed': index < currentExerciseIndex,
-                'exercise-list__item--current': index === currentExerciseIndex,
-              }"
-            >
-              <q-icon
-                :name="
-                  index < currentExerciseIndex
-                    ? 'check'
-                    : index === currentExerciseIndex
-                      ? 'play_arrow'
-                      : 'circle'
-                "
-                size="20px"
-              />
-              <span>{{ ex.name }}</span>
-            </div>
-          </div>
+          </template>
         </div>
       </main>
 
@@ -142,6 +157,8 @@ const route = useRoute()
 const $q = useQuasar()
 
 const sessionId = computed(() => Number(route.params.sessionId))
+const isValidSessionId = computed(() => Number.isInteger(sessionId.value) && sessionId.value > 0)
+
 const training = ref(null)
 const isLoading = ref(true)
 const error = ref('')
@@ -149,7 +166,21 @@ const guideOpen = ref(false)
 const selectedExercise = ref(null)
 
 const sessionTitle = computed(() => training.value?.name || 'Sesión de entrenamiento')
-const sessionSubtitle = computed(() => 'Nivel 3 · Fase 2')
+const sessionSubtitle = computed(() => {
+  if (!training.value) return ''
+
+  const parts = []
+  if (training.value.weekNumber !== undefined && training.value.weekNumber !== null) {
+    parts.push(`Fase ${training.value.weekNumber + 1}`)
+  }
+  if (training.value.trainingLevel) {
+    parts.push(training.value.trainingLevel)
+  } else if (training.value.sessionType) {
+    parts.push(training.value.sessionType)
+  }
+
+  return parts.join(' · ') || 'Sesión de entrenamiento'
+})
 
 const hasStarted = ref(false)
 const currentExerciseIndex = ref(0)
@@ -186,9 +217,7 @@ const exercises = computed(() => {
   return list
 })
 
-const currentExercise = computed(
-  () => exercises.value[currentExerciseIndex.value] || exercises.value[0],
-)
+const currentExercise = computed(() => exercises.value[currentExerciseIndex.value] || null)
 
 const formattedElapsedTime = computed(() => {
   const m = Math.floor(elapsedTime.value / 60)
@@ -205,6 +234,12 @@ const exerciseTimerDisplay = computed(() => {
 const fetchTraining = async () => {
   isLoading.value = true
   error.value = ''
+
+  if (!isValidSessionId.value) {
+    error.value = 'Sesión no válida'
+    isLoading.value = false
+    return
+  }
 
   try {
     const data = await trainingService.getById(sessionId.value)
@@ -227,6 +262,8 @@ onMounted(() => {
 })
 
 const startTraining = () => {
+  if (exercises.value.length === 0) return
+
   hasStarted.value = true
   mainTimer = setInterval(() => elapsedTime.value++, 1000)
 }
