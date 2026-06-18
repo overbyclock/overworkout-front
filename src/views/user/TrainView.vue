@@ -245,7 +245,7 @@ const fetchTraining = async () => {
     const data = await trainingService.getById(sessionId.value)
     training.value = data
   } catch (err) {
-    error.value = err.response?.data?.error || 'Error al cargar la sesión de entrenamiento'
+    error.value = err?.response?.data?.error || 'Error al cargar la sesión de entrenamiento'
     console.error('Error cargando training:', err)
     $q.notify({
       type: 'negative',
@@ -262,13 +262,15 @@ onMounted(() => {
 })
 
 const startTraining = () => {
-  if (exercises.value.length === 0) return
+  if (exercises.value.length === 0 || mainTimer) return
 
   hasStarted.value = true
   mainTimer = setInterval(() => elapsedTime.value++, 1000)
 }
 
 const startTimer = () => {
+  if (exerciseTimerInterval || timerRunning.value) return
+
   timerRunning.value = true
   exerciseTimerInterval = setInterval(() => exerciseTime.value++, 1000)
 }
@@ -292,6 +294,9 @@ const completeExercise = () => {
 const skipExercise = () => {
   if (currentExerciseIndex.value < exercises.value.length - 1) {
     currentExerciseIndex.value++
+    exerciseTime.value = 0
+    timerRunning.value = false
+    clearInterval(exerciseTimerInterval)
   }
 }
 
