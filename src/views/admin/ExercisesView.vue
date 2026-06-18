@@ -466,7 +466,7 @@ import StatsCards from '@/components/common/StatsCards.vue'
 import FilterPills from '@/components/common/FilterPills.vue'
 import FormDialog from '@/components/common/FormDialog.vue'
 import ExerciseCard from '@/components/admin/ExerciseCard.vue'
-import ExerciseGuideDrawer from '@/components/admin/ExerciseGuideDrawer.vue'
+import ExerciseGuideDrawer from '@/components/common/ExerciseGuideDrawer.vue'
 
 const $q = useQuasar()
 const exercisesStore = useExercisesStore()
