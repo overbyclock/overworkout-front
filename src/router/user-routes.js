@@ -83,6 +83,16 @@ export default [
           requiresRole: USER_ROLES.USER,
         },
       },
+      {
+        path: 'explore',
+        name: 'user-explore-catalog',
+        component: () => import('@/views/user/ExploreCatalogView.vue'),
+        meta: {
+          title: 'Explorar',
+          requiresAuth: true,
+          requiresRole: USER_ROLES.USER,
+        },
+      },
       // Onboarding flujo (sin navegación inferior)
       {
         path: 'welcome',
