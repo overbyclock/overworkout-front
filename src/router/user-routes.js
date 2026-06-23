@@ -91,6 +91,7 @@ export default [
           title: 'Explorar',
           requiresAuth: true,
           requiresRole: USER_ROLES.USER,
+          hideNavigation: true,
         },
       },
       // Onboarding flujo (sin navegación inferior)
