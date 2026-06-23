@@ -53,8 +53,8 @@
         Empezar ahora
         <q-icon name="arrow_forward" size="20px" />
       </button>
-      <button class="btn-mobile btn-mobile--ghost" @click="skipToDashboard">
-        Ya tengo una cuenta configurada
+      <button class="btn-mobile btn-mobile--ghost" @click="exploreContent">
+        Explorar contenido
       </button>
     </div>
   </div>
@@ -69,8 +69,8 @@ const startOnboarding = () => {
   router.push({ name: 'user-onboarding-goal' })
 }
 
-const skipToDashboard = () => {
-  router.push({ name: 'user-home' })
+const exploreContent = () => {
+  router.push({ name: 'user-explore-catalog' })
 }
 </script>
 
