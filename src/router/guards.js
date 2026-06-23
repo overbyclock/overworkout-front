@@ -70,8 +70,12 @@ export const onboardingGuard = (to) => {
   const userRoles = authStore.user?.roles || []
   if (!userRoles.includes(USER_ROLES.USER)) return
 
-  // No redirigir si ya está en una ruta de onboarding o en catálogo de programas
-  const allowedRoutesWithoutProgram = [...ONBOARDING_ROUTES, 'user-programs-catalog']
+  // No redirigir si ya está en una ruta de onboarding, catálogo de programas o explorar
+  const allowedRoutesWithoutProgram = [
+    ...ONBOARDING_ROUTES,
+    'user-programs-catalog',
+    'user-explore-catalog',
+  ]
   if (allowedRoutesWithoutProgram.includes(to.name)) return
 
   // Si no ha completado onboarding (ni siquiera lo saltó), redirigir a bienvenida
