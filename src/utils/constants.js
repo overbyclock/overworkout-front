@@ -74,6 +74,15 @@ export const API_ENDPOINTS = {
     SETUP: '/user/profile/setup',
     ASSESSMENT: '/user/profile/assessment',
   },
+
+  // Favoritos
+  FAVORITES: {
+    LIST: '/user/favorites',
+    ADD_TRAINING: '/user/favorites/trainings/{trainingId}',
+    REMOVE_TRAINING: '/user/favorites/trainings/{favoriteId}',
+    ADD_PROGRAM: '/user/favorites/programs/{programId}',
+    REMOVE_PROGRAM: '/user/favorites/programs/{favoriteId}',
+  },
 }
 
 export const STORAGE_KEYS = {
