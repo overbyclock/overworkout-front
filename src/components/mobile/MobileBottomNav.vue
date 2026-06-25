@@ -86,7 +86,7 @@ const isActive = (routeName) => {
 
 .mobile-bottom-nav__item:hover {
   color: var(--text-secondary);
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 
 .mobile-bottom-nav__item--active {
