@@ -5,7 +5,7 @@
   botón de acción, flechas de desplazamiento e indicadores de página.
 -->
 <template>
-  <section class="horizontal-carousel">
+  <section v-if="items.length > 0" class="horizontal-carousel">
     <header class="horizontal-carousel__header">
       <h2 v-if="title" class="horizontal-carousel__title">{{ title }}</h2>
       <button
@@ -20,7 +20,7 @@
 
     <div class="horizontal-carousel__viewport">
       <button
-        v-if="showArrows"
+        v-if="showArrows && items.length > 1"
         type="button"
         class="horizontal-carousel__arrow horizontal-carousel__arrow--prev"
         aria-label="Anterior"
@@ -37,7 +37,7 @@
       </div>
 
       <button
-        v-if="showArrows"
+        v-if="showArrows && items.length > 1"
         type="button"
         class="horizontal-carousel__arrow horizontal-carousel__arrow--next"
         aria-label="Siguiente"
@@ -55,6 +55,7 @@
         class="horizontal-carousel__dot"
         :class="{ 'horizontal-carousel__dot--active': index === currentPage }"
         :aria-label="`Ir a la página ${index + 1}`"
+        :aria-current="index === currentPage ? 'true' : null"
         @click="scrollTo(index)"
       />
     </div>
@@ -62,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 // Configuración de props: título, acción, lista de items, clave única y visibilidad de flechas
@@ -93,10 +94,17 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['page-change'])
+
 // Instancia del router y referencias al track deslizable y a la página activa
 const router = useRouter()
 const trackRef = ref(null)
 const currentPage = ref(0)
+
+// Notifica a los consumidores cuando cambia la página activa
+watch(currentPage, (newPage) => {
+  emit('page-change', newPage)
+})
 
 // Navega a la ruta indicada por el botón de acción (usa router.push en lugar de router-link)
 const handleAction = () => {
@@ -105,18 +113,33 @@ const handleAction = () => {
   }
 }
 
-// Actualiza la página activa en función del desplazamiento horizontal del track
+// Actualiza la página activa en función del desplazamiento horizontal del track,
+// calculando el slide cuyo centro esté más cercano al centro del viewport.
 const onScroll = () => {
   const track = trackRef.value
   if (!track) {
     return
   }
 
-  const itemWidth = track.firstElementChild?.clientWidth || track.clientWidth || 1
-  currentPage.value = Math.min(
-    props.items.length - 1,
-    Math.max(0, Math.round(track.scrollLeft / itemWidth)),
-  )
+  const slides = Array.from(track.children)
+  if (slides.length === 0) {
+    return
+  }
+
+  const viewportCenter = track.scrollLeft + track.clientWidth / 2
+  let activeIndex = 0
+  let minDistance = Infinity
+
+  slides.forEach((slide, index) => {
+    const slideCenter = slide.offsetLeft + slide.clientWidth / 2
+    const distance = Math.abs(slideCenter - viewportCenter)
+    if (distance < minDistance) {
+      minDistance = distance
+      activeIndex = index
+    }
+  })
+
+  currentPage.value = activeIndex
 }
 
 // Desplaza el carrusel hasta el índice solicitado de forma suave
@@ -126,9 +149,14 @@ const scrollTo = (index) => {
     return
   }
 
-  const target = Math.max(0, Math.min(props.items.length - 1, index))
-  const itemWidth = track.firstElementChild?.clientWidth || track.clientWidth || 1
-  track.scrollTo({ left: itemWidth * target, behavior: 'smooth' })
+  const slides = Array.from(track.children)
+  const target = Math.max(0, Math.min(slides.length - 1, index))
+  const slide = slides[target]
+  if (!slide) {
+    return
+  }
+
+  track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' })
   currentPage.value = target
 }
 </script>
@@ -136,6 +164,10 @@ const scrollTo = (index) => {
 <style scoped>
 .horizontal-carousel {
   width: 100%;
+  --carousel-arrow-size: 40px;
+  --carousel-dot-size: 8px;
+  --carousel-dot-active-size: 20px;
+  --carousel-arrow-breakpoint: 768px;
 }
 
 .horizontal-carousel__header {
@@ -184,6 +216,8 @@ const scrollTo = (index) => {
   width: 100%;
 }
 
+/* Ancho de cada slide: viewport menos los paddings laterales para mostrar
+   un pequeño fragmento del siguiente item e indicar que hay más contenido. */
 .horizontal-carousel__slide {
   flex: 0 0 auto;
   scroll-snap-align: start;
@@ -196,8 +230,8 @@ const scrollTo = (index) => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  width: 40px;
-  height: 40px;
+  width: var(--carousel-arrow-size);
+  height: var(--carousel-arrow-size);
   border-radius: var(--radius-full);
   background-color: var(--surface-secondary);
   border: 1px solid var(--border-subtle);
@@ -230,8 +264,8 @@ const scrollTo = (index) => {
 }
 
 .horizontal-carousel__dot {
-  width: 8px;
-  height: 8px;
+  width: var(--carousel-dot-size);
+  height: var(--carousel-dot-size);
   border-radius: var(--radius-full);
   background-color: var(--border-default);
   border: none;
@@ -241,10 +275,12 @@ const scrollTo = (index) => {
 }
 
 .horizontal-carousel__dot--active {
-  width: 20px;
+  width: var(--carousel-dot-active-size);
   background-color: var(--color-primary);
 }
 
+/* Nota: las media queries no admiten custom properties; el valor debe coincidir
+   con --carousel-arrow-breakpoint para mantener consistencia. */
 @media (min-width: 768px) {
   .horizontal-carousel__arrow {
     display: flex;
