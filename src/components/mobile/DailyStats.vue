@@ -1,19 +1,19 @@
 <template>
   <div class="daily-stats">
     <div class="daily-stats__card">
-      <q-icon name="local_fire_department" class="daily-stats__icon" />
+      <q-icon name="local_fire_department" class="daily-stats__icon" aria-hidden="true" />
       <span class="daily-stats__value">{{ streak }}</span>
       <span class="daily-stats__label">Racha</span>
     </div>
 
     <div class="daily-stats__card">
-      <q-icon name="fitness_center" class="daily-stats__icon" />
+      <q-icon name="fitness_center" class="daily-stats__icon" aria-hidden="true" />
       <span class="daily-stats__value">{{ weekly }}</span>
       <span class="daily-stats__label">Esta semana</span>
     </div>
 
     <div class="daily-stats__card">
-      <q-icon name="stars" class="daily-stats__icon" />
+      <q-icon name="stars" class="daily-stats__icon" aria-hidden="true" />
       <span class="daily-stats__value">{{ xp }}</span>
       <span class="daily-stats__label">XP</span>
     </div>
@@ -60,7 +60,7 @@ defineProps({
 
 .daily-stats__icon {
   color: var(--text-muted);
-  font-size: 24px;
+  font-size: var(--font-2xl);
 }
 
 .daily-stats__value {
