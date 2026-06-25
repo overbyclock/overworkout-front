@@ -75,8 +75,8 @@ export default [
       },
       {
         path: 'programs',
-        name: 'user-programs-catalog',
-        component: () => import('@/views/user/ProgramsCatalogView.vue'),
+        name: 'user-programs',
+        component: () => import('@/views/user/ProgramsView.vue'),
         meta: {
           title: 'Programas',
           requiresAuth: true,
@@ -85,8 +85,8 @@ export default [
       },
       {
         path: 'explore',
-        name: 'user-explore-catalog',
-        component: () => import('@/views/user/ExploreCatalogView.vue'),
+        name: 'user-explore',
+        component: () => import('@/views/user/ExploreView.vue'),
         meta: {
           title: 'Explorar',
           requiresAuth: true,
