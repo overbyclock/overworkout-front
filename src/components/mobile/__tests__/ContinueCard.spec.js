@@ -15,11 +15,6 @@ describe('ContinueCard', () => {
             props: ['name'],
             template: '<span class="q-icon-stub" :data-name="name" />',
           },
-          'q-btn': {
-            props: ['label', 'icon'],
-            template:
-              '<button class="q-btn-stub" type="button"><q-icon v-if="icon" :name="icon" /><span v-if="label" class="q-btn__label">{{ label }}</span></button>',
-          },
         },
       },
     })
@@ -45,35 +40,30 @@ describe('ContinueCard', () => {
 
   it('muestra el botón Continuar con icono de play', () => {
     const wrapper = mountWithQuasarStubs({ title: 'Calistenia Master' })
-    const button = wrapper.find('button')
+    const button = wrapper.find('[data-testid="continue-card"]')
     const icon = wrapper.find('[data-name="play_arrow"]')
 
-    expect(button.exists()).toBe(true)
+    expect(button.element.tagName.toLowerCase()).toBe('button')
+    expect(button.attributes('role')).toBeUndefined()
+    expect(button.attributes('tabindex')).toBeUndefined()
     expect(wrapper.text()).toContain('Continuar')
     expect(icon.exists()).toBe(true)
   })
 
-  it('emite click al pulsar el botón Continuar', async () => {
+  it('emite continue al pulsar la tarjeta', async () => {
     const wrapper = mountWithQuasarStubs({
       title: 'Calistenia Master',
       subtitle: 'Nivel 3',
     })
 
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.emitted('click')).toHaveLength(1)
-  })
-
-  it('emite click al pulsar la tarjeta completa', async () => {
-    const wrapper = mountWithQuasarStubs({ title: 'Calistenia Master' })
-
     await wrapper.find('[data-testid="continue-card"]').trigger('click')
-    expect(wrapper.emitted('click')).toHaveLength(1)
+    expect(wrapper.emitted('continue')).toHaveLength(1)
   })
 
-  it('el botón no propaga el click a la tarjeta', async () => {
+  it('emite continue una sola vez al pulsar la acción', async () => {
     const wrapper = mountWithQuasarStubs({ title: 'Calistenia Master' })
 
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.emitted('click')).toHaveLength(1)
+    await wrapper.find('.continue-card__action').trigger('click')
+    expect(wrapper.emitted('continue')).toHaveLength(1)
   })
 })
