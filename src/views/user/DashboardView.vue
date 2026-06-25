@@ -26,6 +26,7 @@
           Explora nuestras disciplinas y encuentra el plan perfecto para empezar a entrenar.
         </p>
         <button
+          type="button"
           class="empty-state__cta btn-mobile btn-mobile--large btn-mobile--primary"
           @click="navigateToExplore"
         >
@@ -182,26 +183,34 @@ const favoriteItems = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([userProfileStore.fetchActiveProgress(), favoritesStore.loadFavorites()])
+  try {
+    await Promise.all([userProfileStore.fetchActiveProgress(), favoritesStore.loadFavorites()])
+  } catch {
+    // Los stores ya gestionan su propio estado de error; no hacemos nada aquí para no bloquear la UI.
+  }
 })
+
+const navigateToProgram = (programId) => {
+  userProfileStore.selectProgram(programId)
+  router.push({ name: 'user-programs' })
+}
 
 const handleContinue = () => {
   const programId = userProfileStore.currentProgram?.id
   if (programId) {
-    userProfileStore.selectProgram(programId)
+    navigateToProgram(programId)
+  } else {
+    router.push({ name: 'user-programs' })
   }
-  router.push({ name: 'user-programs' })
 }
 
 const openProgram = (program) => {
-  userProfileStore.selectProgram(program.id)
-  router.push({ name: 'user-programs' })
+  navigateToProgram(program.id)
 }
 
 const openFavorite = (item) => {
   if (item.type === 'program') {
-    userProfileStore.selectProgram(item.raw.id)
-    router.push({ name: 'user-programs' })
+    navigateToProgram(item.raw.id)
   } else {
     router.push({ name: 'user-explore' })
   }
@@ -284,7 +293,8 @@ const navigateToExplore = () => {
   font-size: var(--font-base);
   color: var(--text-secondary);
   line-height: var(--leading-normal);
-  max-width: 300px;
+  /* Anchos fijos intencionales para mantener la legibilidad del texto en móvil */
+  max-width: clamp(240px, 80vw, 300px);
   margin: 0;
 }
 
@@ -294,6 +304,7 @@ const navigateToExplore = () => {
   justify-content: center;
   gap: var(--space-2);
   width: 100%;
-  max-width: 360px;
+  /* Ancho máximo intencional para botones de acción principales en estado vacío */
+  max-width: clamp(280px, 90vw, 360px);
 }
 </style>

@@ -34,6 +34,10 @@ describe('DashboardView', () => {
       Object.assign(authStore, options.auth)
     }
 
+    if (options.preMount) {
+      options.preMount({ userProfileStore, favoritesStore, authStore })
+    }
+
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [pinia],
@@ -442,5 +446,20 @@ describe('DashboardView', () => {
 
     expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(1)
     expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(1)
+  })
+
+  it('renderiza el dashboard aunque falle la carga de progreso o favoritos', async () => {
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false },
+      preMount: ({ userProfileStore, favoritesStore }) => {
+        userProfileStore.fetchActiveProgress = vi.fn().mockRejectedValue(new Error('Network error'))
+        favoritesStore.loadFavorites = vi.fn().mockRejectedValue(new Error('Network error'))
+      },
+    })
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.dashboard-view').exists()).toBe(true)
+    expect(wrapper.find('.empty-state').exists()).toBe(true)
   })
 })
