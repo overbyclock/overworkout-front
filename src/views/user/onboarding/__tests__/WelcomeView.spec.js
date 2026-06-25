@@ -45,6 +45,7 @@ describe('WelcomeView', () => {
 
     await wrapper.find('button.btn-mobile--primary').trigger('click')
 
+    expect(mockPush).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-onboarding-goal' })
   })
 
@@ -55,6 +56,7 @@ describe('WelcomeView', () => {
 
     expect(setItemSpy).toHaveBeenCalledWith(STORAGE_KEYS.ONBOARDING_SKIPPED, 'true')
     expect(localStorage.setItem).toHaveBeenCalledTimes(1)
+    expect(mockPush).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 })
