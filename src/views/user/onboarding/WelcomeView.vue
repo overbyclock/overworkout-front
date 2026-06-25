@@ -113,7 +113,7 @@ const exploreContent = () => {
   height: 120px;
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--surface-primary, #000);
+  color: var(--surface-primary);
   display: flex;
   align-items: center;
   justify-content: center;
