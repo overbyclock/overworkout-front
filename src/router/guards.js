@@ -2,6 +2,13 @@ import { useAuthStore } from '@/stores/auth'
 import { STORAGE_KEYS, USER_ROLES } from '@/utils/constants'
 
 /**
+ * Devuelve la ruta por defecto según los roles del usuario.
+ */
+const getDefaultRoute = (roles) => {
+  return roles.includes(USER_ROLES.ADMIN) ? { name: 'admin-dashboard' } : { name: 'user-home' }
+}
+
+/**
  * Verifica si el usuario ha completado el onboarding básico.
  * Usamos trainingGoal como indicador principal.
  * También permite usuarios que hayan elegido saltarlo.
@@ -35,7 +42,7 @@ export const authGuard = (to) => {
 
   if (to.meta.requiresAuth) {
     if (!authStore.isAuthenticated) {
-      console.log('Usuario no autenticado, redirigiendo al login')
+      // Usuario no autenticado, redirigir al login
       return { name: 'login' }
     }
 
@@ -44,13 +51,8 @@ export const authGuard = (to) => {
       const requiredRole = to.meta.requiresRole
 
       if (!userRoles.includes(requiredRole)) {
-        console.log(`Usuario sin permisos. Rol requerido: ${requiredRole}`)
-
-        if (userRoles.includes(USER_ROLES.ADMIN)) {
-          return { name: 'admin-dashboard' }
-        } else {
-          return { name: 'user-home' }
-        }
+        // Usuario sin permisos. Rol requerido: requiredRole
+        return getDefaultRoute(userRoles)
       }
     }
   }
@@ -83,7 +85,7 @@ export const onboardingGuard = (to) => {
 
   // Si no ha completado onboarding (ni siquiera lo saltó), redirigir a bienvenida
   if (!hasCompletedOnboarding(authStore)) {
-    console.log('Onboarding incompleto, redirigiendo a bienvenida')
+    // Onboarding incompleto, redirigir a bienvenida
     return { name: 'user-welcome' }
   }
 }
@@ -97,13 +99,9 @@ export const roleRedirectGuard = () => {
 
   const userRoles = authStore.user?.roles || []
 
-  if (userRoles.includes(USER_ROLES.ADMIN)) {
-    console.log('Usuario admin detectado, redirigiendo a dashboard admin')
-    return { name: 'admin-dashboard' }
-  } else {
-    console.log('Usuario normal detectado, redirigiendo a home usuario')
-    return { name: 'user-home' }
-  }
+  // Usuario admin detectado, redirigir a dashboard admin
+  // Usuario normal detectado, redirigir a home usuario
+  return getDefaultRoute(userRoles)
 }
 
 export const guestOnlyGuard = () => {
@@ -111,11 +109,6 @@ export const guestOnlyGuard = () => {
 
   if (authStore.isAuthenticated) {
     const userRoles = authStore.user?.roles || []
-
-    if (userRoles.includes(USER_ROLES.ADMIN)) {
-      return { name: 'admin-dashboard' }
-    } else {
-      return { name: 'user-home' }
-    }
+    return getDefaultRoute(userRoles)
   }
 }
