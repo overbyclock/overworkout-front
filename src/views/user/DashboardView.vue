@@ -1,181 +1,258 @@
 <template>
-  <div class="mobile-view">
-    <MobilePageHeader title="Hola, atleta" subtitle="Tu resumen" :centered="true" />
+  <div class="dashboard-view">
+    <!-- Cabecera con saludo y fecha -->
+    <header class="dashboard-view__header">
+      <h1 class="dashboard-view__greeting">{{ greeting }}</h1>
+      <p class="dashboard-view__date">{{ todayDate }}</p>
+    </header>
 
-    <div class="mobile-container">
-      <!-- Estado: Sin programas activos -->
-      <template v-if="!userProfileStore.hasActiveProgram">
-        <div class="empty-state animate-fadeInUp">
-          <div class="empty-state__icon">
-            <q-icon name="fitness_center" size="64px" />
-          </div>
-          <h2 class="mobile-h2">Aún no tienes un programa</h2>
-          <p class="mobile-body" style="text-align: center; max-width: 300px">
-            Elige un programa de nuestro catálogo o completa tu evaluación para que te recomendemos
-            el mejor plan.
-          </p>
-          <div class="empty-state__actions">
-            <button
-              class="btn-mobile btn-mobile--large btn-mobile--primary"
-              @click="startOnboarding"
-            >
-              Hacer test de evaluación
-              <q-icon name="arrow_forward" size="20px" />
-            </button>
-            <button class="btn-mobile btn-mobile--ghost" @click="explorePrograms">
-              Explorar programas
-            </button>
-          </div>
+    <!-- Estadísticas diarias -->
+    <section class="dashboard-view__section">
+      <DailyStats
+        :streak="userProfileStore.streakDays"
+        :weekly="weeklyWorkouts"
+        :xp="userProfileStore.userXp"
+      />
+    </section>
+
+    <!-- Estado vacío: sin programas activos -->
+    <template v-if="!userProfileStore.hasActiveProgram">
+      <div class="dashboard-view__empty empty-state">
+        <div class="empty-state__icon">
+          <q-icon name="fitness_center" size="64px" />
         </div>
+        <h2 class="empty-state__title">Aún no tienes un programa</h2>
+        <p class="empty-state__text">
+          Explora nuestras disciplinas y encuentra el plan perfecto para empezar a entrenar.
+        </p>
+        <button
+          class="empty-state__cta btn-mobile btn-mobile--large btn-mobile--primary"
+          @click="navigateToExplore"
+        >
+          Explorar programas
+          <q-icon name="arrow_forward" size="20px" />
+        </button>
+      </div>
+    </template>
 
-        <!-- Stats iniciales vacíos -->
-        <section class="mobile-section animate-fadeInUp" style="animation-delay: 0.2s">
-          <div class="stats-grid">
-            <div class="stat-card stat-card--empty">
-              <q-icon name="local_fire_department" size="28px" color="muted" />
-              <span class="stat-card__value">0</span>
-              <span class="stat-card__label">Racha</span>
-            </div>
-            <div class="stat-card stat-card--empty">
-              <q-icon name="military_tech" size="28px" color="muted" />
-              <span class="stat-card__value">1</span>
-              <span class="stat-card__label">Nivel atleta</span>
-            </div>
-            <div class="stat-card stat-card--empty">
-              <q-icon name="local_fire_department" size="28px" color="muted" />
-              <span class="stat-card__value">0</span>
-              <span class="stat-card__label">XP Total</span>
-            </div>
-          </div>
-        </section>
-      </template>
+    <!-- Estado con programas activos -->
+    <template v-else>
+      <!-- Continúa donde lo dejaste -->
+      <section v-if="userProfileStore.currentProgram" class="dashboard-view__section">
+        <ContinueCard
+          :title="userProfileStore.currentProgram.name"
+          :subtitle="continueSubtitle"
+          @continue="handleContinue"
+        />
+      </section>
 
-      <!-- Estado: Con programas activos -->
-      <template v-else>
-        <!-- Recompensa diaria -->
-        <div v-if="showDailyReward" class="daily-reward animate-fadeIn">
-          <q-icon name="redeem" size="24px" class="daily-reward__icon" />
-          <div class="daily-reward__text">
-            <strong>+{{ dailyXp }} XP</strong> por conectarte
-          </div>
-        </div>
+      <!-- Carrusel: Mis programas -->
+      <section v-if="userProfileStore.activePrograms.length > 0" class="dashboard-view__section">
+        <HorizontalCarousel title="Mis programas" :items="userProfileStore.activePrograms">
+          <template #item="{ item }">
+            <ContentCard
+              :title="item.name"
+              :description="item.description"
+              :icon="getDisciplineIcon(item.discipline)"
+              :level="getLevelLabel(item.difficulty)"
+              :footer="`${item.progress?.percentage || 0}% completado`"
+              @click="openProgram(item)"
+            />
+          </template>
+        </HorizontalCarousel>
+      </section>
+    </template>
 
-        <!-- Streak y nivel -->
-        <section class="mobile-section stats-row animate-fadeInUp" style="animation-delay: 0.1s">
-          <div class="stat-pill">
-            <StreakBadge :count="userProfileStore.streakDays" size="md" />
-          </div>
-          <div class="stat-pill">
-            <q-icon name="military_tech" size="20px" color="primary" />
-            <span>Nv. {{ userProfileStore.userLevel }}</span>
-          </div>
-          <div class="stat-pill">
-            <q-icon name="local_fire_department" size="20px" color="primary" />
-            <span>{{ userProfileStore.userXp }} XP</span>
-          </div>
-        </section>
+    <!-- Carrusel: Tus favoritos -->
+    <section v-if="favoriteItems.length > 0" class="dashboard-view__section">
+      <HorizontalCarousel title="Tus favoritos" :items="favoriteItems">
+        <template #item="{ item }">
+          <ContentCard
+            :title="item.title"
+            :description="item.description"
+            :icon="item.icon"
+            :badge="item.badge"
+            :level="item.level"
+            show-favorite
+            :is-favorite="true"
+            @click="openFavorite(item)"
+            @toggle-favorite="toggleFavorite(item)"
+          />
+        </template>
+      </HorizontalCarousel>
+    </section>
 
-        <!-- Mis programas activos -->
-        <section class="mobile-section animate-fadeInUp" style="animation-delay: 0.25s">
-          <div class="section-header">
-            <h3 class="mobile-h4">Mis programas</h3>
-            <button class="section-link" @click="explorePrograms">Añadir</button>
-          </div>
-
-          <div class="programs-grid">
-            <div
-              v-for="program in userProfileStore.activePrograms"
-              :key="program.id"
-              class="program-card"
-              @click="openProgram(program)"
-            >
-              <div class="program-card__progress">
-                <ProgressRing
-                  :value="program.progress?.percentage || 0"
-                  :max="100"
-                  :size="44"
-                  :stroke-width="6"
-                  fill-color="#ff8f38"
-                  track-color="rgba(0, 0, 0, 0.08)"
-                />
-              </div>
-
-              <div class="program-card__icon">
-                <q-icon :name="getProgramIcon(program.discipline)" size="28px" />
-              </div>
-              <div class="program-card__content">
-                <h4 class="program-card__name">{{ program.name }}</h4>
-                <p class="program-card__desc">{{ truncateText(program.description, 60) }}</p>
-                <div class="program-card__meta">
-                  <span class="program-card__level">{{ formatLevel(program.difficulty) }}</span>
-                  <span class="program-card__levels">{{ program.totalLevels }} niveles</span>
-                </div>
-              </div>
-              <q-icon name="chevron_right" size="20px" color="muted" />
-            </div>
-          </div>
-        </section>
-      </template>
-    </div>
+    <!-- Carrusel: Descubrir -->
+    <section class="dashboard-view__section">
+      <HorizontalCarousel title="Descubrir" :items="discoverItems">
+        <template #item="{ item }">
+          <ContentCard
+            :title="item.label"
+            :icon="item.icon"
+            variant="primary"
+            @click="navigateToExplore"
+          />
+        </template>
+      </HorizontalCarousel>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import MobilePageHeader from '@/components/mobile/MobilePageHeader.vue'
-import ProgressRing from '@/components/mobile/ProgressRing.vue'
-import StreakBadge from '@/components/mobile/StreakBadge.vue'
+import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
+import DailyStats from '@/components/mobile/DailyStats.vue'
+import ContinueCard from '@/components/mobile/ContinueCard.vue'
+import ContentCard from '@/components/mobile/ContentCard.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
+import { useFavoritesStore } from '@/stores/favorites'
+import { useAuthStore } from '@/stores/auth'
 import { getDisciplineIcon } from '@/constants/disciplines'
+import { getLevelLabel } from '@/constants/levels'
 
 const router = useRouter()
 const userProfileStore = useUserProfileStore()
+const favoritesStore = useFavoritesStore()
+const authStore = useAuthStore()
 
-const showDailyReward = ref(false)
-const dailyXp = ref(10)
+// Placeholder para entrenamientos semanales hasta disponer de endpoint real
+const weeklyWorkouts = ref(0)
 
-onMounted(async () => {
-  await userProfileStore.fetchActiveProgress()
+const discoverItems = [
+  { id: 'calisthenia', label: 'Calistenia', icon: getDisciplineIcon('calisthenia') },
+  { id: 'hiit', label: 'HIIT', icon: getDisciplineIcon('hiit') },
+  { id: 'strength', label: 'Fuerza', icon: getDisciplineIcon('strength') },
+  { id: 'skills', label: 'Skills', icon: getDisciplineIcon('skills') },
+]
+
+const greeting = computed(() => {
+  const name = authStore.user?.nick || 'atleta'
+  return `Hola, ${name}`
 })
 
-const startOnboarding = () => {
-  router.push({ name: 'user-welcome' })
-}
+const todayDate = computed(() => {
+  return new Intl.DateTimeFormat('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+    .formatToParts(new Date())
+    .map((part) => (part.type === 'literal' ? part.value.replace(',', '') : part.value))
+    .join('')
+    .trim()
+    .replace(/\s+/g, ' ')
+})
 
-const explorePrograms = () => {
-  router.push({ name: 'user-programs-catalog' })
+const continueSubtitle = computed(() => {
+  const program = userProfileStore.currentProgram
+  const level = userProfileStore.currentLevel
+
+  if (level?.name) {
+    return level.name
+  }
+
+  return program?.difficulty ? getLevelLabel(program.difficulty) : ''
+})
+
+const favoriteItems = computed(() => {
+  const programs = favoritesStore.programFavorites.map((favorite) => ({
+    id: `program-${favorite.id}`,
+    type: 'program',
+    title: favorite.trainingProgram.name,
+    description: favorite.trainingProgram.description || '',
+    icon: getDisciplineIcon(favorite.trainingProgram.discipline),
+    badge: 'Programa',
+    level: getLevelLabel(favorite.trainingProgram.difficulty),
+    raw: favorite.trainingProgram,
+  }))
+
+  const trainings = favoritesStore.trainingFavorites.map((favorite) => ({
+    id: `training-${favorite.id}`,
+    type: 'training',
+    title: favorite.training.name,
+    description: favorite.training.description || '',
+    icon: getDisciplineIcon(favorite.training.discipline),
+    badge: 'Entreno',
+    level: getLevelLabel(favorite.training.difficulty),
+    raw: favorite.training,
+  }))
+
+  return [...programs, ...trainings]
+})
+
+onMounted(async () => {
+  await Promise.all([userProfileStore.fetchActiveProgress(), favoritesStore.loadFavorites()])
+})
+
+const handleContinue = () => {
+  const programId = userProfileStore.currentProgram?.id
+  if (programId) {
+    userProfileStore.selectProgram(programId)
+  }
+  router.push({ name: 'user-programs' })
 }
 
 const openProgram = (program) => {
   userProfileStore.selectProgram(program.id)
-  router.push({ name: 'user-program' })
+  router.push({ name: 'user-programs' })
 }
 
-const getProgramIcon = (discipline) => {
-  return getDisciplineIcon(discipline)
-}
-
-const formatLevel = (difficulty) => {
-  const labels = {
-    beginner: 'Principiante',
-    intermediate: 'Intermedio',
-    advanced: 'Avanzado',
+const openFavorite = (item) => {
+  if (item.type === 'program') {
+    userProfileStore.selectProgram(item.raw.id)
+    router.push({ name: 'user-programs' })
+  } else {
+    router.push({ name: 'user-explore' })
   }
-  return labels[difficulty] || difficulty
 }
 
-const truncateText = (text, maxLength) => {
-  if (!text) return ''
-  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+const toggleFavorite = (item) => {
+  if (item.type === 'program') {
+    favoritesStore.toggleProgramFavorite(item.raw)
+  } else {
+    favoritesStore.toggleTrainingFavorite(item.raw)
+  }
 }
 
-setTimeout(() => {
-  showDailyReward.value = false
-}, 4000)
+const navigateToExplore = () => {
+  router.push({ name: 'user-explore' })
+}
 </script>
 
 <style scoped>
+.dashboard-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-5);
+  min-height: 100%;
+}
+
+.dashboard-view__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dashboard-view__greeting {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dashboard-view__date {
+  font-size: var(--font-base);
+  color: var(--text-muted);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.dashboard-view__section {
+  width: 100%;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -196,184 +273,27 @@ setTimeout(() => {
   justify-content: center;
 }
 
-.empty-state__actions {
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  text-align: center;
-}
-
-.stat-card--empty {
-  opacity: 0.6;
-}
-
-.stat-card__value {
-  font-size: var(--font-2xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
-
-.stat-card__label {
-  font-size: var(--font-xs);
-  color: var(--text-muted);
-}
-
-.daily-reward {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  background: linear-gradient(90deg, rgba(255, 143, 56, 0.15) 0%, rgba(56, 178, 172, 0.1) 100%);
-  border: 1px solid rgba(255, 143, 56, 0.2);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-4);
-  margin: var(--space-4) auto;
-  max-width: fit-content;
-  color: var(--color-primary);
-  font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-}
-
-.daily-reward__icon {
-  animation: bounce-subtle 1s ease-in-out infinite;
-}
-
-.stats-row {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.stat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-4);
-  color: var(--text-primary);
-  font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.section-link {
-  color: var(--color-primary);
-  font-size: var(--font-sm);
-  font-weight: var(--font-medium);
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.programs-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.program-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  padding-top: var(--space-6);
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all 0.2s var(--ease-out);
-}
-
-.program-card:hover {
-  border-color: var(--color-primary);
-  background-color: rgba(255, 143, 56, 0.06);
-}
-
-.program-card__progress {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-}
-
-.program-card__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background-color: rgba(255, 143, 56, 0.1);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.program-card__content {
-  flex: 1;
-  min-width: 0;
-}
-
-.program-card__name {
-  font-size: var(--font-base);
+.empty-state__title {
+  font-size: var(--font-xl);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
-  margin: 0 0 var(--space-1) 0;
+  margin: 0;
 }
 
-.program-card__desc {
-  font-size: var(--font-sm);
+.empty-state__text {
+  font-size: var(--font-base);
   color: var(--text-secondary);
-  margin: 0 0 var(--space-2) 0;
   line-height: var(--leading-normal);
+  max-width: 300px;
+  margin: 0;
 }
 
-.program-card__meta {
-  display: flex;
+.empty-state__cta {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
-}
-
-.program-card__level {
-  font-size: var(--font-xs);
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.program-card__levels {
-  font-size: var(--font-xs);
-  color: var(--text-muted);
+  width: 100%;
+  max-width: 360px;
 }
 </style>
