@@ -62,6 +62,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { STORAGE_KEYS } from '@/utils/constants'
 
 const router = useRouter()
 
@@ -70,6 +71,7 @@ const startOnboarding = () => {
 }
 
 const exploreContent = () => {
+  localStorage.setItem(STORAGE_KEYS.ONBOARDING_SKIPPED, 'true')
   router.push({ name: 'user-explore' })
 }
 </script>
