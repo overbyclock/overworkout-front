@@ -37,7 +37,7 @@ describe('HorizontalCarousel', () => {
     expect(wrapper.find('.horizontal-carousel__title').exists()).toBe(false)
   })
 
-  it('renderiza el enlace de acción con router-link cuando se proporciona actionTo', () => {
+  it('renderiza el botón de acción cuando se proporcionan actionLabel y actionTo', () => {
     const wrapper = mount(HorizontalCarousel, {
       props: {
         title: 'Entrenamientos',
@@ -53,6 +53,7 @@ describe('HorizontalCarousel', () => {
 
     const action = wrapper.find('.horizontal-carousel__action')
     expect(action.exists()).toBe(true)
+    expect(action.element.tagName).toBe('BUTTON')
     expect(action.text()).toContain('Ver todos')
   })
 

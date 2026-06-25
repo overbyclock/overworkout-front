@@ -1,3 +1,9 @@
+<!--
+  HorizontalCarousel.vue
+  Componente carrusel horizontal reutilizable para la vista móvil.
+  Expone un slot "item" para renderizar cada elemento y permite navegación mediante
+  botón de acción, flechas de desplazamiento e indicadores de página.
+-->
 <template>
   <section class="horizontal-carousel">
     <header class="horizontal-carousel__header">
@@ -25,6 +31,7 @@
 
       <div ref="trackRef" class="horizontal-carousel__track hide-scrollbar" @scroll="onScroll">
         <div v-for="item in items" :key="item[itemKey]" class="horizontal-carousel__slide">
+          <!-- Slot con scope para personalizar el renderizado de cada item -->
           <slot name="item" :item="item" />
         </div>
       </div>
@@ -58,6 +65,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+// Configuración de props: título, acción, lista de items, clave única y visibilidad de flechas
 const props = defineProps({
   title: {
     type: String,
@@ -85,16 +93,19 @@ const props = defineProps({
   },
 })
 
+// Instancia del router y referencias al track deslizable y a la página activa
 const router = useRouter()
 const trackRef = ref(null)
 const currentPage = ref(0)
 
+// Navega a la ruta indicada por el botón de acción (usa router.push en lugar de router-link)
 const handleAction = () => {
   if (props.actionTo) {
     router.push(props.actionTo)
   }
 }
 
+// Actualiza la página activa en función del desplazamiento horizontal del track
 const onScroll = () => {
   const track = trackRef.value
   if (!track) {
@@ -108,6 +119,7 @@ const onScroll = () => {
   )
 }
 
+// Desplaza el carrusel hasta el índice solicitado de forma suave
 const scrollTo = (index) => {
   const track = trackRef.value
   if (!track) {
