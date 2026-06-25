@@ -15,8 +15,8 @@
         narrow-indicator
         no-caps
       >
-        <q-tab name="programs" label="Programas" />
-        <q-tab name="trainings" label="Entrenamientos" />
+        <q-tab :name="EXPLORE_TABS.PROGRAMS" label="Programas" />
+        <q-tab :name="EXPLORE_TABS.TRAININGS" label="Entrenamientos" />
       </q-tabs>
 
       <div v-if="showOnboardingBanner" class="explore-banner" data-testid="onboarding-banner">
@@ -55,20 +55,16 @@
       </section>
 
       <template v-else>
-        <div v-if="activeTab === 'programs'" class="explore-tab-panel">
+        <div v-if="activeTab === EXPLORE_TABS.PROGRAMS" class="explore-tab-panel">
           <HorizontalCarousel
             v-if="recommendedProgram"
             title="Recomendado para ti"
             :items="[recommendedProgram]"
           >
             <template #item="{ item }">
-              <ContentCard
-                :title="item.name"
-                :description="item.description"
-                :icon="getDisciplineIcon(item.discipline)"
-                :level="getLevelLabel(item.level || item.difficulty)"
-                :badge="isActiveProgram(item) ? 'Activo' : ''"
-                show-favorite
+              <ExploreCard
+                :item="item"
+                :badge="isActiveProgram(item) ? PROGRAM_BADGE_ACTIVE : ''"
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
                 @toggle-favorite="favoritesStore.toggleProgramFavorite(item)"
@@ -83,13 +79,9 @@
             :items="items"
           >
             <template #item="{ item }">
-              <ContentCard
-                :title="item.name"
-                :description="item.description"
-                :icon="getDisciplineIcon(item.discipline)"
-                :level="getLevelLabel(item.level || item.difficulty)"
-                :badge="isActiveProgram(item) ? 'Activo' : ''"
-                show-favorite
+              <ExploreCard
+                :item="item"
+                :badge="isActiveProgram(item) ? PROGRAM_BADGE_ACTIVE : ''"
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
                 @toggle-favorite="favoritesStore.toggleProgramFavorite(item)"
@@ -98,12 +90,12 @@
           </HorizontalCarousel>
 
           <div v-if="programsStore.isEmpty" class="explore-state">
-            <q-icon name="school" size="48px" color="muted" />
+            <q-icon name="school" size="48px" color="muted" aria-hidden="true" />
             <p class="mobile-body-sm">No hay programas disponibles</p>
           </div>
         </div>
 
-        <div v-if="activeTab === 'trainings'" class="explore-tab-panel">
+        <div v-if="activeTab === EXPLORE_TABS.TRAININGS" class="explore-tab-panel">
           <HorizontalCarousel
             v-for="[discipline, items] in orderedTrainingDisciplines"
             :key="discipline"
@@ -111,12 +103,8 @@
             :items="items"
           >
             <template #item="{ item }">
-              <ContentCard
-                :title="item.name"
-                :description="item.description"
-                :icon="getDisciplineIcon(item.discipline)"
-                :level="getLevelLabel(item.level || item.difficulty)"
-                show-favorite
+              <ExploreCard
+                :item="item"
                 :is-favorite="favoritesStore.isTrainingFavorite(item.id)"
                 @click="handleTrainingClick(item)"
                 @toggle-favorite="favoritesStore.toggleTrainingFavorite(item)"
@@ -125,7 +113,7 @@
           </HorizontalCarousel>
 
           <div v-if="trainingsStore.isEmpty" class="explore-state">
-            <q-icon name="fitness_center" size="48px" color="muted" />
+            <q-icon name="fitness_center" size="48px" color="muted" aria-hidden="true" />
             <p class="mobile-body-sm">No hay entrenamientos disponibles</p>
           </div>
         </div>
@@ -139,14 +127,14 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
-import ContentCard from '@/components/mobile/ContentCard.vue'
+import ExploreCard from './ExploreCard.vue'
 import { useProgramsStore } from '@/stores/programs'
 import { useTrainingsStore } from '@/stores/trainings'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
-import { DISCIPLINE_LABELS, getDisciplineIcon, getDisciplineLabel } from '@/constants/disciplines'
-import { getLevelLabel } from '@/constants/levels'
+import { DISCIPLINE_LABELS, getDisciplineLabel } from '@/constants/disciplines'
+import { EXPLORE_ROUTES, EXPLORE_TABS, PROGRAM_BADGE_ACTIVE } from '@/constants/explore'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -157,7 +145,7 @@ const favoritesStore = useFavoritesStore()
 const userProfileStore = useUserProfileStore()
 const authStore = useAuthStore()
 
-const activeTab = ref('programs')
+const activeTab = ref(EXPLORE_TABS.PROGRAMS)
 const loading = ref(false)
 
 /**
@@ -188,12 +176,14 @@ const recommendedProgram = computed(() => {
 
 /**
  * Agrupa una lista de items por disciplina manteniendo un orden estable.
+ * Se usa 'general' como clave por defecto para alinearlo con el getter
+ * programsByDiscipline del store de programas.
  */
 const groupItemsByDiscipline = (items) => {
   const grouped = {}
 
   items.forEach((item) => {
-    const discipline = item.discipline || 'other'
+    const discipline = item.discipline || 'general'
     if (!grouped[discipline]) {
       grouped[discipline] = []
     }
@@ -234,8 +224,9 @@ const loadData = async () => {
       favoritesStore.loadFavorites(),
       userProfileStore.fetchActiveProgress(),
     ])
-  } catch {
+  } catch (error) {
     // Los stores gestionan su propio estado de error; no bloqueamos la UI.
+    console.error('Error inesperado al cargar explorar:', error)
   } finally {
     loading.value = false
   }
@@ -245,7 +236,7 @@ const loadData = async () => {
  * Navega al flujo de onboarding para que el usuario complete su perfil.
  */
 const goToOnboarding = () => {
-  router.push({ name: 'user-welcome' })
+  router.push({ name: EXPLORE_ROUTES.WELCOME })
 }
 
 /**
@@ -255,13 +246,13 @@ const goToOnboarding = () => {
 const handleProgramClick = async (program) => {
   if (isActiveProgram(program)) {
     userProfileStore.selectProgram(program.id)
-    router.push({ name: 'user-programs' })
+    router.push({ name: EXPLORE_ROUTES.PROGRAMS })
     return
   }
 
   try {
     await userProfileStore.switchProgram(program.id)
-    router.push({ name: 'user-home' })
+    router.push({ name: EXPLORE_ROUTES.HOME })
   } catch {
     $q.notify({
       type: 'negative',
@@ -357,7 +348,7 @@ onMounted(loadData)
 
 .explore-banner__cta {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--space-12);
 }
 
 .explore-tab-panel {

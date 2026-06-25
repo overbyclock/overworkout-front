@@ -8,6 +8,7 @@ import { useTrainingsStore } from '@/stores/trainings'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
+import { EXPLORE_ROUTES, EXPLORE_TABS, PROGRAM_BADGE_ACTIVE } from '@/constants/explore'
 
 const mockPush = vi.fn()
 const mockNotify = vi.fn()
@@ -54,12 +55,19 @@ describe('ExploreView', () => {
         plugins: [pinia],
         stubs: {
           'q-tabs': {
+            props: ['modelValue'],
+            emits: ['update:modelValue'],
             template: '<div class="q-tabs-stub"><slot /></div>',
+            methods: {
+              setValue(value) {
+                this.$emit('update:modelValue', value)
+              },
+            },
           },
           'q-tab': {
             props: ['name', 'label'],
             template:
-              '<div class="q-tab-stub" :data-name="name" :data-label="label" @click="$emit(\'click\')"><slot /></div>',
+              '<div class="q-tab-stub" :data-name="name" :data-label="label" @click="$parent.setValue(name)"><slot /></div>',
           },
           'q-spinner': {
             template: '<div class="q-spinner-stub" />',
@@ -83,35 +91,20 @@ describe('ExploreView', () => {
               </div>
             `,
           },
-          ContentCard: {
-            props: [
-              'title',
-              'description',
-              'icon',
-              'level',
-              'badge',
-              'footer',
-              'variant',
-              'showFavorite',
-              'isFavorite',
-            ],
+          ExploreCard: {
+            props: ['item', 'isFavorite', 'badge'],
             emits: ['click', 'toggle-favorite'],
             template: `
               <article
-                class="content-card-stub"
-                :data-title="title"
-                :data-description="description"
-                :data-icon="icon"
-                :data-level="level"
+                class="explore-card-stub"
+                :data-title="item.name"
+                :data-description="item.description"
                 :data-badge="badge"
-                :data-footer="footer"
-                :data-variant="variant"
-                :data-show-favorite="showFavorite"
                 :data-is-favorite="isFavorite"
               >
-                <h3 class="content-card-stub__title">{{ title }}</h3>
-                <button class="content-card-stub__action" @click="$emit('click')">Abrir</button>
-                <button class="content-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
+                <h3 class="explore-card-stub__title">{{ item.name }}</h3>
+                <button class="explore-card-stub__action" @click="$emit('click')">Abrir</button>
+                <button class="explore-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
               </article>
             `,
           },
@@ -132,9 +125,15 @@ describe('ExploreView', () => {
     return result
   }
 
+  const clickTab = async (wrapper, tabName) => {
+    await wrapper.find(`.q-tab-stub[data-name="${tabName}"]`).trigger('click')
+    await wrapper.vm.$nextTick()
+  }
+
   beforeEach(() => {
     mockPush.mockClear()
     mockNotify.mockClear()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   it('renderiza el encabezado con título y subtítulo', () => {
@@ -149,9 +148,20 @@ describe('ExploreView', () => {
 
     const tabs = wrapper.findAll('.q-tab-stub')
     const labels = tabs.map((tab) => tab.attributes('data-label'))
+    const names = tabs.map((tab) => tab.attributes('data-name'))
 
     expect(labels).toContain('Programas')
     expect(labels).toContain('Entrenamientos')
+    expect(names).toContain(EXPLORE_TABS.PROGRAMS)
+    expect(names).toContain(EXPLORE_TABS.TRAININGS)
+  })
+
+  it('cambia a la pestaña Entrenamientos al pulsar su q-tab', async () => {
+    const { wrapper } = mountView()
+
+    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
+
+    expect(wrapper.vm.activeTab).toBe(EXPLORE_TABS.TRAININGS)
   })
 
   it('muestra el banner de onboarding si falta el objetivo de entrenamiento', () => {
@@ -187,7 +197,7 @@ describe('ExploreView', () => {
 
     await wrapper.find('[data-testid="onboarding-banner"] button').trigger('click')
 
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-welcome' })
+    expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.WELCOME })
   })
 
   it('muestra el carrusel "Recomendado para ti" en la pestaña Programas', () => {
@@ -252,11 +262,11 @@ describe('ExploreView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="Calistenia Master"] .content-card-stub__action')
+      .find('.explore-card-stub[data-title="Calistenia Master"] .explore-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+    expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.PROGRAMS })
   })
 
   it('cambia de programa y navega a user-home al pulsar un programa no activo', async () => {
@@ -277,11 +287,11 @@ describe('ExploreView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="CrossFit Pro"] .content-card-stub__action')
+      .find('.explore-card-stub[data-title="CrossFit Pro"] .explore-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.switchProgram).toHaveBeenCalledWith('p2')
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-home' })
+    expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.HOME })
   })
 
   it('llama a toggleProgramFavorite al pulsar el favorito de un programa', async () => {
@@ -299,12 +309,34 @@ describe('ExploreView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="Calistenia Master"] .content-card-stub__favorite')
+      .find('.explore-card-stub[data-title="Calistenia Master"] .explore-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleProgramFavorite).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'p1' }),
     )
+  })
+
+  it('muestra la insignia Activo en programas activos', () => {
+    const { wrapper } = mountView({
+      programs: {
+        programs: [
+          {
+            id: 'p1',
+            name: 'Calistenia Master',
+            discipline: 'calisthenics',
+            level: 'intermediate',
+          },
+        ],
+      },
+      userProfile: {
+        activePrograms: [{ id: 'p1', name: 'Calistenia Master' }],
+      },
+    })
+
+    expect(
+      wrapper.find(`.explore-card-stub[data-title="Calistenia Master"]`).attributes('data-badge'),
+    ).toBe(PROGRAM_BADGE_ACTIVE)
   })
 
   it('muestra los entrenamientos agrupados por disciplina', async () => {
@@ -322,11 +354,10 @@ describe('ExploreView', () => {
     })
 
     await flushPromises()
-    wrapper.vm.activeTab = 'trainings'
-    await wrapper.vm.$nextTick()
+    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     expect(wrapper.find('[data-title="CrossFit"]').exists()).toBe(true)
-    expect(wrapper.find('.content-card-stub[data-title="HIIT 20"]').exists()).toBe(true)
+    expect(wrapper.find('.explore-card-stub[data-title="HIIT 20"]').exists()).toBe(true)
   })
 
   it('muestra una notificación al pulsar un entrenamiento', async () => {
@@ -344,11 +375,10 @@ describe('ExploreView', () => {
     })
 
     await flushPromises()
-    wrapper.vm.activeTab = 'trainings'
-    await wrapper.vm.$nextTick()
+    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     await wrapper
-      .find('.content-card-stub[data-title="HIIT 20"] .content-card-stub__action')
+      .find('.explore-card-stub[data-title="HIIT 20"] .explore-card-stub__action')
       .trigger('click')
 
     expect(mockNotify).toHaveBeenCalled()
@@ -369,11 +399,10 @@ describe('ExploreView', () => {
     })
 
     await flushPromises()
-    wrapper.vm.activeTab = 'trainings'
-    await wrapper.vm.$nextTick()
+    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     await wrapper
-      .find('.content-card-stub[data-title="HIIT 20"] .content-card-stub__favorite')
+      .find('.explore-card-stub[data-title="HIIT 20"] .explore-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleTrainingFavorite).toHaveBeenCalledWith(
@@ -387,12 +416,21 @@ describe('ExploreView', () => {
     expect(wrapper.find('.q-spinner-stub').exists()).toBe(true)
   })
 
-  it('muestra el estado de error cuando falla la carga', () => {
+  it('muestra el estado de error cuando falla la carga de programas', () => {
     const { wrapper } = mountView({
       programs: { error: 'Error al cargar programas' },
     })
 
     expect(wrapper.text()).toContain('Error al cargar programas')
+    expect(wrapper.find('[data-testid="error-retry-button"]').exists()).toBe(true)
+  })
+
+  it('muestra el estado de error cuando falla la carga de entrenamientos', () => {
+    const { wrapper } = mountView({
+      trainings: { error: 'Error al cargar entrenamientos' },
+    })
+
+    expect(wrapper.text()).toContain('Error al cargar entrenamientos')
     expect(wrapper.find('[data-testid="error-retry-button"]').exists()).toBe(true)
   })
 
