@@ -14,12 +14,31 @@
       </section>
 
       <template v-else>
+        <!-- Estado de error -->
+        <section
+          v-if="userProfileStore.error"
+          class="mobile-section error-state"
+          data-testid="programs-error"
+        >
+          <q-icon name="error_outline" size="48px" color="muted" />
+          <p class="mobile-body">No se pudieron cargar tus programas</p>
+          <button
+            type="button"
+            class="btn-mobile btn-mobile--primary error-state__cta"
+            data-testid="error-retry-button"
+            @click="userProfileStore.fetchActiveProgress()"
+          >
+            Reintentar
+          </button>
+        </section>
+
         <!-- Lista de programas activos -->
         <section v-if="activePrograms.length > 0" class="mobile-section">
-          <div class="programs-list" role="list">
+          <div class="programs-list">
             <button
               v-for="program in activePrograms"
               :key="program.id"
+              type="button"
               class="program-card"
               data-testid="program-card"
               @click="handleProgramClick(program)"
@@ -61,6 +80,7 @@
           <q-icon name="fitness_center" size="48px" color="muted" />
           <p class="mobile-body">Aún no tienes programas activos</p>
           <button
+            type="button"
             class="btn-mobile btn-mobile--primary empty-state__cta"
             data-testid="empty-state-cta"
             @click="goToExplore"
@@ -72,6 +92,7 @@
         <!-- CTA para explorar más programas -->
         <section v-if="activePrograms.length > 0" class="mobile-section">
           <button
+            type="button"
             class="btn-mobile btn-mobile--secondary"
             data-testid="explore-cta"
             @click="goToExplore"
@@ -165,7 +186,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
-  background-color: rgba(255, 143, 56, 0.12);
+  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent);
   color: var(--color-primary);
   display: flex;
   align-items: center;
@@ -232,6 +253,22 @@ onMounted(() => {
 }
 
 .empty-state__cta {
+  width: auto;
+  min-width: 240px;
+  padding: var(--space-3) var(--space-8);
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16) 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-state__cta {
   width: auto;
   min-width: 240px;
   padding: var(--space-3) var(--space-8);

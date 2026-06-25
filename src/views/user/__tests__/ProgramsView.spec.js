@@ -189,4 +189,49 @@ describe('ProgramsView', () => {
 
     expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(1)
   })
+
+  it('usa 0% como valor por defecto cuando falta progress.percentage', () => {
+    const { wrapper } = mountView({
+      userProfile: {
+        loading: false,
+        activePrograms: [
+          {
+            id: 'p1',
+            name: 'Calistenia Master',
+            discipline: 'calisthenics',
+            difficulty: 'beginner',
+            totalLevels: 10,
+            progress: {},
+          },
+        ],
+      },
+    })
+
+    expect(wrapper.text()).toContain('0%')
+
+    const progressBar = wrapper.find('[data-testid="program-progress"]')
+    expect(progressBar.attributes('data-value')).toBe('0')
+  })
+
+  it('muestra el estado de error y permite reintentar la carga', async () => {
+    const { wrapper, userProfileStore } = mountView({
+      userProfile: {
+        loading: false,
+        activePrograms: [],
+        error: 'Error al cargar los programas',
+      },
+    })
+
+    const errorSection = wrapper.find('[data-testid="programs-error"]')
+    expect(errorSection.exists()).toBe(true)
+    expect(errorSection.text()).toContain('No se pudieron cargar tus programas')
+
+    const retryButton = wrapper.find('[data-testid="error-retry-button"]')
+    expect(retryButton.exists()).toBe(true)
+    expect(retryButton.text()).toContain('Reintentar')
+
+    await retryButton.trigger('click')
+
+    expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(2)
+  })
 })
