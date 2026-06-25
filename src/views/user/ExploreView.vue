@@ -21,7 +21,7 @@
 
       <div v-if="showOnboardingBanner" class="explore-banner" data-testid="onboarding-banner">
         <div class="explore-banner__content">
-          <q-icon name="help_outline" size="24px" />
+          <q-icon name="help_outline" size="24px" aria-hidden="true" />
           <div class="explore-banner__text-block">
             <p class="explore-banner__title">¿No sabes por dónde empezar?</p>
             <p class="explore-banner__text">Haz un cuestionario rápido</p>
@@ -42,7 +42,7 @@
       </section>
 
       <section v-else-if="hasError" class="explore-state" data-testid="explore-error">
-        <q-icon name="error_outline" size="48px" color="negative" />
+        <q-icon name="error_outline" size="48px" color="negative" aria-hidden="true" />
         <p class="mobile-body-sm">{{ errorMessage }}</p>
         <button
           type="button"
@@ -278,8 +278,6 @@ onMounted(loadData)
 <style scoped>
 .explore-view {
   background-color: var(--surface-primary);
-  min-height: 100vh;
-  min-height: 100dvh;
 }
 
 .explore-view__header {
