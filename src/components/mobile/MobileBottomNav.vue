@@ -6,22 +6,13 @@
       :to="item.to"
       class="mobile-bottom-nav__item"
       :class="{ 'mobile-bottom-nav__item--active': isActive(item.to.name) }"
+      :aria-label="item.label"
       :aria-current="isActive(item.to.name) ? 'page' : undefined"
     >
       <div class="mobile-bottom-nav__icon-wrapper">
         <q-icon :name="item.icon" size="24px" />
       </div>
       <span class="mobile-bottom-nav__label">{{ item.label }}</span>
-    </router-link>
-
-    <!-- Botón central flotante de entrenamiento -->
-    <router-link
-      :to="{ name: 'user-train' }"
-      class="mobile-bottom-nav__fab"
-      :class="{ 'mobile-bottom-nav__fab--active': isActive('user-train') }"
-      aria-label="Empezar entrenamiento"
-    >
-      <q-icon name="play_arrow" size="32px" />
     </router-link>
   </nav>
 </template>
@@ -33,7 +24,18 @@ const route = useRoute()
 
 const navItems = [
   { name: 'home', to: { name: 'user-home' }, icon: 'home', label: 'Inicio' },
-  { name: 'program', to: { name: 'user-program' }, icon: 'fitness_center', label: 'Programa' },
+  {
+    name: 'programs',
+    to: { name: 'user-programs' },
+    icon: 'fitness_center',
+    label: 'Programas',
+  },
+  {
+    name: 'explore',
+    to: { name: 'user-explore' },
+    icon: 'explore',
+    label: 'Explorar',
+  },
   {
     name: 'achievements',
     to: { name: 'user-achievements' },
@@ -106,35 +108,5 @@ const isActive = (routeName) => {
 .mobile-bottom-nav__label {
   font-size: var(--font-xs);
   font-weight: var(--font-medium);
-}
-
-.mobile-bottom-nav__fab {
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg), var(--shadow-glow-primary);
-  text-decoration: none;
-  transition: all 0.2s var(--ease-spring);
-}
-
-.mobile-bottom-nav__fab:hover {
-  transform: translateX(-50%) translateY(-2px) scale(1.05);
-}
-
-.mobile-bottom-nav__fab:active {
-  transform: translateX(-50%) scale(0.95);
-}
-
-.mobile-bottom-nav__fab--active {
-  animation: pulse-glow 2s infinite;
 }
 </style>
