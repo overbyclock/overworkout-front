@@ -216,12 +216,12 @@ const scrollTo = (index) => {
   width: 100%;
 }
 
-/* Ancho de cada slide: viewport menos los paddings laterales para mostrar
-   un pequeño fragmento del siguiente item e indicar que hay más contenido. */
+/* El ancho del slide se ajusta al contenido (tarjeta) para mantener el
+   layout consistente con el ancho fijo de ContentCard. */
 .horizontal-carousel__slide {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  width: calc(100% - var(--space-10));
+  width: auto;
 }
 
 .horizontal-carousel__arrow {

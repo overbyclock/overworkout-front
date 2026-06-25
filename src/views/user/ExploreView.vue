@@ -224,9 +224,8 @@ const loadData = async () => {
       favoritesStore.loadFavorites(),
       userProfileStore.fetchActiveProgress(),
     ])
-  } catch (error) {
+  } catch {
     // Los stores gestionan su propio estado de error; no bloqueamos la UI.
-    console.error('Error inesperado al cargar explorar:', error)
   } finally {
     loading.value = false
   }

@@ -49,7 +49,12 @@
 
       <!-- Carrusel: Mis programas -->
       <section v-if="userProfileStore.activePrograms.length > 0" class="dashboard-view__section">
-        <HorizontalCarousel title="Mis programas" :items="userProfileStore.activePrograms">
+        <HorizontalCarousel
+          title="Mis programas"
+          action-label="Ver todos"
+          :action-to="{ name: 'user-programs' }"
+          :items="userProfileStore.activePrograms"
+        >
           <template #item="{ item }">
             <ContentCard
               :title="item.name"
@@ -66,7 +71,12 @@
 
     <!-- Carrusel: Tus favoritos -->
     <section v-if="favoriteItems.length > 0" class="dashboard-view__section">
-      <HorizontalCarousel title="Tus favoritos" :items="favoriteItems">
+      <HorizontalCarousel
+        title="Tus favoritos"
+        action-label="Ver todos"
+        :action-to="{ name: 'user-explore' }"
+        :items="favoriteItems"
+      >
         <template #item="{ item }">
           <ContentCard
             :title="item.title"

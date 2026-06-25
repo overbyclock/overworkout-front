@@ -133,7 +133,6 @@ describe('ExploreView', () => {
   beforeEach(() => {
     mockPush.mockClear()
     mockNotify.mockClear()
-    vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   it('renderiza el encabezado con título y subtítulo', () => {

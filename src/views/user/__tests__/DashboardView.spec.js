@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { setActivePinia } from 'pinia'
+import { useRouter } from 'vue-router'
 import DashboardView from '../DashboardView.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
@@ -47,9 +48,26 @@ describe('DashboardView', () => {
             template: '<span class="q-icon-stub" :data-name="name" />',
           },
           HorizontalCarousel: {
-            props: ['title', 'items', 'itemKey'],
+            props: ['title', 'items', 'itemKey', 'actionLabel', 'actionTo'],
+            setup(props) {
+              const router = useRouter()
+              const handleAction = () => {
+                if (props.actionTo) {
+                  router.push(props.actionTo)
+                }
+              }
+              return { handleAction }
+            },
             template: `
-              <div class="horizontal-carousel-stub" :data-title="title">
+              <div class="horizontal-carousel-stub" :data-title="title" :data-action-label="actionLabel" :data-action-to="JSON.stringify(actionTo)">
+                <button
+                  v-if="actionLabel && actionTo"
+                  type="button"
+                  class="horizontal-carousel-stub__action"
+                  @click="handleAction"
+                >
+                  {{ actionLabel }}
+                </button>
                 <div
                   v-for="item in items"
                   :key="item[itemKey || 'id']"
@@ -245,6 +263,23 @@ describe('DashboardView', () => {
     expect(card.attributes('data-footer')).toBe('35% completado')
   })
 
+  it('muestra el enlace "Ver todos" en el carrusel de programas y navega correctamente', async () => {
+    const { wrapper } = mountView({
+      userProfile: {
+        hasActiveProgram: true,
+        activePrograms: [{ id: 'p1', name: 'Calistenia Master', difficulty: 'beginner' }],
+      },
+    })
+
+    const carousel = wrapper.find('[data-title="Mis programas"]')
+    expect(carousel.attributes('data-action-label')).toBe('Ver todos')
+    expect(carousel.attributes('data-action-to')).toBe(JSON.stringify({ name: 'user-programs' }))
+
+    await carousel.find('.horizontal-carousel-stub__action').trigger('click')
+
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+  })
+
   it('selecciona un programa y navega a user-programs al pulsar una tarjeta de programa', async () => {
     const { wrapper, userProfileStore } = mountView({
       userProfile: {
@@ -303,6 +338,34 @@ describe('DashboardView', () => {
     const trainingCard = wrapper.find('.content-card-stub[data-title="HIIT 20 min"]')
     expect(trainingCard.exists()).toBe(true)
     expect(trainingCard.attributes('data-badge')).toBe('Entreno')
+  })
+
+  it('muestra el enlace "Ver todos" en el carrusel de favoritos y navega correctamente', async () => {
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false },
+      favorites: {
+        programFavorites: [
+          {
+            id: 'f1',
+            trainingProgram: {
+              id: 'p1',
+              name: 'Fuerza básica',
+              discipline: 'fitness',
+              difficulty: 'beginner',
+            },
+          },
+        ],
+        trainingFavorites: [],
+      },
+    })
+
+    const carousel = wrapper.find('[data-title="Tus favoritos"]')
+    expect(carousel.attributes('data-action-label')).toBe('Ver todos')
+    expect(carousel.attributes('data-action-to')).toBe(JSON.stringify({ name: 'user-explore' }))
+
+    await carousel.find('.horizontal-carousel-stub__action').trigger('click')
+
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 
   it('navega a user-programs al pulsar un favorito de programa', async () => {
