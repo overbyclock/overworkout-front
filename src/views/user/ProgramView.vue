@@ -141,7 +141,7 @@ const confirmAbandon = () => {
     try {
       await userProfileStore.abandonActiveProgram(programId)
       if (!userProfileStore.hasActiveProgram) {
-        router.push({ name: 'user-programs-catalog' })
+        router.push({ name: 'user-explore' })
       }
     } catch (err) {
       console.error('Error abandonando programa:', err)

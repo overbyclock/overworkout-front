@@ -187,7 +187,7 @@ const accepting = ref(false)
 
 const acceptRecommendation = async () => {
   if (!recommendedProgram.value?.id) {
-    router.push({ name: 'user-programs-catalog' })
+    router.push({ name: 'user-explore' })
     return
   }
 
@@ -201,7 +201,7 @@ const acceptRecommendation = async () => {
 }
 
 const goToCatalog = () => {
-  router.push({ name: 'user-programs-catalog' })
+  router.push({ name: 'user-explore' })
 }
 
 const skipAssessment = () => {

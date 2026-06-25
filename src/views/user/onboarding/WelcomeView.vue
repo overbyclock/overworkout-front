@@ -70,7 +70,7 @@ const startOnboarding = () => {
 }
 
 const exploreContent = () => {
-  router.push({ name: 'user-explore-catalog' })
+  router.push({ name: 'user-explore' })
 }
 </script>
 
