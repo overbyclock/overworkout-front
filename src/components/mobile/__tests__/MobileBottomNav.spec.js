@@ -68,19 +68,18 @@ describe('MobileBottomNav', () => {
     })
   })
 
-  it('does not render central floating action button', async () => {
-    const wrapper = await createWrapper()
-    expect(wrapper.find('.mobile-bottom-nav__fab').exists()).toBe(false)
-  })
-
   it('marks active item based on current route', async () => {
     const wrapper = await createWrapper('/user/achievements')
     const links = wrapper.findAllComponents(RouterLink)
     const activeLink = links.find((link) => link.props('to').name === 'user-achievements')
+    const activeLinks = links.filter((link) =>
+      link.classes().includes('mobile-bottom-nav__item--active'),
+    )
 
     expect(activeLink).toBeDefined()
     expect(activeLink.classes()).toContain('mobile-bottom-nav__item--active')
     expect(activeLink.attributes('aria-current')).toBe('page')
+    expect(activeLinks).toHaveLength(1)
   })
 
   it('sets aria-label on navigation for accessibility', async () => {

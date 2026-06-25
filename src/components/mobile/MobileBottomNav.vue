@@ -52,6 +52,8 @@ const isActive = (routeName) => {
 
 <style scoped>
 .mobile-bottom-nav {
+  --active-icon-bg: color-mix(in srgb, var(--color-primary) 12%, transparent);
+
   position: fixed;
   bottom: 0;
   left: 0;
@@ -92,7 +94,7 @@ const isActive = (routeName) => {
 }
 
 .mobile-bottom-nav__item--active .mobile-bottom-nav__icon-wrapper {
-  background-color: rgba(255, 143, 56, 0.12);
+  background-color: var(--active-icon-bg);
 }
 
 .mobile-bottom-nav__icon-wrapper {
