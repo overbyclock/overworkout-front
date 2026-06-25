@@ -1,10 +1,14 @@
 <template>
-  <article
-    class="content-card"
-    :class="`content-card--${variant}`"
-    data-testid="content-card"
-    @click="emit('click')"
-  >
+  <article class="content-card" :class="`content-card--${variant}`" data-testid="content-card">
+    <!-- Botón de acción principal que cubre toda la tarjeta -->
+    <button
+      type="button"
+      class="content-card__action"
+      data-testid="content-card-action"
+      :aria-label="`Abrir ${title}`"
+      @click="emit('click')"
+    />
+
     <!-- Fila superior: icono y favorito -->
     <div class="content-card__top">
       <q-icon class="content-card__icon" :name="icon" size="24px" />
@@ -92,18 +96,20 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 <style scoped>
 .content-card {
+  --content-card-width: 160px;
+  --content-card-height: 180px;
   --content-card-text: var(--text-primary);
 
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 160px;
-  height: 180px;
+  width: var(--content-card-width);
+  height: var(--content-card-height);
   padding: var(--space-4);
   background-color: var(--surface-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   color: var(--content-card-text);
-  cursor: pointer;
   transition:
     transform 0.2s var(--ease-out),
     box-shadow 0.2s var(--ease-out);
@@ -118,7 +124,22 @@ const emit = defineEmits(['click', 'toggle-favorite'])
   transform: translateY(0);
 }
 
-.content-card:focus-visible {
+/* Botón de acción principal */
+.content-card__action {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+}
+
+.content-card__action:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -126,13 +147,13 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 /* Variantes de color */
 .content-card--primary {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  --content-card-text: #000;
+  --content-card-text: var(--surface-primary, #000);
   border: none;
 }
 
 .content-card--accent {
   background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
-  --content-card-text: #000;
+  --content-card-text: var(--surface-primary, #000);
   border: none;
 }
 
@@ -146,6 +167,8 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 /* Fila superior */
 .content-card__top {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -159,15 +182,17 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 .content-card--primary .content-card__icon,
 .content-card--accent .content-card__icon {
-  color: rgba(0, 0, 0, 0.7);
+  color: color-mix(in srgb, var(--content-card-text) 70%, transparent);
 }
 
 .content-card__favorite {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--space-8);
+  height: var(--space-8);
   padding: 0;
   background: transparent;
   border: none;
@@ -178,29 +203,36 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 }
 
 .content-card__favorite:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: color-mix(in srgb, var(--text-primary) 15%, transparent);
+}
+
+.content-card__favorite:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .content-card--primary .content-card__favorite:hover,
 .content-card--accent .content-card__favorite:hover {
-  background-color: rgba(0, 0, 0, 0.12);
+  background-color: color-mix(in srgb, var(--content-card-text) 12%, transparent);
 }
 
 /* Metadatos */
 .content-card__meta {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
   margin-bottom: var(--space-2);
-  min-height: 20px;
+  min-height: var(--space-5);
 }
 
 .content-card__badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  background-color: rgba(255, 143, 56, 0.2);
+  padding: var(--space-1) var(--space-2);
+  background-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
   color: var(--color-primary);
   font-size: var(--font-xs);
   font-weight: var(--font-semibold);
@@ -209,8 +241,8 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 .content-card--primary .content-card__badge,
 .content-card--accent .content-card__badge {
-  background-color: rgba(0, 0, 0, 0.15);
-  color: #000;
+  background-color: color-mix(in srgb, var(--content-card-text) 15%, transparent);
+  color: var(--content-card-text);
 }
 
 .content-card__level {
@@ -220,11 +252,13 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 .content-card--primary .content-card__level,
 .content-card--accent .content-card__level {
-  color: rgba(0, 0, 0, 0.7);
+  color: color-mix(in srgb, var(--content-card-text) 70%, transparent);
 }
 
 /* Cuerpo principal */
 .content-card__body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -258,11 +292,13 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 .content-card--primary .content-card__description,
 .content-card--accent .content-card__description {
-  color: rgba(0, 0, 0, 0.75);
+  color: color-mix(in srgb, var(--content-card-text) 75%, transparent);
 }
 
 /* Pie de tarjeta */
 .content-card__footer {
+  position: relative;
+  z-index: 1;
   margin-top: auto;
   padding-top: var(--space-2);
   font-size: var(--font-xs);
@@ -272,6 +308,6 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 .content-card--primary .content-card__footer,
 .content-card--accent .content-card__footer {
-  color: rgba(0, 0, 0, 0.7);
+  color: color-mix(in srgb, var(--content-card-text) 70%, transparent);
 }
 </style>

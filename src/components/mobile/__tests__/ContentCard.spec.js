@@ -52,7 +52,7 @@ describe('ContentCard', () => {
       description: 'Desc',
     })
 
-    await wrapper.find('[data-testid="content-card"]').trigger('click')
+    await wrapper.find('[data-testid="content-card-action"]').trigger('click')
     expect(wrapper.emitted('click')).toHaveLength(1)
   })
 
