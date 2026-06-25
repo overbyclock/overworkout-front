@@ -49,11 +49,15 @@
     </div>
 
     <div class="welcome-actions animate-fadeInUp" style="animation-delay: 0.2s">
-      <button class="btn-mobile btn-mobile--large btn-mobile--primary" @click="startOnboarding">
+      <button
+        type="button"
+        class="btn-mobile btn-mobile--large btn-mobile--primary"
+        @click="startOnboarding"
+      >
         Empezar ahora
         <q-icon name="arrow_forward" size="20px" />
       </button>
-      <button class="btn-mobile btn-mobile--ghost" @click="exploreContent">
+      <button type="button" class="btn-mobile btn-mobile--ghost" @click="exploreContent">
         Explorar contenido
       </button>
     </div>
@@ -85,7 +89,11 @@ const exploreContent = () => {
   min-height: 100dvh;
   padding: var(--space-8) var(--space-5);
   padding-top: calc(var(--space-10) + var(--safe-top));
-  background: radial-gradient(ellipse at top, rgba(255, 143, 56, 0.08) 0%, transparent 60%);
+  background: radial-gradient(
+    ellipse at top,
+    color-mix(in srgb, var(--color-primary) 8%, transparent) 0%,
+    transparent 60%
+  );
 }
 
 .welcome-content {
@@ -105,7 +113,7 @@ const exploreContent = () => {
   height: 120px;
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: #000;
+  color: var(--surface-primary, #000);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +163,7 @@ const exploreContent = () => {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
-  background-color: rgba(255, 143, 56, 0.1);
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
   color: var(--color-primary);
   display: flex;
   align-items: center;

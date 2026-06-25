@@ -26,7 +26,7 @@ describe('WelcomeView', () => {
 
   beforeEach(() => {
     mockPush.mockClear()
-    setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {})
+    setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -54,6 +54,7 @@ describe('WelcomeView', () => {
     await wrapper.find('button.btn-mobile--ghost').trigger('click')
 
     expect(setItemSpy).toHaveBeenCalledWith(STORAGE_KEYS.ONBOARDING_SKIPPED, 'true')
+    expect(localStorage.setItem).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 })
