@@ -96,8 +96,8 @@ const emit = defineEmits(['click', 'toggle-favorite'])
 
 <style scoped>
 .content-card {
-  --content-card-width: 160px;
-  --content-card-height: 180px;
+  --content-card-width: 180px;
+  --content-card-height: 220px;
   --content-card-text: var(--text-primary);
 
   position: relative;
@@ -286,7 +286,7 @@ const emit = defineEmits(['click', 'toggle-favorite'])
   margin: 0;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
