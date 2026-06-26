@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import HorizontalCarousel from '../HorizontalCarousel.vue'
 
 const mockPush = vi.fn()
@@ -240,5 +240,110 @@ describe('HorizontalCarousel', () => {
 
     expect(wrapper.emitted('page-change')).toBeTruthy()
     expect(wrapper.emitted('page-change')[0]).toEqual([1])
+  })
+
+  describe('modo loop', () => {
+    const simulateOverflow = (track) => {
+      Object.defineProperty(track, 'scrollWidth', { value: 500, writable: true })
+      Object.defineProperty(track, 'clientWidth', { value: 100, writable: true })
+      window.dispatchEvent(new Event('resize'))
+    }
+
+    it('muestra flechas de navegación cuando hay scroll disponible', async () => {
+      const wrapper = mount(HorizontalCarousel, {
+        props: { items: [{ id: 1 }, { id: 2 }, { id: 3 }], loop: true },
+        slots: {
+          item: '<template #item="{ item }"><div class="test-item" /></template>',
+        },
+        global: { stubs: ['router-link', 'q-icon'] },
+        attachTo: document.body,
+      })
+
+      simulateOverflow(wrapper.find('.horizontal-carousel__track').element)
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.findAll('.horizontal-carousel__arrow').length).toBe(2)
+    })
+
+    it('oculta flechas de navegación en modo loop cuando no hay scroll', async () => {
+      const wrapper = mount(HorizontalCarousel, {
+        props: { items: [{ id: 1 }, { id: 2 }, { id: 3 }], loop: true },
+        slots: {
+          item: '<template #item="{ item }"><div class="test-item" /></template>',
+        },
+        global: { stubs: ['router-link', 'q-icon'] },
+        attachTo: document.body,
+      })
+
+      const track = wrapper.find('.horizontal-carousel__track').element
+      Object.defineProperty(track, 'scrollWidth', { value: 100, writable: true })
+      Object.defineProperty(track, 'clientWidth', { value: 100, writable: true })
+      window.dispatchEvent(new Event('resize'))
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.findAll('.horizontal-carousel__arrow').length).toBe(0)
+    })
+
+    const defineSlideOffsets = (track) => {
+      const slides = Array.from(track.children)
+      slides.forEach((slide, index) => {
+        Object.defineProperty(slide, 'offsetLeft', { value: index * 100, writable: true })
+        Object.defineProperty(slide, 'clientWidth', { value: 100, writable: true })
+      })
+    }
+
+    it('vuelve al primer item al avanzar desde el último', async () => {
+      const wrapper = mount(HorizontalCarousel, {
+        props: { items: [{ id: 1 }, { id: 2 }, { id: 3 }], loop: true },
+        slots: {
+          item: '<template #item="{ item }"><div class="test-item" style="width:100px" /></template>',
+        },
+        global: { stubs: ['router-link', 'q-icon'] },
+        attachTo: document.body,
+      })
+
+      const track = wrapper.find('.horizontal-carousel__track').element
+      simulateOverflow(track)
+      defineSlideOffsets(track)
+
+      const scrollToMock = vi.fn()
+      track.scrollTo = scrollToMock
+
+      // Simula que el scroll está en el último item
+      Object.defineProperty(track, 'scrollLeft', { value: 200, writable: true })
+      await track.dispatchEvent(new Event('scroll'))
+      await wrapper.vm.$nextTick()
+
+      await wrapper.findAll('.horizontal-carousel__arrow')[1].trigger('click')
+
+      expect(scrollToMock).toHaveBeenCalledWith({ left: 0, behavior: 'smooth' })
+    })
+
+    it('salta al último item al retroceder desde el primero', async () => {
+      const wrapper = mount(HorizontalCarousel, {
+        props: { items: [{ id: 1 }, { id: 2 }, { id: 3 }], loop: true },
+        slots: {
+          item: '<template #item="{ item }"><div class="test-item" style="width:100px" /></template>',
+        },
+        global: { stubs: ['router-link', 'q-icon'] },
+        attachTo: document.body,
+      })
+
+      const track = wrapper.find('.horizontal-carousel__track').element
+      simulateOverflow(track)
+      defineSlideOffsets(track)
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const scrollToMock = vi.fn()
+      track.scrollTo = scrollToMock
+
+      const arrows = wrapper.findAll('.horizontal-carousel__arrow')
+      expect(arrows.length).toBe(2)
+
+      await arrows[0].trigger('click')
+
+      expect(scrollToMock).toHaveBeenCalledWith({ left: 200, behavior: 'smooth' })
+    })
   })
 })

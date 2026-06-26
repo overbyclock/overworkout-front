@@ -9,9 +9,9 @@
     <!-- Estadísticas diarias -->
     <section class="dashboard-view__section">
       <DailyStats
-        :streak="userProfileStore.streakDays"
-        :weekly="weeklyWorkouts"
-        :xp="userProfileStore.userXp"
+        :streak="userStatsStore.streakDays"
+        :weekly="userStatsStore.weeklyWorkouts"
+        :xp="userStatsStore.xp"
       />
     </section>
 
@@ -54,6 +54,7 @@
           action-label="Ver todos"
           :action-to="{ name: 'user-programs' }"
           :items="userProfileStore.activePrograms"
+          loop
         >
           <template #item="{ item }">
             <ContentCard
@@ -95,7 +96,7 @@
 
     <!-- Carrusel: Descubrir -->
     <section class="dashboard-view__section">
-      <HorizontalCarousel title="Descubrir" :items="discoverItems">
+      <HorizontalCarousel title="Descubrir" :items="discoverItems" loop>
         <template #item="{ item }">
           <ContentCard
             :title="item.label"
@@ -110,7 +111,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
 import DailyStats from '@/components/mobile/DailyStats.vue'
@@ -119,6 +120,7 @@ import ContentCard from '@/components/mobile/ContentCard.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
+import { useUserStatsStore } from '@/stores/userStats'
 import { getDisciplineIcon } from '@/constants/disciplines'
 import { getLevelLabel } from '@/constants/levels'
 
@@ -126,9 +128,7 @@ const router = useRouter()
 const userProfileStore = useUserProfileStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
-
-// Placeholder para entrenamientos semanales hasta disponer de endpoint real
-const weeklyWorkouts = ref(0)
+const userStatsStore = useUserStatsStore()
 
 const discoverItems = [
   { id: 'calisthenia', label: 'Calistenia', icon: getDisciplineIcon('calisthenia') },
@@ -194,7 +194,11 @@ const favoriteItems = computed(() => {
 
 onMounted(async () => {
   try {
-    await Promise.all([userProfileStore.fetchActiveProgress(), favoritesStore.loadFavorites()])
+    await Promise.all([
+      userProfileStore.fetchActiveProgress(),
+      favoritesStore.loadFavorites(),
+      userStatsStore.fetchDashboardStats(),
+    ])
   } catch {
     // Los stores ya gestionan su propio estado de error; no hacemos nada aquí para no bloquear la UI.
   }

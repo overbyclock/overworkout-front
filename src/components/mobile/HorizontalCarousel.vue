@@ -5,7 +5,11 @@
   botón de acción, flechas de desplazamiento e indicadores de página.
 -->
 <template>
-  <section v-if="items.length > 0" class="horizontal-carousel">
+  <section
+    v-if="items.length > 0"
+    class="horizontal-carousel"
+    :class="{ 'horizontal-carousel--loop': loop }"
+  >
     <header class="horizontal-carousel__header">
       <h2 v-if="title" class="horizontal-carousel__title">{{ title }}</h2>
       <button
@@ -20,7 +24,7 @@
 
     <div class="horizontal-carousel__viewport">
       <button
-        v-if="showArrows && items.length > 1"
+        v-if="showNavigationArrows"
         type="button"
         class="horizontal-carousel__arrow horizontal-carousel__arrow--prev"
         aria-label="Anterior"
@@ -37,7 +41,7 @@
       </div>
 
       <button
-        v-if="showArrows && items.length > 1"
+        v-if="showNavigationArrows"
         type="button"
         class="horizontal-carousel__arrow horizontal-carousel__arrow--next"
         aria-label="Siguiente"
@@ -63,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 // Configuración de props: título, acción, lista de items, clave única y visibilidad de flechas
@@ -92,6 +96,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  loop: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['page-change'])
@@ -100,10 +108,61 @@ const emit = defineEmits(['page-change'])
 const router = useRouter()
 const trackRef = ref(null)
 const currentPage = ref(0)
+const canScroll = ref(false)
+let resizeObserver = null
 
 // Notifica a los consumidores cuando cambia la página activa
 watch(currentPage, (newPage) => {
   emit('page-change', newPage)
+})
+
+/**
+ * Determina si el track tiene desplazamiento disponible comparando su ancho
+ * total con el ancho visible del viewport.
+ */
+const checkOverflow = () => {
+  const track = trackRef.value
+  if (!track) {
+    return
+  }
+
+  canScroll.value = track.scrollWidth > track.clientWidth
+}
+
+/**
+ * Muestra las flechas de navegación cuando:
+ * - El carrusel está en modo loop y hay scroll disponible, o
+ * - Se activa explícitamente showArrows.
+ */
+const showNavigationArrows = computed(() => {
+  if (props.items.length <= 1) {
+    return false
+  }
+
+  if (props.loop) {
+    return canScroll.value
+  }
+
+  return props.showArrows
+})
+
+onMounted(() => {
+  checkOverflow()
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(checkOverflow)
+    resizeObserver.observe(trackRef.value)
+  }
+
+  window.addEventListener('resize', checkOverflow)
+})
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+
+  window.removeEventListener('resize', checkOverflow)
 })
 
 // Navega a la ruta indicada por el botón de acción (usa router.push en lugar de router-link)
@@ -142,7 +201,9 @@ const onScroll = () => {
   currentPage.value = activeIndex
 }
 
-// Desplaza el carrusel hasta el índice solicitado de forma suave
+// Desplaza el carrusel hasta el índice solicitado de forma suave.
+// En modo loop, al avanzar más allá del último item vuelve al primero
+// y al retroceder antes del primero salta al último.
 const scrollTo = (index) => {
   const track = trackRef.value
   if (!track) {
@@ -150,7 +211,22 @@ const scrollTo = (index) => {
   }
 
   const slides = Array.from(track.children)
-  const target = Math.max(0, Math.min(slides.length - 1, index))
+  if (slides.length === 0) {
+    return
+  }
+
+  let target = index
+
+  if (props.loop) {
+    if (target < 0) {
+      target = slides.length - 1
+    } else if (target >= slides.length) {
+      target = 0
+    }
+  } else {
+    target = Math.max(0, Math.min(slides.length - 1, target))
+  }
+
   const slide = slides[target]
   if (!slide) {
     return
@@ -277,6 +353,10 @@ const scrollTo = (index) => {
 .horizontal-carousel__dot--active {
   width: var(--carousel-dot-active-size);
   background-color: var(--color-primary);
+}
+
+.horizontal-carousel--loop .horizontal-carousel__arrow {
+  display: flex;
 }
 
 /* Nota: las media queries no admiten custom properties; el valor debe coincidir
