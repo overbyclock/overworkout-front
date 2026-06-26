@@ -75,6 +75,12 @@ export const API_ENDPOINTS = {
     ASSESSMENT: '/user/profile/assessment',
   },
 
+  // Estadísticas del usuario
+  USER_STATS: {
+    DASHBOARD: '/user/stats',
+    COMPLETE_TRAINING: '/user/trainings/{trainingId}/complete',
+  },
+
   // Favoritos
   FAVORITES: {
     LIST: '/user/favorites',

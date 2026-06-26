@@ -7,6 +7,7 @@ import DashboardView from '../DashboardView.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
+import { useUserStatsStore } from '@/stores/userStats'
 
 const mockPush = vi.fn()
 
@@ -24,6 +25,7 @@ describe('DashboardView', () => {
     const userProfileStore = useUserProfileStore()
     const favoritesStore = useFavoritesStore()
     const authStore = useAuthStore()
+    const userStatsStore = useUserStatsStore()
 
     if (options.userProfile) {
       Object.assign(userProfileStore, options.userProfile)
@@ -34,9 +36,12 @@ describe('DashboardView', () => {
     if (options.auth) {
       Object.assign(authStore, options.auth)
     }
+    if (options.userStats) {
+      Object.assign(userStatsStore, options.userStats)
+    }
 
     if (options.preMount) {
-      options.preMount({ userProfileStore, favoritesStore, authStore })
+      options.preMount({ userProfileStore, favoritesStore, authStore, userStatsStore })
     }
 
     const wrapper = mount(DashboardView, {
@@ -136,7 +141,7 @@ describe('DashboardView', () => {
       },
     })
 
-    return { wrapper, userProfileStore, favoritesStore, authStore }
+    return { wrapper, userProfileStore, favoritesStore, authStore, userStatsStore }
   }
 
   beforeEach(() => {
@@ -161,9 +166,16 @@ describe('DashboardView', () => {
 
   it('renderiza DailyStats con racha, semana y XP', () => {
     const { wrapper } = mountView({
+      userStats: {
+        stats: {
+          streakDays: 5,
+          weeklyWorkouts: 2,
+          xp: 1200,
+          totalWorkouts: 10,
+          athleteLevel: 3,
+        },
+      },
       userProfile: {
-        streakDays: 5,
-        userXp: 1200,
         hasActiveProgram: false,
       },
     })
@@ -171,7 +183,7 @@ describe('DashboardView', () => {
     const stats = wrapper.find('.daily-stats-stub')
     expect(stats.exists()).toBe(true)
     expect(stats.attributes('data-streak')).toBe('5')
-    expect(stats.attributes('data-weekly')).toBe('0')
+    expect(stats.attributes('data-weekly')).toBe('2')
     expect(stats.attributes('data-xp')).toBe('1200')
   })
 
@@ -500,8 +512,8 @@ describe('DashboardView', () => {
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 
-  it('carga progreso y favoritos en paralelo al montar', async () => {
-    const { wrapper, userProfileStore, favoritesStore } = mountView({
+  it('carga progreso, favoritos y estadísticas en paralelo al montar', async () => {
+    const { wrapper, userProfileStore, favoritesStore, userStatsStore } = mountView({
       userProfile: { hasActiveProgram: false },
     })
 
@@ -509,14 +521,16 @@ describe('DashboardView', () => {
 
     expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(1)
     expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(1)
+    expect(userStatsStore.fetchDashboardStats).toHaveBeenCalledTimes(1)
   })
 
-  it('renderiza el dashboard aunque falle la carga de progreso o favoritos', async () => {
+  it('renderiza el dashboard aunque falle la carga de datos', async () => {
     const { wrapper } = mountView({
       userProfile: { hasActiveProgram: false },
-      preMount: ({ userProfileStore, favoritesStore }) => {
+      preMount: ({ userProfileStore, favoritesStore, userStatsStore }) => {
         userProfileStore.fetchActiveProgress = vi.fn().mockRejectedValue(new Error('Network error'))
         favoritesStore.loadFavorites = vi.fn().mockRejectedValue(new Error('Network error'))
+        userStatsStore.fetchDashboardStats = vi.fn().mockRejectedValue(new Error('Network error'))
       },
     })
 
