@@ -15,10 +15,10 @@ export const useTrainingsStore = defineStore('trainings', () => {
   const totalTrainings = computed(() => trainings.value.length)
   const isEmpty = computed(() => trainings.value.length === 0)
   const hasError = computed(() => !!error.value)
-  
+
   const trainingsByType = computed(() => {
     const grouped = {}
-    trainings.value.forEach(t => {
+    trainings.value.forEach((t) => {
       const type = t.type || 'general'
       if (!grouped[type]) grouped[type] = []
       grouped[type].push(t)
@@ -26,24 +26,38 @@ export const useTrainingsStore = defineStore('trainings', () => {
     return grouped
   })
 
-  const publicTrainings = computed(() => 
-    trainings.value.filter(t => t.isPublic === true)
-  )
+  const publicTrainings = computed(() => trainings.value.filter((t) => t.isPublic === true))
 
-  const privateTrainings = computed(() => 
-    trainings.value.filter(t => t.isPublic === false)
-  )
+  const privateTrainings = computed(() => trainings.value.filter((t) => t.isPublic === false))
 
   // Actions
   const fetchTrainings = async () => {
     loading.value = true
     error.value = null
-    
+
     try {
       const response = await trainingService.getAll()
-      
+
       trainings.value = extractItems(response)
-      
+
+      return trainings.value
+    } catch (err) {
+      error.value = extractErrorMessage(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchPublicTrainings = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await trainingService.getPublic()
+
+      trainings.value = extractItems(response)
+
       return trainings.value
     } catch (err) {
       error.value = extractErrorMessage(err)
@@ -54,7 +68,7 @@ export const useTrainingsStore = defineStore('trainings', () => {
   }
 
   const getTrainingById = (id) => {
-    return trainings.value.find(t => t.id === id)
+    return trainings.value.find((t) => t.id === id)
   }
 
   const createTraining = async (trainingData) => {
@@ -99,7 +113,7 @@ export const useTrainingsStore = defineStore('trainings', () => {
     loading,
     error,
     selectedTraining,
-    
+
     // Getters
     allTrainings,
     totalTrainings,
@@ -108,9 +122,10 @@ export const useTrainingsStore = defineStore('trainings', () => {
     trainingsByType,
     publicTrainings,
     privateTrainings,
-    
+
     // Actions
     fetchTrainings,
+    fetchPublicTrainings,
     getTrainingById,
     createTraining,
     updateTraining,

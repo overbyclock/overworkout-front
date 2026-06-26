@@ -220,7 +220,7 @@ const loadData = async () => {
   try {
     await Promise.all([
       programsStore.fetchPrograms(),
-      trainingsStore.fetchTrainings(),
+      trainingsStore.fetchPublicTrainings(),
       favoritesStore.loadFavorites(),
       userProfileStore.fetchActiveProgress(),
     ])

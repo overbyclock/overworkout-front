@@ -447,7 +447,7 @@ describe('ExploreView', () => {
     const { programsStore, trainingsStore, favoritesStore, userProfileStore } = mountView()
 
     expect(programsStore.fetchPrograms).toHaveBeenCalledTimes(1)
-    expect(trainingsStore.fetchTrainings).toHaveBeenCalledTimes(1)
+    expect(trainingsStore.fetchPublicTrainings).toHaveBeenCalledTimes(1)
     expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(1)
     expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(1)
   })
