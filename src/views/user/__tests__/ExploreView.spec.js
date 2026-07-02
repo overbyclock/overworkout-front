@@ -243,7 +243,7 @@ describe('ExploreView', () => {
     expect(wrapper.find('[data-title="CrossFit"]').exists()).toBe(true)
   })
 
-  it('navega a user-programs al pulsar un programa activo', async () => {
+  it('navega a user-program al pulsar un programa activo', async () => {
     const { wrapper, userProfileStore } = mountView({
       programs: {
         programs: [

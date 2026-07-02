@@ -52,7 +52,7 @@
         <HorizontalCarousel
           title="Mis programas"
           action-label="Ver todos"
-          :action-to="{ name: 'user-programs' }"
+          :action-to="{ name: 'user-explore' }"
           :items="userProfileStore.activePrograms"
           loop
         >
@@ -206,7 +206,7 @@ onMounted(async () => {
 
 const navigateToProgram = (programId) => {
   userProfileStore.selectProgram(programId)
-  router.push({ name: 'user-programs' })
+  router.push({ name: 'user-program' })
 }
 
 const handleContinue = () => {
@@ -214,7 +214,7 @@ const handleContinue = () => {
   if (programId) {
     navigateToProgram(programId)
   } else {
-    router.push({ name: 'user-programs' })
+    router.push({ name: 'user-explore' })
   }
 }
 

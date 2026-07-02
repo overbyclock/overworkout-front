@@ -74,16 +74,6 @@ export default [
         },
       },
       {
-        path: 'programs',
-        name: 'user-programs',
-        component: () => import('@/views/user/ProgramsView.vue'),
-        meta: {
-          title: 'Programas',
-          requiresAuth: true,
-          requiresRole: USER_ROLES.USER,
-        },
-      },
-      {
         path: 'explore',
         name: 'user-explore',
         component: () => import('@/views/user/ExploreView.vue'),

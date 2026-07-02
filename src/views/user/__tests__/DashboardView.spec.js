@@ -232,7 +232,7 @@ describe('DashboardView', () => {
     expect(continueCard.attributes('data-subtitle')).toBe('Nivel 3')
   })
 
-  it('selecciona el programa actual y navega a user-programs al continuar', async () => {
+  it('selecciona el programa actual y navega a user-program al continuar', async () => {
     const { wrapper, userProfileStore } = mountView({
       userProfile: {
         hasActiveProgram: true,
@@ -245,7 +245,7 @@ describe('DashboardView', () => {
     await wrapper.find('.continue-card-stub').trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-program' })
   })
 
   it('muestra el carrusel de programas activos con las tarjetas correctas', () => {
@@ -285,14 +285,14 @@ describe('DashboardView', () => {
 
     const carousel = wrapper.find('[data-title="Mis programas"]')
     expect(carousel.attributes('data-action-label')).toBe('Ver todos')
-    expect(carousel.attributes('data-action-to')).toBe(JSON.stringify({ name: 'user-programs' }))
+    expect(carousel.attributes('data-action-to')).toBe(JSON.stringify({ name: 'user-explore' }))
 
     await carousel.find('.horizontal-carousel-stub__action').trigger('click')
 
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 
-  it('selecciona un programa y navega a user-programs al pulsar una tarjeta de programa', async () => {
+  it('selecciona un programa y navega a user-program al pulsar una tarjeta de programa', async () => {
     const { wrapper, userProfileStore } = mountView({
       userProfile: {
         hasActiveProgram: true,
@@ -305,7 +305,7 @@ describe('DashboardView', () => {
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-program' })
   })
 
   it('muestra el carrusel de favoritos con insignias de tipo', () => {
@@ -380,7 +380,7 @@ describe('DashboardView', () => {
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 
-  it('navega a user-programs al pulsar un favorito de programa', async () => {
+  it('navega a user-program al pulsar un favorito de programa', async () => {
     const { wrapper, userProfileStore } = mountView({
       userProfile: { hasActiveProgram: false },
       favorites: {
@@ -404,7 +404,7 @@ describe('DashboardView', () => {
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-programs' })
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-program' })
   })
 
   it('navega a user-explore al pulsar un favorito de entrenamiento', async () => {

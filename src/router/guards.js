@@ -76,7 +76,6 @@ export const onboardingGuard = (to) => {
   const allowedRoutesWithoutOnboarding = [
     ...ONBOARDING_ROUTES,
     'user-home',
-    'user-programs',
     'user-explore',
     'user-achievements',
     'user-profile',

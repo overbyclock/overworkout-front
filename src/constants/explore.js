@@ -9,7 +9,7 @@ export const EXPLORE_TABS = {
 
 export const EXPLORE_ROUTES = {
   WELCOME: 'user-welcome',
-  PROGRAMS: 'user-programs',
+  PROGRAMS: 'user-program',
   HOME: 'user-home',
 }
 

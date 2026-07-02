@@ -259,7 +259,6 @@ describe('onboardingGuard', () => {
     'user-onboarding-stats',
     'user-assessment',
     'user-home',
-    'user-programs',
     'user-explore',
     'user-achievements',
     'user-profile',
