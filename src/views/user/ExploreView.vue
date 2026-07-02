@@ -278,6 +278,7 @@ onMounted(loadData)
 
 .explore-tabs {
   background-color: transparent;
+  margin-bottom: var(--space-6);
 }
 
 .explore-tabs :deep(.q-tab__label) {
@@ -286,7 +287,11 @@ onMounted(loadData)
 }
 
 .explore-section {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
+}
+
+.explore-section:first-of-type {
+  padding-top: var(--space-2);
 }
 
 .explore-banner {

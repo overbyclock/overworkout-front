@@ -244,6 +244,9 @@ const scrollTo = (index) => {
   --carousel-dot-size: 8px;
   --carousel-dot-active-size: 20px;
   --carousel-arrow-breakpoint: 768px;
+  --carousel-gap: var(--space-5);
+
+  margin-bottom: var(--space-8);
 }
 
 .horizontal-carousel__header {
@@ -281,23 +284,51 @@ const scrollTo = (index) => {
   position: relative;
   display: flex;
   align-items: center;
+  padding: 0 calc(var(--carousel-arrow-size) + var(--space-2));
 }
 
 .horizontal-carousel__track {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: var(--space-4);
-  padding: 0 var(--space-5);
+  gap: var(--carousel-gap);
+  padding: 0;
   width: 100%;
 }
 
-/* El ancho del slide se ajusta al contenido (tarjeta) para mantener el
-   layout consistente con el ancho fijo de ContentCard. */
 .horizontal-carousel__slide {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  width: auto;
+}
+
+/* Las tarjetas dentro del carrusel ocupan todo el ancho del slide
+   para que el número de elementos visibles se adapte al viewport. */
+.horizontal-carousel__slide :deep(.poster-card) {
+  width: 100%;
+  max-width: none;
+}
+
+/* Móvil: se muestra una tarjeta completa y asoma la siguiente */
+.horizontal-carousel__slide {
+  flex: 0 0 calc(85% - var(--carousel-gap));
+}
+
+@media (min-width: 480px) {
+  .horizontal-carousel__slide {
+    flex: 0 0 calc((100% - var(--carousel-gap)) / 2);
+  }
+}
+
+@media (min-width: 768px) {
+  .horizontal-carousel__slide {
+    flex: 0 0 calc((100% - 2 * var(--carousel-gap)) / 3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .horizontal-carousel__slide {
+    flex: 0 0 calc((100% - 3 * var(--carousel-gap)) / 4);
+  }
 }
 
 .horizontal-carousel__arrow {
@@ -359,8 +390,25 @@ const scrollTo = (index) => {
   display: flex;
 }
 
-/* Nota: las media queries no admiten custom properties; el valor debe coincidir
-   con --carousel-arrow-breakpoint para mantener consistencia. */
+@media (max-width: 767px) {
+  .horizontal-carousel__viewport {
+    padding: 0;
+  }
+
+  .horizontal-carousel__track {
+    padding: 0 var(--space-5);
+    gap: var(--space-4);
+  }
+
+  .horizontal-carousel__arrow--prev {
+    left: var(--space-1);
+  }
+
+  .horizontal-carousel__arrow--next {
+    right: var(--space-1);
+  }
+}
+
 @media (min-width: 768px) {
   .horizontal-carousel__arrow {
     display: flex;
