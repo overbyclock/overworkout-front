@@ -34,6 +34,16 @@ export default [
         },
       },
       {
+        path: 'programs/:programId',
+        name: 'user-program-detail',
+        component: () => import('@/views/user/ProgramDetailView.vue'),
+        meta: {
+          title: 'Programa',
+          requiresAuth: true,
+          requiresRole: USER_ROLES.USER,
+        },
+      },
+      {
         path: 'programs/:programId/levels/:levelId',
         name: 'user-level',
         component: () => import('@/views/user/LevelView.vue'),
