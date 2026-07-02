@@ -97,4 +97,12 @@ export const userProfileService = {
     const response = await apiClient.post(url)
     return response.data
   },
+
+  /**
+   * Obtiene el siguiente entrenamiento pendiente o el que se puede continuar.
+   */
+  async getNextTraining() {
+    const response = await apiClient.get(API_ENDPOINTS.TRAININGS.NEXT)
+    return response.data
+  },
 }

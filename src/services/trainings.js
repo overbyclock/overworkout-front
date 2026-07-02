@@ -38,6 +38,19 @@ export const trainingService = {
     await apiClient.delete(API_ENDPOINTS.TRAININGS.DELETE.replace('{id}', id))
   },
 
+  async start(id) {
+    const response = await apiClient.post(API_ENDPOINTS.TRAININGS.START.replace('{trainingId}', id))
+    return response.data
+  },
+
+  async complete(id, data) {
+    const response = await apiClient.post(
+      API_ENDPOINTS.TRAININGS.COMPLETE.replace('{trainingId}', id),
+      data,
+    )
+    return response.data
+  },
+
   handleError(error) {
     if (error.response) {
       const message = error.response.data?.message || 'Error en el servidor'

@@ -34,6 +34,9 @@ export const API_ENDPOINTS = {
     CREATE: '/trainings',
     UPDATE: '/trainings/{id}',
     DELETE: '/trainings/{id}',
+    START: '/user/trainings/{trainingId}/start',
+    COMPLETE: '/user/trainings/{trainingId}/complete',
+    NEXT: '/user/trainings/next',
   },
 
   // Equipamiento
