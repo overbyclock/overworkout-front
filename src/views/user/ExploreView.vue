@@ -6,6 +6,19 @@
     </header>
 
     <div class="mobile-container">
+      <q-tabs
+        v-model="activeSection"
+        class="explore-tabs"
+        active-color="primary"
+        indicator-color="primary"
+        align="justify"
+        narrow-indicator
+        no-caps
+      >
+        <q-tab :name="SECTIONS.PROGRAMS" label="Programas" />
+        <q-tab :name="SECTIONS.BENCHMARKS" label="Benchmarks" />
+      </q-tabs>
+
       <div v-if="showOnboardingBanner" class="explore-banner" data-testid="onboarding-banner">
         <div class="explore-banner__content">
           <q-icon name="help_outline" size="24px" aria-hidden="true" />
@@ -42,7 +55,7 @@
       </section>
 
       <template v-else>
-        <section class="explore-section">
+        <section v-if="activeSection === SECTIONS.PROGRAMS" class="explore-section">
           <h2 class="explore-section__title">Programas</h2>
 
           <HorizontalCarousel
@@ -74,7 +87,7 @@
           </div>
         </section>
 
-        <section class="explore-section">
+        <section v-if="activeSection === SECTIONS.BENCHMARKS" class="explore-section">
           <h2 class="explore-section__title">Benchmarks</h2>
 
           <HorizontalCarousel
@@ -128,6 +141,12 @@ const benchmarksStore = useBenchmarksStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
 
+const SECTIONS = {
+  PROGRAMS: 'programs',
+  BENCHMARKS: 'benchmarks',
+}
+
+const activeSection = ref(SECTIONS.PROGRAMS)
 const loading = ref(false)
 
 const BENCHMARK_TYPE_LABELS = {
@@ -259,6 +278,15 @@ onMounted(loadData)
   font-size: var(--font-base);
   color: var(--text-secondary);
   margin: 0;
+}
+
+.explore-tabs {
+  background-color: transparent;
+}
+
+.explore-tabs :deep(.q-tab__label) {
+  font-weight: var(--font-semibold);
+  text-transform: none;
 }
 
 .explore-section {

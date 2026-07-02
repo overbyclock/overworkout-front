@@ -53,11 +53,16 @@ describe('ExploreView', () => {
             props: ['modelValue'],
             emits: ['update:modelValue'],
             template: '<div class="q-tabs-stub"><slot /></div>',
+            methods: {
+              setValue(value) {
+                this.$emit('update:modelValue', value)
+              },
+            },
           },
           'q-tab': {
             props: ['name', 'label'],
             template:
-              '<div class="q-tab-stub" :data-name="name" :data-label="label"><slot /></div>',
+              '<div class="q-tab-stub" :data-name="name" :data-label="label" @click="$parent.setValue(name)"><slot /></div>',
           },
           'q-spinner': {
             template: '<div class="q-spinner-stub" />',
@@ -127,6 +132,11 @@ describe('ExploreView', () => {
     return result
   }
 
+  const clickTab = async (wrapper, tabName) => {
+    await wrapper.find(`.q-tab-stub[data-name="${tabName}"]`).trigger('click')
+    await wrapper.vm.$nextTick()
+  }
+
   beforeEach(() => {
     mockPush.mockClear()
     mockNotify.mockClear()
@@ -175,13 +185,23 @@ describe('ExploreView', () => {
     expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.WELCOME })
   })
 
-  it('muestra la sección de Programas', () => {
+  it('renderiza las pestañas Programas y Benchmarks', () => {
     const { wrapper } = mountView()
 
-    const titles = wrapper.findAll('.explore-section__title')
-    const sectionTitles = titles.map((title) => title.text())
+    const tabs = wrapper.findAll('.q-tab-stub')
+    const labels = tabs.map((tab) => tab.attributes('data-label'))
 
-    expect(sectionTitles).toContain('Programas')
+    expect(labels).toContain('Programas')
+    expect(labels).toContain('Benchmarks')
+  })
+
+  it('muestra la sección de Programas por defecto', () => {
+    const { wrapper } = mountView()
+
+    const titles = wrapper.findAll('.explore-section__title').map((title) => title.text())
+
+    expect(titles).toContain('Programas')
+    expect(titles).not.toContain('Benchmarks')
   })
 
   it('agrupa los programas por disciplina en carruseles', () => {
@@ -264,16 +284,18 @@ describe('ExploreView', () => {
     )
   })
 
-  it('muestra la sección de Benchmarks', () => {
+  it('muestra la sección de Benchmarks al pulsar su pestaña', async () => {
     const { wrapper } = mountView()
 
-    const titles = wrapper.findAll('.explore-section__title')
-    const sectionTitles = titles.map((title) => title.text())
+    await clickTab(wrapper, 'benchmarks')
 
-    expect(sectionTitles).toContain('Benchmarks')
+    const titles = wrapper.findAll('.explore-section__title').map((title) => title.text())
+
+    expect(titles).toContain('Benchmarks')
+    expect(titles).not.toContain('Programas')
   })
 
-  it('agrupa los benchmarks por tipo en carruseles', () => {
+  it('agrupa los benchmarks por tipo en carruseles', async () => {
     const { wrapper } = mountView({
       benchmarks: {
         benchmarks: [
@@ -294,6 +316,8 @@ describe('ExploreView', () => {
       },
     })
 
+    await clickTab(wrapper, 'benchmarks')
+
     expect(wrapper.find('[data-title="Hero WODs"]').exists()).toBe(true)
     expect(wrapper.find('[data-title="Girl WODs"]').exists()).toBe(true)
   })
@@ -312,6 +336,8 @@ describe('ExploreView', () => {
         ],
       },
     })
+
+    await clickTab(wrapper, 'benchmarks')
 
     await wrapper
       .find('.poster-card-stub[data-title="Fran"] .poster-card-stub__action')
