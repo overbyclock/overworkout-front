@@ -56,8 +56,6 @@
 
       <template v-else>
         <section v-if="activeSection === SECTIONS.PROGRAMS" class="explore-section">
-          <h2 class="explore-section__title">Programas</h2>
-
           <HorizontalCarousel
             v-for="[discipline, items] in orderedProgramDisciplines"
             :key="discipline"
@@ -88,8 +86,6 @@
         </section>
 
         <section v-if="activeSection === SECTIONS.BENCHMARKS" class="explore-section">
-          <h2 class="explore-section__title">Benchmarks</h2>
-
           <HorizontalCarousel
             v-for="[type, items] in orderedBenchmarkTypes"
             :key="type"
@@ -291,15 +287,6 @@ onMounted(loadData)
 
 .explore-section {
   margin-bottom: var(--space-8);
-}
-
-.explore-section__title {
-  font-size: var(--font-xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-4) 0;
-  padding: 0 var(--space-5);
-  line-height: var(--leading-tight);
 }
 
 .explore-banner {

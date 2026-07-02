@@ -195,13 +195,25 @@ describe('ExploreView', () => {
     expect(labels).toContain('Benchmarks')
   })
 
-  it('muestra la sección de Programas por defecto', () => {
-    const { wrapper } = mountView()
+  it('muestra la sección de Programas por defecto sin título redundante', () => {
+    const { wrapper } = mountView({
+      programs: {
+        programs: [
+          {
+            id: 'p1',
+            name: 'Calistenia Master',
+            discipline: 'calisthenics',
+            difficulty: 'intermediate',
+            levelCount: 3,
+            totalPhases: 2,
+            totalSessions: 5,
+          },
+        ],
+      },
+    })
 
-    const titles = wrapper.findAll('.explore-section__title').map((title) => title.text())
-
-    expect(titles).toContain('Programas')
-    expect(titles).not.toContain('Benchmarks')
+    expect(wrapper.find('.explore-section__title').exists()).toBe(false)
+    expect(wrapper.find('[data-title="Calistenia"]').exists()).toBe(true)
   })
 
   it('agrupa los programas por disciplina en carruseles', () => {
@@ -284,15 +296,25 @@ describe('ExploreView', () => {
     )
   })
 
-  it('muestra la sección de Benchmarks al pulsar su pestaña', async () => {
-    const { wrapper } = mountView()
+  it('muestra la sección de Benchmarks al pulsar su pestaña sin título redundante', async () => {
+    const { wrapper } = mountView({
+      benchmarks: {
+        benchmarks: [
+          {
+            id: 'b1',
+            name: 'Fran',
+            type: 'girl',
+            format: 'for_time',
+            rounds: 1,
+          },
+        ],
+      },
+    })
 
     await clickTab(wrapper, 'benchmarks')
 
-    const titles = wrapper.findAll('.explore-section__title').map((title) => title.text())
-
-    expect(titles).toContain('Benchmarks')
-    expect(titles).not.toContain('Programas')
+    expect(wrapper.find('.explore-section__title').exists()).toBe(false)
+    expect(wrapper.find('[data-title="Girl WODs"]').exists()).toBe(true)
   })
 
   it('agrupa los benchmarks por tipo en carruseles', async () => {
