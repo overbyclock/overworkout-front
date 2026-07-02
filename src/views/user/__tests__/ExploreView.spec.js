@@ -8,7 +8,7 @@ import { useTrainingsStore } from '@/stores/trainings'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
-import { EXPLORE_ROUTES, EXPLORE_TABS, PROGRAM_BADGE_ACTIVE } from '@/constants/explore'
+import { EXPLORE_ROUTES, EXPLORE_TABS } from '@/constants/explore'
 
 const mockPush = vi.fn()
 const mockNotify = vi.fn()
@@ -91,20 +91,22 @@ describe('ExploreView', () => {
               </div>
             `,
           },
-          ExploreCard: {
-            props: ['item', 'isFavorite', 'badge'],
+          PosterCard: {
+            props: ['item', 'type', 'level', 'duration', 'extra', 'isFavorite', 'showFavorite'],
             emits: ['click', 'toggle-favorite'],
             template: `
               <article
-                class="explore-card-stub"
+                class="poster-card-stub"
                 :data-title="item.name"
-                :data-description="item.description"
-                :data-badge="badge"
+                :data-type="type"
+                :data-level="level"
+                :data-duration="duration"
+                :data-extra="extra"
                 :data-is-favorite="isFavorite"
               >
-                <h3 class="explore-card-stub__title">{{ item.name }}</h3>
-                <button class="explore-card-stub__action" @click="$emit('click')">Abrir</button>
-                <button class="explore-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
+                <h3 class="poster-card-stub__title">{{ item.name }}</h3>
+                <button class="poster-card-stub__action" @click="$emit('click')">Abrir</button>
+                <button class="poster-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
               </article>
             `,
           },
@@ -207,7 +209,7 @@ describe('ExploreView', () => {
             id: 'p1',
             name: 'Calistenia Master',
             discipline: 'calisthenics',
-            level: 'intermediate',
+            difficulty: 'intermediate',
           },
         ],
       },
@@ -227,13 +229,13 @@ describe('ExploreView', () => {
             id: 'p1',
             name: 'Calistenia Master',
             discipline: 'calisthenics',
-            level: 'intermediate',
+            difficulty: 'intermediate',
           },
           {
             id: 'p2',
             name: 'CrossFit Pro',
             discipline: 'crossfit',
-            level: 'expert',
+            difficulty: 'expert',
           },
         ],
       },
@@ -251,7 +253,7 @@ describe('ExploreView', () => {
             id: 'p1',
             name: 'Calistenia Master',
             discipline: 'calisthenics',
-            level: 'intermediate',
+            difficulty: 'intermediate',
           },
         ],
       },
@@ -261,7 +263,7 @@ describe('ExploreView', () => {
     })
 
     await wrapper
-      .find('.explore-card-stub[data-title="Calistenia Master"] .explore-card-stub__action')
+      .find('.poster-card-stub[data-title="Calistenia Master"] .poster-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
@@ -276,7 +278,7 @@ describe('ExploreView', () => {
             id: 'p2',
             name: 'CrossFit Pro',
             discipline: 'crossfit',
-            level: 'expert',
+            difficulty: 'expert',
           },
         ],
       },
@@ -286,7 +288,7 @@ describe('ExploreView', () => {
     })
 
     await wrapper
-      .find('.explore-card-stub[data-title="CrossFit Pro"] .explore-card-stub__action')
+      .find('.poster-card-stub[data-title="CrossFit Pro"] .poster-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.switchProgram).toHaveBeenCalledWith('p2')
@@ -301,41 +303,19 @@ describe('ExploreView', () => {
             id: 'p1',
             name: 'Calistenia Master',
             discipline: 'calisthenics',
-            level: 'intermediate',
+            difficulty: 'intermediate',
           },
         ],
       },
     })
 
     await wrapper
-      .find('.explore-card-stub[data-title="Calistenia Master"] .explore-card-stub__favorite')
+      .find('.poster-card-stub[data-title="Calistenia Master"] .poster-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleProgramFavorite).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'p1' }),
     )
-  })
-
-  it('muestra la insignia Activo en programas activos', () => {
-    const { wrapper } = mountView({
-      programs: {
-        programs: [
-          {
-            id: 'p1',
-            name: 'Calistenia Master',
-            discipline: 'calisthenics',
-            level: 'intermediate',
-          },
-        ],
-      },
-      userProfile: {
-        activePrograms: [{ id: 'p1', name: 'Calistenia Master' }],
-      },
-    })
-
-    expect(
-      wrapper.find(`.explore-card-stub[data-title="Calistenia Master"]`).attributes('data-badge'),
-    ).toBe(PROGRAM_BADGE_ACTIVE)
   })
 
   it('muestra los entrenamientos agrupados por disciplina', async () => {
@@ -356,7 +336,7 @@ describe('ExploreView', () => {
     await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     expect(wrapper.find('[data-title="CrossFit"]').exists()).toBe(true)
-    expect(wrapper.find('.explore-card-stub[data-title="HIIT 20"]').exists()).toBe(true)
+    expect(wrapper.find('.poster-card-stub[data-title="HIIT 20"]').exists()).toBe(true)
   })
 
   it('muestra una notificación al pulsar un entrenamiento', async () => {
@@ -377,7 +357,7 @@ describe('ExploreView', () => {
     await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     await wrapper
-      .find('.explore-card-stub[data-title="HIIT 20"] .explore-card-stub__action')
+      .find('.poster-card-stub[data-title="HIIT 20"] .poster-card-stub__action')
       .trigger('click')
 
     expect(mockNotify).toHaveBeenCalled()
@@ -401,7 +381,7 @@ describe('ExploreView', () => {
     await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
 
     await wrapper
-      .find('.explore-card-stub[data-title="HIIT 20"] .explore-card-stub__favorite')
+      .find('.poster-card-stub[data-title="HIIT 20"] .poster-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleTrainingFavorite).toHaveBeenCalledWith(

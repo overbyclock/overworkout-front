@@ -62,9 +62,15 @@
             :items="[recommendedProgram]"
           >
             <template #item="{ item }">
-              <ExploreCard
+              <PosterCard
                 :item="item"
-                :badge="isActiveProgram(item) ? PROGRAM_BADGE_ACTIVE : ''"
+                type="program"
+                :level="getLevelLabel(item.difficulty)"
+                :duration="
+                  item.estimatedDurationWeeks ? `${item.estimatedDurationWeeks} semanas` : ''
+                "
+                :extra="item.totalLevels ? `${item.totalLevels} niveles` : ''"
+                show-favorite
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
                 @toggle-favorite="favoritesStore.toggleProgramFavorite(item)"
@@ -79,9 +85,15 @@
             :items="items"
           >
             <template #item="{ item }">
-              <ExploreCard
+              <PosterCard
                 :item="item"
-                :badge="isActiveProgram(item) ? PROGRAM_BADGE_ACTIVE : ''"
+                type="program"
+                :level="getLevelLabel(item.difficulty)"
+                :duration="
+                  item.estimatedDurationWeeks ? `${item.estimatedDurationWeeks} semanas` : ''
+                "
+                :extra="item.totalLevels ? `${item.totalLevels} niveles` : ''"
+                show-favorite
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
                 @toggle-favorite="favoritesStore.toggleProgramFavorite(item)"
@@ -103,8 +115,17 @@
             :items="items"
           >
             <template #item="{ item }">
-              <ExploreCard
+              <PosterCard
                 :item="item"
+                type="training"
+                :level="item.sessionType || item.target || ''"
+                :duration="
+                  item.estimatedDurationMin && item.estimatedDurationMax
+                    ? `${item.estimatedDurationMin}-${item.estimatedDurationMax} min`
+                    : ''
+                "
+                :extra="item.rounds ? `${item.rounds} rounds` : ''"
+                show-favorite
                 :is-favorite="favoritesStore.isTrainingFavorite(item.id)"
                 @click="handleTrainingClick(item)"
                 @toggle-favorite="favoritesStore.toggleTrainingFavorite(item)"
@@ -127,14 +148,15 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
-import ExploreCard from './ExploreCard.vue'
+import PosterCard from '@/components/mobile/PosterCard.vue'
 import { useProgramsStore } from '@/stores/programs'
 import { useTrainingsStore } from '@/stores/trainings'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
 import { DISCIPLINE_LABELS, getDisciplineLabel } from '@/constants/disciplines'
-import { EXPLORE_ROUTES, EXPLORE_TABS, PROGRAM_BADGE_ACTIVE } from '@/constants/explore'
+import { getLevelLabel } from '@/constants/levels'
+import { EXPLORE_ROUTES, EXPLORE_TABS } from '@/constants/explore'
 
 const router = useRouter()
 const $q = useQuasar()
