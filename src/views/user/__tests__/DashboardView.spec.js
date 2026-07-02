@@ -106,34 +106,32 @@ describe('DashboardView', () => {
               </button>
             `,
           },
-          ContentCard: {
+          PosterCard: {
             props: [
-              'title',
-              'description',
-              'icon',
+              'item',
+              'type',
               'level',
-              'badge',
-              'footer',
-              'variant',
+              'duration',
+              'extra',
+              'progress',
               'showFavorite',
               'isFavorite',
             ],
             emits: ['click', 'toggle-favorite'],
             template: `
               <article
-                class="content-card-stub"
-                :data-title="title"
-                :data-description="description"
-                :data-icon="icon"
+                class="poster-card-stub"
+                :data-item="JSON.stringify(item)"
+                :data-type="type"
                 :data-level="level"
-                :data-badge="badge"
-                :data-footer="footer"
-                :data-variant="variant"
+                :data-duration="duration"
+                :data-extra="extra"
+                :data-progress="progress"
                 :data-show-favorite="showFavorite"
                 :data-is-favorite="isFavorite"
               >
-                <button class="content-card-stub__action" @click="$emit('click')">Abrir</button>
-                <button class="content-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
+                <button class="poster-card-stub__action" @click="$emit('click')">Abrir</button>
+                <button class="poster-card-stub__favorite" @click="$emit('toggle-favorite')">Fav</button>
               </article>
             `,
           },
@@ -207,6 +205,17 @@ describe('DashboardView', () => {
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
   })
 
+  it('navega a user-welcome al pulsar el cuestionario del estado vacío', async () => {
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false },
+    })
+
+    const buttons = wrapper.findAll('.empty-state__cta')
+    await buttons[1].trigger('click')
+
+    expect(mockPush).toHaveBeenCalledWith({ name: 'user-welcome' })
+  })
+
   it('no muestra ContinueCard ni carrusel de programas sin programas activos', () => {
     const { wrapper } = mountView({
       userProfile: { hasActiveProgram: false, activePrograms: [] },
@@ -259,6 +268,8 @@ describe('DashboardView', () => {
             description: 'Domina tu peso corporal',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
+            estimatedDurationWeeks: 8,
+            totalLevels: 4,
             progress: { percentage: 35 },
           },
         ],
@@ -268,28 +279,12 @@ describe('DashboardView', () => {
     const carousel = wrapper.find('[data-title="Mis programas"]')
     expect(carousel.exists()).toBe(true)
 
-    const card = wrapper.find('.content-card-stub[data-title="Calistenia Master"]')
+    const card = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(card.exists()).toBe(true)
-    expect(card.attributes('data-icon')).toBe('self_improvement')
     expect(card.attributes('data-level')).toBe('Intermedio')
-    expect(card.attributes('data-footer')).toBe('35% completado')
-  })
-
-  it('muestra el enlace "Ver todos" en el carrusel de programas y navega correctamente', async () => {
-    const { wrapper } = mountView({
-      userProfile: {
-        hasActiveProgram: true,
-        activePrograms: [{ id: 'p1', name: 'Calistenia Master', difficulty: 'beginner' }],
-      },
-    })
-
-    const carousel = wrapper.find('[data-title="Mis programas"]')
-    expect(carousel.attributes('data-action-label')).toBe('Ver todos')
-    expect(carousel.attributes('data-action-to')).toBe(JSON.stringify({ name: 'user-explore' }))
-
-    await carousel.find('.horizontal-carousel-stub__action').trigger('click')
-
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
+    expect(card.attributes('data-duration')).toBe('8 semanas')
+    expect(card.attributes('data-extra')).toBe('4 niveles')
+    expect(card.attributes('data-progress')).toBe('35')
   })
 
   it('selecciona un programa y navega a user-program al pulsar una tarjeta de programa', async () => {
@@ -301,14 +296,14 @@ describe('DashboardView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="Calistenia Master"] .content-card-stub__action')
+      .find('.poster-card-stub[data-type="program"] .poster-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-program' })
   })
 
-  it('muestra el carrusel de favoritos con insignias de tipo', () => {
+  it('muestra el carrusel de favoritos con programas y entrenamientos', () => {
     const { wrapper } = mountView({
       userProfile: { hasActiveProgram: false },
       favorites: {
@@ -321,6 +316,8 @@ describe('DashboardView', () => {
               description: 'Programa inicial',
               discipline: 'fitness',
               difficulty: 'beginner',
+              estimatedDurationWeeks: 4,
+              totalLevels: 2,
             },
           },
         ],
@@ -332,7 +329,10 @@ describe('DashboardView', () => {
               name: 'HIIT 20 min',
               description: 'Quema rápida',
               discipline: 'crossfit',
-              difficulty: 'intermediate',
+              sessionType: 'HIIT',
+              estimatedDurationMin: 15,
+              estimatedDurationMax: 25,
+              rounds: 5,
             },
           },
         ],
@@ -342,14 +342,19 @@ describe('DashboardView', () => {
     const carousel = wrapper.find('[data-title="Tus favoritos"]')
     expect(carousel.exists()).toBe(true)
 
-    const programCard = wrapper.find('.content-card-stub[data-title="Fuerza básica"]')
+    const programCard = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(programCard.exists()).toBe(true)
-    expect(programCard.attributes('data-badge')).toBe('Programa')
-    expect(programCard.attributes('data-show-favorite')).toBe('')
+    expect(programCard.attributes('data-level')).toBe('Principiante')
+    expect(programCard.attributes('data-duration')).toBe('4 semanas')
+    expect(programCard.attributes('data-extra')).toBe('2 niveles')
+    expect(programCard.attributes('data-show-favorite')).toBeDefined()
+    expect(programCard.attributes('data-is-favorite')).toBeDefined()
 
-    const trainingCard = wrapper.find('.content-card-stub[data-title="HIIT 20 min"]')
+    const trainingCard = wrapper.find('.poster-card-stub[data-type="training"]')
     expect(trainingCard.exists()).toBe(true)
-    expect(trainingCard.attributes('data-badge')).toBe('Entreno')
+    expect(trainingCard.attributes('data-level')).toBe('HIIT')
+    expect(trainingCard.attributes('data-duration')).toBe('15-25 min')
+    expect(trainingCard.attributes('data-extra')).toBe('5 rounds')
   })
 
   it('muestra el enlace "Ver todos" en el carrusel de favoritos y navega correctamente', async () => {
@@ -400,7 +405,7 @@ describe('DashboardView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="Fuerza básica"] .content-card-stub__action')
+      .find('.poster-card-stub[data-type="program"] .poster-card-stub__action')
       .trigger('click')
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
@@ -427,7 +432,7 @@ describe('DashboardView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="HIIT 20 min"] .content-card-stub__action')
+      .find('.poster-card-stub[data-type="training"] .poster-card-stub__action')
       .trigger('click')
 
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
@@ -453,7 +458,7 @@ describe('DashboardView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="Fuerza básica"] .content-card-stub__favorite')
+      .find('.poster-card-stub[data-type="program"] .poster-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleProgramFavorite).toHaveBeenCalledWith(
@@ -481,7 +486,7 @@ describe('DashboardView', () => {
     })
 
     await wrapper
-      .find('.content-card-stub[data-title="HIIT 20 min"] .content-card-stub__favorite')
+      .find('.poster-card-stub[data-type="training"] .poster-card-stub__favorite')
       .trigger('click')
 
     expect(favoritesStore.toggleTrainingFavorite).toHaveBeenCalledWith(
@@ -489,27 +494,57 @@ describe('DashboardView', () => {
     )
   })
 
-  it('siempre muestra el carrusel de descubrir con las disciplinas', () => {
+  it('no muestra la sección Descubrir', () => {
     const { wrapper } = mountView({
       userProfile: { hasActiveProgram: false },
     })
 
-    const carousel = wrapper.find('[data-title="Descubrir"]')
-    expect(carousel.exists()).toBe(true)
-    expect(wrapper.find('[data-title="Calistenia"]').exists()).toBe(true)
-    expect(wrapper.find('[data-title="HIIT"]').exists()).toBe(true)
-    expect(wrapper.find('[data-title="Fuerza"]').exists()).toBe(true)
-    expect(wrapper.find('[data-title="Skills"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Descubrir')
+    expect(wrapper.find('[data-title="Descubrir"]').exists()).toBe(false)
   })
 
-  it('navega a user-explore al pulsar una tarjeta de descubrir', async () => {
+  it('muestra sección de programas y favoritos cuando hay datos', () => {
     const { wrapper } = mountView({
-      userProfile: { hasActiveProgram: false },
+      userProfile: {
+        hasActiveProgram: true,
+        activePrograms: [
+          {
+            id: 'p1',
+            name: 'Calistenia Master',
+            difficulty: 'intermediate',
+            estimatedDurationWeeks: 8,
+            totalLevels: 4,
+          },
+        ],
+      },
+      favorites: {
+        programFavorites: [
+          {
+            id: 'f1',
+            trainingProgram: {
+              id: 'p2',
+              name: 'Fuerza básica',
+              difficulty: 'beginner',
+            },
+          },
+        ],
+        trainingFavorites: [],
+      },
     })
 
-    await wrapper.find('[data-title="Calistenia"] .content-card-stub__action').trigger('click')
+    expect(wrapper.find('[data-title="Mis programas"]').exists()).toBe(true)
+    expect(wrapper.find('[data-title="Tus favoritos"]').exists()).toBe(true)
+  })
 
-    expect(mockPush).toHaveBeenCalledWith({ name: 'user-explore' })
+  it('muestra estado vacío de programas y favoritos cuando no hay programa activo ni favoritos', () => {
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false, activePrograms: [] },
+      favorites: { programFavorites: [], trainingFavorites: [] },
+    })
+
+    expect(wrapper.text()).toContain('Tus programas y favoritos')
+    expect(wrapper.text()).toContain('Aquí aparecerán los programas en los que estés inscrito')
+    expect(wrapper.text()).toContain('Explorar contenido')
   })
 
   it('carga progreso, favoritos y estadísticas en paralelo al montar', async () => {

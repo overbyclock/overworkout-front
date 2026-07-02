@@ -1,12 +1,10 @@
 <template>
   <div class="dashboard-view">
-    <!-- Cabecera con saludo y fecha -->
     <header class="dashboard-view__header">
       <h1 class="dashboard-view__greeting">{{ greeting }}</h1>
       <p class="dashboard-view__date">{{ todayDate }}</p>
     </header>
 
-    <!-- Estadísticas diarias -->
     <section class="dashboard-view__section">
       <DailyStats
         :streak="userStatsStore.streakDays"
@@ -15,8 +13,17 @@
       />
     </section>
 
-    <!-- Estado vacío: sin programas activos -->
-    <template v-if="!userProfileStore.hasActiveProgram">
+    <template v-if="userProfileStore.hasActiveProgram">
+      <section class="dashboard-view__section">
+        <ContinueCard
+          :title="userProfileStore.currentProgram.name"
+          :subtitle="continueSubtitle"
+          @continue="handleContinue"
+        />
+      </section>
+    </template>
+
+    <template v-else>
       <div class="dashboard-view__empty empty-state">
         <div class="empty-state__icon">
           <q-icon name="fitness_center" size="64px" />
@@ -33,80 +40,82 @@
           Explorar programas
           <q-icon name="arrow_forward" size="20px" />
         </button>
+        <button
+          type="button"
+          class="empty-state__cta btn-mobile btn-mobile--ghost"
+          @click="goToWelcome"
+        >
+          Hacer cuestionario
+        </button>
       </div>
     </template>
 
-    <!-- Estado con programas activos -->
-    <template v-else>
-      <!-- Continúa donde lo dejaste -->
-      <section v-if="userProfileStore.currentProgram" class="dashboard-view__section">
-        <ContinueCard
-          :title="userProfileStore.currentProgram.name"
-          :subtitle="continueSubtitle"
-          @continue="handleContinue"
-        />
+    <template v-if="hasProgramsOrFavorites">
+      <section v-if="activeProgramCards.length > 0" class="dashboard-view__section">
+        <HorizontalCarousel title="Mis programas" :items="activeProgramCards">
+          <template #item="{ item }">
+            <PosterCard
+              :item="item.item"
+              :type="item.type"
+              :level="item.level"
+              :duration="item.duration"
+              :extra="item.extra"
+              :progress="item.progress"
+              @click="openActiveProgram(item.raw)"
+            />
+          </template>
+        </HorizontalCarousel>
       </section>
 
-      <!-- Carrusel: Mis programas -->
-      <section v-if="userProfileStore.activePrograms.length > 0" class="dashboard-view__section">
+      <section v-if="favoriteCards.length > 0" class="dashboard-view__section">
         <HorizontalCarousel
-          title="Mis programas"
+          title="Tus favoritos"
           action-label="Ver todos"
           :action-to="{ name: 'user-explore' }"
-          :items="userProfileStore.activePrograms"
-          loop
+          :items="favoriteCards"
         >
           <template #item="{ item }">
-            <ContentCard
-              :title="item.name"
-              :description="item.description"
-              :icon="getDisciplineIcon(item.discipline)"
-              :level="getLevelLabel(item.difficulty)"
-              :footer="`${item.progress?.percentage || 0}% completado`"
-              @click="openProgram(item)"
+            <PosterCard
+              :item="item.item"
+              :type="item.type"
+              :level="item.level"
+              :duration="item.duration"
+              :extra="item.extra"
+              show-favorite
+              :is-favorite="item.isFavorite"
+              @click="openFavoriteCard(item)"
+              @toggle-favorite="toggleFavoriteCard(item)"
             />
           </template>
         </HorizontalCarousel>
       </section>
     </template>
 
-    <!-- Carrusel: Tus favoritos -->
-    <section v-if="favoriteItems.length > 0" class="dashboard-view__section">
-      <HorizontalCarousel
-        title="Tus favoritos"
-        action-label="Ver todos"
-        :action-to="{ name: 'user-explore' }"
-        :items="favoriteItems"
-      >
-        <template #item="{ item }">
-          <ContentCard
-            :title="item.title"
-            :description="item.description"
-            :icon="item.icon"
-            :badge="item.badge"
-            :level="item.level"
-            show-favorite
-            :is-favorite="true"
-            @click="openFavorite(item)"
-            @toggle-favorite="toggleFavorite(item)"
-          />
-        </template>
-      </HorizontalCarousel>
-    </section>
-
-    <!-- Carrusel: Descubrir -->
-    <section class="dashboard-view__section">
-      <HorizontalCarousel title="Descubrir" :items="discoverItems" loop>
-        <template #item="{ item }">
-          <ContentCard
-            :title="item.label"
-            :icon="item.icon"
-            variant="primary"
-            @click="navigateToExplore"
-          />
-        </template>
-      </HorizontalCarousel>
-    </section>
+    <template v-else-if="!userProfileStore.hasActiveProgram">
+      <div class="dashboard-view__empty empty-state">
+        <div class="empty-state__icon">
+          <q-icon name="favorite_border" size="64px" />
+        </div>
+        <h2 class="empty-state__title">Tus programas y favoritos</h2>
+        <p class="empty-state__text">
+          Aquí aparecerán los programas en los que estés inscrito y los entrenamientos que guardes.
+        </p>
+        <button
+          type="button"
+          class="empty-state__cta btn-mobile btn-mobile--large btn-mobile--primary"
+          @click="navigateToExplore"
+        >
+          Explorar contenido
+        </button>
+        <button
+          type="button"
+          class="empty-state__cta btn-mobile btn-mobile--ghost"
+          @click="goToWelcome"
+        >
+          Hacer cuestionario
+        </button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -116,12 +125,11 @@ import { useRouter } from 'vue-router'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
 import DailyStats from '@/components/mobile/DailyStats.vue'
 import ContinueCard from '@/components/mobile/ContinueCard.vue'
-import ContentCard from '@/components/mobile/ContentCard.vue'
+import PosterCard from '@/components/mobile/PosterCard.vue'
 import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStatsStore } from '@/stores/userStats'
-import { getDisciplineIcon } from '@/constants/disciplines'
 import { getLevelLabel } from '@/constants/levels'
 
 const router = useRouter()
@@ -129,13 +137,6 @@ const userProfileStore = useUserProfileStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
 const userStatsStore = useUserStatsStore()
-
-const discoverItems = [
-  { id: 'calisthenia', label: 'Calistenia', icon: getDisciplineIcon('calisthenia') },
-  { id: 'hiit', label: 'HIIT', icon: getDisciplineIcon('hiit') },
-  { id: 'strength', label: 'Fuerza', icon: getDisciplineIcon('strength') },
-  { id: 'skills', label: 'Skills', icon: getDisciplineIcon('skills') },
-]
 
 const greeting = computed(() => {
   const name = authStore.user?.nick || 'atleta'
@@ -166,31 +167,57 @@ const continueSubtitle = computed(() => {
   return program?.difficulty ? getLevelLabel(program.difficulty) : ''
 })
 
-const favoriteItems = computed(() => {
-  const programs = favoritesStore.programFavorites.map((favorite) => ({
-    id: `program-${favorite.id}`,
+const activeProgramCards = computed(() => {
+  return userProfileStore.activePrograms.map((program) => ({
+    id: `active-program-${program.id}`,
     type: 'program',
-    title: favorite.trainingProgram.name,
-    description: favorite.trainingProgram.description || '',
-    icon: getDisciplineIcon(favorite.trainingProgram.discipline),
-    badge: 'Programa',
+    item: program,
+    level: getLevelLabel(program.difficulty),
+    duration: program.estimatedDurationWeeks ? `${program.estimatedDurationWeeks} semanas` : '',
+    extra: program.totalLevels ? `${program.totalLevels} niveles` : '',
+    progress: program.progress?.percentage ?? null,
+    raw: program,
+  }))
+})
+
+const favoriteCards = computed(() => {
+  const programs = favoritesStore.programFavorites.map((favorite) => ({
+    id: `favorite-program-${favorite.id}`,
+    type: 'program',
+    item: favorite.trainingProgram,
     level: getLevelLabel(favorite.trainingProgram.difficulty),
+    duration: favorite.trainingProgram.estimatedDurationWeeks
+      ? `${favorite.trainingProgram.estimatedDurationWeeks} semanas`
+      : '',
+    extra: favorite.trainingProgram.totalLevels
+      ? `${favorite.trainingProgram.totalLevels} niveles`
+      : '',
+    showFavorite: true,
+    isFavorite: true,
     raw: favorite.trainingProgram,
   }))
 
   const trainings = favoritesStore.trainingFavorites.map((favorite) => ({
-    id: `training-${favorite.id}`,
+    id: `favorite-training-${favorite.id}`,
     type: 'training',
-    title: favorite.training.name,
-    description: favorite.training.description || '',
-    icon: getDisciplineIcon(favorite.training.discipline),
-    badge: 'Entreno',
-    level: getLevelLabel(favorite.training.difficulty),
+    item: favorite.training,
+    level: favorite.training.sessionType || favorite.training.target || '',
+    duration:
+      favorite.training.estimatedDurationMin && favorite.training.estimatedDurationMax
+        ? `${favorite.training.estimatedDurationMin}-${favorite.training.estimatedDurationMax} min`
+        : '',
+    extra: favorite.training.rounds ? `${favorite.training.rounds} rounds` : '',
+    showFavorite: true,
+    isFavorite: true,
     raw: favorite.training,
   }))
 
   return [...programs, ...trainings]
 })
+
+const hasProgramsOrFavorites = computed(
+  () => activeProgramCards.value.length > 0 || favoriteCards.value.length > 0,
+)
 
 onMounted(async () => {
   try {
@@ -204,42 +231,43 @@ onMounted(async () => {
   }
 })
 
-const navigateToProgram = (programId) => {
-  userProfileStore.selectProgram(programId)
-  router.push({ name: 'user-program' })
-}
-
-const handleContinue = () => {
-  const programId = userProfileStore.currentProgram?.id
-  if (programId) {
-    navigateToProgram(programId)
-  } else {
-    router.push({ name: 'user-explore' })
-  }
-}
-
-const openProgram = (program) => {
-  navigateToProgram(program.id)
-}
-
-const openFavorite = (item) => {
-  if (item.type === 'program') {
-    navigateToProgram(item.raw.id)
-  } else {
-    router.push({ name: 'user-explore' })
-  }
-}
-
-const toggleFavorite = (item) => {
-  if (item.type === 'program') {
-    favoritesStore.toggleProgramFavorite(item.raw)
-  } else {
-    favoritesStore.toggleTrainingFavorite(item.raw)
-  }
+const goToWelcome = () => {
+  router.push({ name: 'user-welcome' })
 }
 
 const navigateToExplore = () => {
   router.push({ name: 'user-explore' })
+}
+
+const openActiveProgram = (program) => {
+  userProfileStore.selectProgram(program.id)
+  router.push({ name: 'user-program' })
+}
+
+const openFavoriteCard = (card) => {
+  if (card.type === 'program') {
+    userProfileStore.selectProgram(card.raw.id)
+    router.push({ name: 'user-program' })
+  } else {
+    router.push({ name: 'user-explore' })
+  }
+}
+
+const toggleFavoriteCard = (card) => {
+  if (card.type === 'program') {
+    favoritesStore.toggleProgramFavorite(card.raw)
+  } else {
+    favoritesStore.toggleTrainingFavorite(card.raw)
+  }
+}
+
+const handleContinue = () => {
+  const program = userProfileStore.currentProgram
+  if (program) {
+    openActiveProgram(program)
+  } else {
+    navigateToExplore()
+  }
 }
 </script>
 
@@ -274,6 +302,10 @@ const navigateToExplore = () => {
 
 .dashboard-view__section {
   width: 100%;
+}
+
+.dashboard-view__section:empty {
+  display: none;
 }
 
 .empty-state {
