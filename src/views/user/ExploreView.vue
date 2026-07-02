@@ -294,6 +294,14 @@ onMounted(loadData)
   padding-top: var(--space-2);
 }
 
+/* En pantallas grandes el explorar puede aprovechar más ancho
+   para mostrar más tarjetas por carrusel. */
+@media (min-width: 768px) {
+  .explore-view .mobile-container {
+    max-width: 1200px;
+  }
+}
+
 .explore-banner {
   display: flex;
   flex-direction: column;

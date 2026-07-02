@@ -246,6 +246,7 @@ const scrollTo = (index) => {
   --carousel-arrow-breakpoint: 768px;
   --carousel-gap: var(--space-5);
 
+  container-type: inline-size;
   margin-bottom: var(--space-8);
 }
 
@@ -308,24 +309,24 @@ const scrollTo = (index) => {
   max-width: none;
 }
 
-/* Móvil: se muestra una tarjeta completa y asoma la siguiente */
+/* Por defecto: una tarjeta completa por slide */
 .horizontal-carousel__slide {
-  flex: 0 0 calc(85% - var(--carousel-gap));
+  flex: 0 0 calc(100% - var(--carousel-gap));
 }
 
-@media (min-width: 480px) {
+@container (min-width: 360px) {
   .horizontal-carousel__slide {
     flex: 0 0 calc((100% - var(--carousel-gap)) / 2);
   }
 }
 
-@media (min-width: 768px) {
+@container (min-width: 640px) {
   .horizontal-carousel__slide {
     flex: 0 0 calc((100% - 2 * var(--carousel-gap)) / 3);
   }
 }
 
-@media (min-width: 1024px) {
+@container (min-width: 960px) {
   .horizontal-carousel__slide {
     flex: 0 0 calc((100% - 3 * var(--carousel-gap)) / 4);
   }
@@ -390,7 +391,7 @@ const scrollTo = (index) => {
   display: flex;
 }
 
-@media (max-width: 767px) {
+@container (max-width: 767px) {
   .horizontal-carousel__viewport {
     padding: 0;
   }
@@ -409,7 +410,7 @@ const scrollTo = (index) => {
   }
 }
 
-@media (min-width: 768px) {
+@container (min-width: 768px) {
   .horizontal-carousel__arrow {
     display: flex;
   }
