@@ -1,14 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { setActivePinia } from 'pinia'
 import ExploreView from '../ExploreView.vue'
 import { useProgramsStore } from '@/stores/programs'
-import { useTrainingsStore } from '@/stores/trainings'
+import { useBenchmarksStore } from '@/stores/benchmarks'
 import { useFavoritesStore } from '@/stores/favorites'
-import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
-import { EXPLORE_ROUTES, EXPLORE_TABS } from '@/constants/explore'
+import { EXPLORE_ROUTES } from '@/constants/explore'
 
 const mockPush = vi.fn()
 const mockNotify = vi.fn()
@@ -29,22 +28,18 @@ describe('ExploreView', () => {
     setActivePinia(pinia)
 
     const programsStore = useProgramsStore()
-    const trainingsStore = useTrainingsStore()
+    const benchmarksStore = useBenchmarksStore()
     const favoritesStore = useFavoritesStore()
-    const userProfileStore = useUserProfileStore()
     const authStore = useAuthStore()
 
     if (options.programs) {
       programsStore.$patch(options.programs)
     }
-    if (options.trainings) {
-      trainingsStore.$patch(options.trainings)
+    if (options.benchmarks) {
+      benchmarksStore.$patch(options.benchmarks)
     }
     if (options.favorites) {
       favoritesStore.$patch(options.favorites)
-    }
-    if (options.userProfile) {
-      userProfileStore.$patch(options.userProfile)
     }
     if (options.auth) {
       authStore.$patch(options.auth)
@@ -58,16 +53,11 @@ describe('ExploreView', () => {
             props: ['modelValue'],
             emits: ['update:modelValue'],
             template: '<div class="q-tabs-stub"><slot /></div>',
-            methods: {
-              setValue(value) {
-                this.$emit('update:modelValue', value)
-              },
-            },
           },
           'q-tab': {
             props: ['name', 'label'],
             template:
-              '<div class="q-tab-stub" :data-name="name" :data-label="label" @click="$parent.setValue(name)"><slot /></div>',
+              '<div class="q-tab-stub" :data-name="name" :data-label="label"><slot /></div>',
           },
           'q-spinner': {
             template: '<div class="q-spinner-stub" />',
@@ -128,18 +118,13 @@ describe('ExploreView', () => {
       wrapper.vm.loading = options.loading
     }
 
-    return { wrapper, programsStore, trainingsStore, favoritesStore, userProfileStore, authStore }
+    return { wrapper, programsStore, benchmarksStore, favoritesStore, authStore }
   }
 
   const mountViewAsync = async (options = {}) => {
     const result = mountView(options)
     await result.wrapper.vm.$nextTick()
     return result
-  }
-
-  const clickTab = async (wrapper, tabName) => {
-    await wrapper.find(`.q-tab-stub[data-name="${tabName}"]`).trigger('click')
-    await wrapper.vm.$nextTick()
   }
 
   beforeEach(() => {
@@ -152,27 +137,6 @@ describe('ExploreView', () => {
 
     expect(wrapper.text()).toContain('Explorar')
     expect(wrapper.text()).toContain('Programas y entrenamientos')
-  })
-
-  it('renderiza las pestañas Programas y Entrenamientos', () => {
-    const { wrapper } = mountView()
-
-    const tabs = wrapper.findAll('.q-tab-stub')
-    const labels = tabs.map((tab) => tab.attributes('data-label'))
-    const names = tabs.map((tab) => tab.attributes('data-name'))
-
-    expect(labels).toContain('Programas')
-    expect(labels).toContain('Entrenamientos')
-    expect(names).toContain(EXPLORE_TABS.PROGRAMS)
-    expect(names).toContain(EXPLORE_TABS.TRAININGS)
-  })
-
-  it('cambia a la pestaña Entrenamientos al pulsar su q-tab', async () => {
-    const { wrapper } = mountView()
-
-    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
-
-    expect(wrapper.vm.activeTab).toBe(EXPLORE_TABS.TRAININGS)
   })
 
   it('muestra el banner de onboarding si falta el objetivo de entrenamiento', () => {
@@ -211,24 +175,13 @@ describe('ExploreView', () => {
     expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.WELCOME })
   })
 
-  it('muestra el carrusel "Recomendado para ti" en la pestaña Programas', () => {
-    const { wrapper } = mountView({
-      programs: {
-        programs: [
-          {
-            id: 'p1',
-            name: 'Calistenia Master',
-            discipline: 'calisthenics',
-            difficulty: 'intermediate',
-          },
-        ],
-      },
-    })
+  it('muestra la sección de Programas', () => {
+    const { wrapper } = mountView()
 
-    const carousel = wrapper.find('[data-title="Recomendado para ti"]')
+    const titles = wrapper.findAll('.explore-section__title')
+    const sectionTitles = titles.map((title) => title.text())
 
-    expect(carousel.exists()).toBe(true)
-    expect(carousel.text()).toContain('Calistenia Master')
+    expect(sectionTitles).toContain('Programas')
   })
 
   it('agrupa los programas por disciplina en carruseles', () => {
@@ -240,6 +193,9 @@ describe('ExploreView', () => {
             name: 'Calistenia Master',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
+            levelCount: 3,
+            totalPhases: 2,
+            totalSessions: 5,
           },
           {
             id: 'p2',
@@ -264,6 +220,9 @@ describe('ExploreView', () => {
             name: 'Calistenia Master',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
+            levelCount: 3,
+            totalPhases: 2,
+            totalSessions: 5,
           },
         ],
       },
@@ -288,6 +247,9 @@ describe('ExploreView', () => {
             name: 'Calistenia Master',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
+            levelCount: 3,
+            totalPhases: 2,
+            totalSessions: 5,
           },
         ],
       },
@@ -302,81 +264,66 @@ describe('ExploreView', () => {
     )
   })
 
-  it('muestra los entrenamientos agrupados por disciplina', async () => {
-    const { wrapper } = mountView({
-      trainings: {
-        trainings: [
-          {
-            id: 't1',
-            name: 'HIIT 20',
-            discipline: 'crossfit',
-            difficulty: 'intermediate',
-          },
-        ],
-      },
-    })
+  it('muestra la sección de Benchmarks', () => {
+    const { wrapper } = mountView()
 
-    await flushPromises()
-    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
+    const titles = wrapper.findAll('.explore-section__title')
+    const sectionTitles = titles.map((title) => title.text())
 
-    expect(wrapper.find('[data-title="CrossFit"]').exists()).toBe(true)
-    expect(wrapper.find('.poster-card-stub[data-title="HIIT 20"]').exists()).toBe(true)
+    expect(sectionTitles).toContain('Benchmarks')
   })
 
-  it('muestra una notificación al pulsar un entrenamiento', async () => {
+  it('agrupa los benchmarks por tipo en carruseles', () => {
     const { wrapper } = mountView({
-      trainings: {
-        trainings: [
+      benchmarks: {
+        benchmarks: [
           {
-            id: 't1',
-            name: 'HIIT 20',
-            discipline: 'crossfit',
-            difficulty: 'intermediate',
+            id: 'b1',
+            name: 'Fran',
+            type: 'girl',
+            format: 'for_time',
+            rounds: 1,
+          },
+          {
+            id: 'b2',
+            name: 'Murph',
+            type: 'hero',
+            format: 'for_time',
           },
         ],
       },
     })
 
-    await flushPromises()
-    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
+    expect(wrapper.find('[data-title="Hero WODs"]').exists()).toBe(true)
+    expect(wrapper.find('[data-title="Girl WODs"]').exists()).toBe(true)
+  })
+
+  it('muestra una notificación al pulsar un benchmark', async () => {
+    const { wrapper } = mountView({
+      benchmarks: {
+        benchmarks: [
+          {
+            id: 'b1',
+            name: 'Fran',
+            type: 'girl',
+            format: 'for_time',
+            rounds: 1,
+          },
+        ],
+      },
+    })
 
     await wrapper
-      .find('.poster-card-stub[data-title="HIIT 20"] .poster-card-stub__action')
+      .find('.poster-card-stub[data-title="Fran"] .poster-card-stub__action')
       .trigger('click')
 
     expect(mockNotify).toHaveBeenCalled()
   })
 
-  it('llama a toggleTrainingFavorite al pulsar el favorito de un entrenamiento', async () => {
-    const { wrapper, favoritesStore } = mountView({
-      trainings: {
-        trainings: [
-          {
-            id: 't1',
-            name: 'HIIT 20',
-            discipline: 'crossfit',
-            difficulty: 'intermediate',
-          },
-        ],
-      },
-    })
-
-    await flushPromises()
-    await clickTab(wrapper, EXPLORE_TABS.TRAININGS)
-
-    await wrapper
-      .find('.poster-card-stub[data-title="HIIT 20"] .poster-card-stub__favorite')
-      .trigger('click')
-
-    expect(favoritesStore.toggleTrainingFavorite).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 't1' }),
-    )
-  })
-
   it('muestra el estado de carga mientras se cargan los datos', async () => {
     const { wrapper } = await mountViewAsync({ loading: true })
 
-    expect(wrapper.find('.q-spinner-stub').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="explore-loading"]').exists()).toBe(true)
   })
 
   it('muestra el estado de error cuando falla la carga de programas', () => {
@@ -388,30 +335,32 @@ describe('ExploreView', () => {
     expect(wrapper.find('[data-testid="error-retry-button"]').exists()).toBe(true)
   })
 
-  it('muestra el estado de error cuando falla la carga de entrenamientos', () => {
+  it('muestra el estado de error cuando falla la carga de benchmarks', () => {
     const { wrapper } = mountView({
-      trainings: { error: 'Error al cargar entrenamientos' },
+      benchmarks: { error: 'Error al cargar benchmarks' },
     })
 
-    expect(wrapper.text()).toContain('Error al cargar entrenamientos')
+    expect(wrapper.text()).toContain('Error al cargar benchmarks')
     expect(wrapper.find('[data-testid="error-retry-button"]').exists()).toBe(true)
   })
 
   it('recarga los datos al pulsar el botón de reintentar', async () => {
-    const { wrapper, programsStore } = mountView({
+    const { wrapper, programsStore, benchmarksStore, favoritesStore } = mountView({
       programs: { error: 'Error al cargar programas' },
     })
 
     await wrapper.find('[data-testid="error-retry-button"]').trigger('click')
 
     expect(programsStore.fetchPrograms).toHaveBeenCalledTimes(2)
+    expect(benchmarksStore.fetchBenchmarks).toHaveBeenCalledTimes(2)
+    expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(2)
   })
 
-  it('carga programas, entrenamientos y favoritos al montar', () => {
-    const { programsStore, trainingsStore, favoritesStore } = mountView()
+  it('carga programas, benchmarks y favoritos al montar', () => {
+    const { programsStore, benchmarksStore, favoritesStore } = mountView()
 
     expect(programsStore.fetchPrograms).toHaveBeenCalledTimes(1)
-    expect(trainingsStore.fetchPublicTrainings).toHaveBeenCalledTimes(1)
+    expect(benchmarksStore.fetchBenchmarks).toHaveBeenCalledTimes(1)
     expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(1)
   })
 })

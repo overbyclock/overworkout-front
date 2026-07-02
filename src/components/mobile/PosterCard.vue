@@ -63,7 +63,7 @@ const props = defineProps({
   type: {
     type: String,
     required: true,
-    validator: (value) => ['program', 'training'].includes(value),
+    validator: (value) => ['program', 'training', 'benchmark'].includes(value),
   },
   level: {
     type: String,
@@ -97,7 +97,14 @@ const props = defineProps({
 
 const emit = defineEmits(['click', 'toggle-favorite'])
 
-const typeLabel = computed(() => (props.type === 'program' ? 'Programa' : 'Entreno'))
+const typeLabel = computed(() => {
+  const labels = {
+    program: 'Programa',
+    training: 'Entreno',
+    benchmark: 'Benchmark',
+  }
+  return labels[props.type] || 'Entreno'
+})
 
 const disciplineIcon = computed(() => getDisciplineIcon(props.item.discipline))
 
@@ -209,6 +216,11 @@ const metaLine = computed(() => {
 }
 
 .poster-card__badge--training {
+  background-color: var(--color-accent);
+  color: var(--surface-primary, #000);
+}
+
+.poster-card__badge--benchmark {
   background-color: var(--color-accent);
   color: var(--surface-primary, #000);
 }

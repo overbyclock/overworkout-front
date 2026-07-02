@@ -1,24 +1,11 @@
 <template>
-  <div class="mobile-view mobile-view--no-nav explore-view">
+  <div class="mobile-view explore-view">
     <header class="explore-view__header">
       <h1 class="explore-view__title">Explorar</h1>
       <p class="explore-view__subtitle">Programas y entrenamientos</p>
     </header>
 
     <div class="mobile-container">
-      <q-tabs
-        v-model="activeTab"
-        class="explore-tabs"
-        active-color="primary"
-        indicator-color="primary"
-        align="justify"
-        narrow-indicator
-        no-caps
-      >
-        <q-tab :name="EXPLORE_TABS.PROGRAMS" label="Programas" />
-        <q-tab :name="EXPLORE_TABS.TRAININGS" label="Entrenamientos" />
-      </q-tabs>
-
       <div v-if="showOnboardingBanner" class="explore-banner" data-testid="onboarding-banner">
         <div class="explore-banner__content">
           <q-icon name="help_outline" size="24px" aria-hidden="true" />
@@ -55,28 +42,8 @@
       </section>
 
       <template v-else>
-        <div v-if="activeTab === EXPLORE_TABS.PROGRAMS" class="explore-tab-panel">
-          <HorizontalCarousel
-            v-if="recommendedProgram"
-            title="Recomendado para ti"
-            :items="[recommendedProgram]"
-            loop
-          >
-            <template #item="{ item }">
-              <PosterCard
-                :item="item"
-                type="program"
-                :level="getLevelLabel(item.difficulty)"
-                :levels="item.levelCount ? `${item.levelCount} niveles` : ''"
-                :duration="item.totalPhases ? `${item.totalPhases} fases` : ''"
-                :extra="item.totalSessions ? `${item.totalSessions} sesiones` : ''"
-                show-favorite
-                :is-favorite="favoritesStore.isProgramFavorite(item.id)"
-                @click="handleProgramClick(item)"
-                @toggle-favorite="favoritesStore.toggleProgramFavorite(item)"
-              />
-            </template>
-          </HorizontalCarousel>
+        <section class="explore-section">
+          <h2 class="explore-section__title">Programas</h2>
 
           <HorizontalCarousel
             v-for="[discipline, items] in orderedProgramDisciplines"
@@ -105,35 +72,35 @@
             <q-icon name="school" size="48px" color="muted" aria-hidden="true" />
             <p class="mobile-body-sm">No hay programas disponibles</p>
           </div>
-        </div>
+        </section>
 
-        <div v-if="activeTab === EXPLORE_TABS.TRAININGS" class="explore-tab-panel">
+        <section class="explore-section">
+          <h2 class="explore-section__title">Benchmarks</h2>
+
           <HorizontalCarousel
-            v-for="[discipline, items] in orderedTrainingDisciplines"
-            :key="discipline"
-            :title="getDisciplineLabel(discipline)"
+            v-for="[type, items] in orderedBenchmarkTypes"
+            :key="type"
+            :title="getBenchmarkTypeLabel(type)"
             :items="items"
+            loop
           >
             <template #item="{ item }">
               <PosterCard
                 :item="item"
-                type="training"
-                :level="item.sessionType || item.target || ''"
+                type="benchmark"
+                :level="getBenchmarkFormatLabel(item.format)"
                 :duration="item.rounds ? `${item.rounds} rounds` : ''"
-                :extra="''"
-                show-favorite
-                :is-favorite="favoritesStore.isTrainingFavorite(item.id)"
-                @click="handleTrainingClick(item)"
-                @toggle-favorite="favoritesStore.toggleTrainingFavorite(item)"
+                :extra="item.timeCapSeconds ? `${formatDuration(item.timeCapSeconds)}` : ''"
+                @click="handleBenchmarkClick(item)"
               />
             </template>
           </HorizontalCarousel>
 
-          <div v-if="trainingsStore.isEmpty" class="explore-state">
-            <q-icon name="fitness_center" size="48px" color="muted" aria-hidden="true" />
-            <p class="mobile-body-sm">No hay entrenamientos disponibles</p>
+          <div v-if="benchmarksStore.isEmpty" class="explore-state">
+            <q-icon name="timer" size="48px" color="muted" aria-hidden="true" />
+            <p class="mobile-body-sm">No hay benchmarks disponibles</p>
           </div>
-        </div>
+        </section>
       </template>
     </div>
   </div>
@@ -146,46 +113,44 @@ import { useQuasar } from 'quasar'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
 import PosterCard from '@/components/mobile/PosterCard.vue'
 import { useProgramsStore } from '@/stores/programs'
-import { useTrainingsStore } from '@/stores/trainings'
+import { useBenchmarksStore } from '@/stores/benchmarks'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
 import { DISCIPLINE_LABELS, getDisciplineLabel } from '@/constants/disciplines'
 import { getLevelLabel } from '@/constants/levels'
-import { EXPLORE_ROUTES, EXPLORE_TABS } from '@/constants/explore'
+import { EXPLORE_ROUTES } from '@/constants/explore'
 
 const router = useRouter()
 const $q = useQuasar()
 
 const programsStore = useProgramsStore()
-const trainingsStore = useTrainingsStore()
+const benchmarksStore = useBenchmarksStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
 
-const activeTab = ref(EXPLORE_TABS.PROGRAMS)
 const loading = ref(false)
 
-/**
- * Indica si el usuario aún no ha completado el onboarding.
- * Se muestra el banner cuando falta el objetivo o el nivel estimado.
- */
+const BENCHMARK_TYPE_LABELS = {
+  hero: 'Hero WODs',
+  girl: 'Girl WODs',
+  benchmark: 'Benchmarks',
+}
+
+const BENCHMARK_FORMAT_LABELS = {
+  for_time: 'For time',
+  amrap: 'AMRAP',
+  emom: 'EMOM',
+  tabata: 'Tabata',
+  chipper: 'Chipper',
+  ladder: 'Ladder',
+  interval_stations: 'Interval',
+}
+
 const showOnboardingBanner = computed(() => {
   const user = authStore.user
   return !user?.trainingGoal || !user?.estimatedLevel
 })
 
-/**
- * Programa destacado en la sección "Recomendado para ti".
- * Se usa el primer programa disponible como recomendación por defecto.
- */
-const recommendedProgram = computed(() => {
-  return programsStore.programs[0] || null
-})
-
-/**
- * Agrupa una lista de items por disciplina manteniendo un orden estable.
- * Se usa 'general' como clave por defecto para alinearlo con el getter
- * programsByDiscipline del store de programas.
- */
 const groupItemsByDiscipline = (items) => {
   const grouped = {}
 
@@ -197,7 +162,6 @@ const groupItemsByDiscipline = (items) => {
     grouped[discipline].push(item)
   })
 
-  // Orden de disciplinas según las constantes del proyecto
   const orderedKeys = Object.keys(DISCIPLINE_LABELS).filter((key) => grouped[key])
 
   return orderedKeys.map((key) => [key, grouped[key]])
@@ -207,27 +171,42 @@ const orderedProgramDisciplines = computed(() => {
   return groupItemsByDiscipline(programsStore.programs)
 })
 
-const orderedTrainingDisciplines = computed(() => {
-  return groupItemsByDiscipline(trainingsStore.trainings)
+const orderedBenchmarkTypes = computed(() => {
+  const grouped = benchmarksStore.benchmarksByType
+  const orderedKeys = Object.keys(BENCHMARK_TYPE_LABELS).filter((key) => grouped[key])
+  const remainingKeys = Object.keys(grouped).filter((key) => !BENCHMARK_TYPE_LABELS[key])
+  return [...orderedKeys, ...remainingKeys].map((key) => [key, grouped[key]])
 })
 
-const hasError = computed(() => programsStore.error || trainingsStore.error)
+const hasError = computed(() => programsStore.error || benchmarksStore.error)
 
 const errorMessage = computed(
-  () => programsStore.error || trainingsStore.error || 'Error al cargar el contenido',
+  () => programsStore.error || benchmarksStore.error || 'Error al cargar el contenido',
 )
 
-/**
- * Carga programas, entrenamientos, favoritos y progreso en paralelo.
- * Cada store gestiona su propio estado de error para no bloquear la UI.
- */
+const getBenchmarkTypeLabel = (type) => {
+  return (
+    BENCHMARK_TYPE_LABELS[type] ||
+    (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Benchmarks')
+  )
+}
+
+const getBenchmarkFormatLabel = (format) => {
+  return BENCHMARK_FORMAT_LABELS[format] || format || ''
+}
+
+const formatDuration = (seconds) => {
+  const minutes = Math.floor(seconds / 60)
+  return minutes > 0 ? `${minutes} min` : `${seconds} s`
+}
+
 const loadData = async () => {
   loading.value = true
 
   try {
     await Promise.all([
       programsStore.fetchPrograms(),
-      trainingsStore.fetchPublicTrainings(),
+      benchmarksStore.fetchBenchmarks(),
       favoritesStore.loadFavorites(),
     ])
   } catch {
@@ -237,17 +216,10 @@ const loadData = async () => {
   }
 }
 
-/**
- * Navega al flujo de onboarding para que el usuario complete su perfil.
- */
 const goToOnboarding = () => {
   router.push({ name: EXPLORE_ROUTES.WELCOME })
 }
 
-/**
- * Maneja el click en una tarjeta de programa.
- * Navega a la vista de detalle del programa.
- */
 const handleProgramClick = (program) => {
   router.push({
     name: 'user-program-detail',
@@ -255,13 +227,9 @@ const handleProgramClick = (program) => {
   })
 }
 
-/**
- * Maneja el click en una tarjeta de entrenamiento.
- * La vista detallada aún no está construida, por lo que se muestra una notificación.
- */
-const handleTrainingClick = () => {
+const handleBenchmarkClick = () => {
   $q.notify({
-    message: 'La vista detallada de entrenamientos estará disponible pronto',
+    message: 'La vista detallada de benchmarks estará disponible pronto',
     color: 'info',
   })
 }
@@ -293,13 +261,17 @@ onMounted(loadData)
   margin: 0;
 }
 
-.explore-tabs {
-  background-color: transparent;
+.explore-section {
+  margin-bottom: var(--space-8);
 }
 
-.explore-tabs :deep(.q-tab__label) {
-  font-weight: var(--font-semibold);
-  text-transform: none;
+.explore-section__title {
+  font-size: var(--font-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  padding: 0 var(--space-5);
+  line-height: var(--leading-tight);
 }
 
 .explore-banner {
@@ -341,10 +313,6 @@ onMounted(loadData)
 .explore-banner__cta {
   width: 100%;
   min-height: var(--space-12);
-}
-
-.explore-tab-panel {
-  padding: var(--space-4) 0;
 }
 
 .explore-state {
