@@ -58,6 +58,7 @@
               :item="item.item"
               :type="item.type"
               :level="item.level"
+              :levels="item.levels"
               :duration="item.duration"
               :extra="item.extra"
               :progress="item.progress"
@@ -79,6 +80,7 @@
               :item="item.item"
               :type="item.type"
               :level="item.level"
+              :levels="item.levels"
               :duration="item.duration"
               :extra="item.extra"
               show-favorite
@@ -173,6 +175,7 @@ const activeProgramCards = computed(() => {
     type: 'program',
     item: program,
     level: getLevelLabel(program.difficulty),
+    levels: program.levelCount ? `${program.levelCount} niveles` : '',
     duration: program.totalPhases ? `${program.totalPhases} fases` : '',
     extra: program.totalSessions ? `${program.totalSessions} sesiones` : '',
     progress: program.progress?.percentage ?? null,
@@ -186,6 +189,9 @@ const favoriteCards = computed(() => {
     type: 'program',
     item: favorite.trainingProgram,
     level: getLevelLabel(favorite.trainingProgram.difficulty),
+    levels: favorite.trainingProgram.levelCount
+      ? `${favorite.trainingProgram.levelCount} niveles`
+      : '',
     duration: favorite.trainingProgram.totalPhases
       ? `${favorite.trainingProgram.totalPhases} fases`
       : '',

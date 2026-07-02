@@ -92,7 +92,16 @@ describe('ExploreView', () => {
             `,
           },
           PosterCard: {
-            props: ['item', 'type', 'level', 'duration', 'extra', 'isFavorite', 'showFavorite'],
+            props: [
+              'item',
+              'type',
+              'level',
+              'levels',
+              'duration',
+              'extra',
+              'isFavorite',
+              'showFavorite',
+            ],
             emits: ['click', 'toggle-favorite'],
             template: `
               <article
@@ -100,6 +109,7 @@ describe('ExploreView', () => {
                 :data-title="item.name"
                 :data-type="type"
                 :data-level="level"
+                :data-levels="levels"
                 :data-duration="duration"
                 :data-extra="extra"
                 :data-is-favorite="isFavorite"

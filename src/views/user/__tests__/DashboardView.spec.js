@@ -111,6 +111,7 @@ describe('DashboardView', () => {
               'item',
               'type',
               'level',
+              'levels',
               'duration',
               'extra',
               'progress',
@@ -124,6 +125,7 @@ describe('DashboardView', () => {
                 :data-item="JSON.stringify(item)"
                 :data-type="type"
                 :data-level="level"
+                :data-levels="levels"
                 :data-duration="duration"
                 :data-extra="extra"
                 :data-progress="progress"
@@ -268,6 +270,7 @@ describe('DashboardView', () => {
             description: 'Domina tu peso corporal',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
+            levelCount: 3,
             totalPhases: 8,
             totalSessions: 4,
             progress: { percentage: 35 },
@@ -282,6 +285,7 @@ describe('DashboardView', () => {
     const card = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(card.exists()).toBe(true)
     expect(card.attributes('data-level')).toBe('Intermedio')
+    expect(card.attributes('data-levels')).toBe('3 niveles')
     expect(card.attributes('data-duration')).toBe('8 fases')
     expect(card.attributes('data-extra')).toBe('4 sesiones')
     expect(card.attributes('data-progress')).toBe('35')
@@ -316,6 +320,7 @@ describe('DashboardView', () => {
               description: 'Programa inicial',
               discipline: 'fitness',
               difficulty: 'beginner',
+              levelCount: 2,
               totalPhases: 4,
               totalSessions: 2,
             },
@@ -345,6 +350,7 @@ describe('DashboardView', () => {
     const programCard = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(programCard.exists()).toBe(true)
     expect(programCard.attributes('data-level')).toBe('Principiante')
+    expect(programCard.attributes('data-levels')).toBe('2 niveles')
     expect(programCard.attributes('data-duration')).toBe('4 fases')
     expect(programCard.attributes('data-extra')).toBe('2 sesiones')
     expect(programCard.attributes('data-show-favorite')).toBeDefined()

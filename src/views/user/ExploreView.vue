@@ -66,6 +66,7 @@
                 :item="item"
                 type="program"
                 :level="getLevelLabel(item.difficulty)"
+                :levels="item.levelCount ? `${item.levelCount} niveles` : ''"
                 :duration="item.totalPhases ? `${item.totalPhases} fases` : ''"
                 :extra="item.totalSessions ? `${item.totalSessions} sesiones` : ''"
                 show-favorite
@@ -87,6 +88,7 @@
                 :item="item"
                 type="program"
                 :level="getLevelLabel(item.difficulty)"
+                :levels="item.levelCount ? `${item.levelCount} niveles` : ''"
                 :duration="item.totalPhases ? `${item.totalPhases} fases` : ''"
                 :extra="item.totalSessions ? `${item.totalSessions} sesiones` : ''"
                 show-favorite

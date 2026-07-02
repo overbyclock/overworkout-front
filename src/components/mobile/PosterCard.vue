@@ -69,6 +69,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  levels: {
+    type: String,
+    default: '',
+  },
   duration: {
     type: String,
     default: '',
@@ -116,7 +120,7 @@ const cardStyle = computed(() => {
 const clampedProgress = computed(() => Math.min(100, Math.max(0, props.progress ?? 0)))
 
 const metaLine = computed(() => {
-  const parts = [props.level, props.duration, props.extra].filter(Boolean)
+  const parts = [props.level, props.levels, props.duration, props.extra].filter(Boolean)
   return parts.join(' · ')
 })
 </script>

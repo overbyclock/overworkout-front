@@ -27,15 +27,17 @@ describe('PosterCard', () => {
       item: baseProgram,
       type: 'program',
       level: 'Principiante',
-      duration: '12 semanas',
-      extra: '12 niveles',
+      levels: '4 niveles',
+      duration: '8 fases',
+      extra: '12 sesiones',
     })
 
     expect(wrapper.text()).toContain('Programa')
     expect(wrapper.text()).toContain('Calistenia Básica')
     expect(wrapper.text()).toContain('Principiante')
-    expect(wrapper.text()).toContain('12 semanas')
-    expect(wrapper.text()).toContain('12 niveles')
+    expect(wrapper.text()).toContain('4 niveles')
+    expect(wrapper.text()).toContain('8 fases')
+    expect(wrapper.text()).toContain('12 sesiones')
   })
 
   it('renders training badge correctly', () => {
@@ -135,12 +137,13 @@ describe('PosterCard', () => {
       item: baseProgram,
       type: 'program',
       level: 'Principiante',
-      duration: '',
-      extra: '12 niveles',
+      levels: '4 niveles',
+      duration: '8 fases',
+      extra: '',
     })
 
     const meta = wrapper.find('.poster-card__meta')
-    expect(meta.text()).toBe('Principiante · 12 niveles')
+    expect(meta.text()).toBe('Principiante · 4 niveles · 8 fases')
   })
 
   it('uses gradient background by default', () => {
