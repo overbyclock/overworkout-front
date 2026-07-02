@@ -9,7 +9,6 @@ import MobileBottomNav from '../MobileBottomNav.vue'
 describe('MobileBottomNav', () => {
   const routes = [
     { path: '/user/home', name: 'user-home', component: { template: '<div />' } },
-    { path: '/user/programs', name: 'user-programs', component: { template: '<div />' } },
     { path: '/user/explore', name: 'user-explore', component: { template: '<div />' } },
     { path: '/user/achievements', name: 'user-achievements', component: { template: '<div />' } },
     { path: '/user/profile', name: 'user-profile', component: { template: '<div />' } },
@@ -40,10 +39,10 @@ describe('MobileBottomNav', () => {
     expect(MobileBottomNav).toBeDefined()
   })
 
-  it('renders 5 router-link navigation items', async () => {
+  it('renders 4 router-link navigation items', async () => {
     const wrapper = await createWrapper()
     const links = wrapper.findAllComponents(RouterLink)
-    expect(links).toHaveLength(5)
+    expect(links).toHaveLength(4)
   })
 
   it('renders expected navigation items with correct labels, icons and routes', async () => {
@@ -52,7 +51,6 @@ describe('MobileBottomNav', () => {
 
     const expectedItems = [
       { label: 'Inicio', icon: 'home', to: { name: 'user-home' } },
-      { label: 'Programas', icon: 'fitness_center', to: { name: 'user-programs' } },
       { label: 'Explorar', icon: 'explore', to: { name: 'user-explore' } },
       { label: 'Logros', icon: 'emoji_events', to: { name: 'user-achievements' } },
       { label: 'Perfil', icon: 'person', to: { name: 'user-profile' } },
@@ -66,6 +64,15 @@ describe('MobileBottomNav', () => {
       expect(link.props('to')).toEqual(expected.to)
       expect(link.find('.q-icon-stub').text()).toBe(expected.icon)
     })
+  })
+
+  it('does not render Programs tab', async () => {
+    const wrapper = await createWrapper()
+    expect(wrapper.text()).not.toContain('Programas')
+    expect(wrapper.text()).toContain('Inicio')
+    expect(wrapper.text()).toContain('Explorar')
+    expect(wrapper.text()).toContain('Logros')
+    expect(wrapper.text()).toContain('Perfil')
   })
 
   it('marks active item based on current route', async () => {

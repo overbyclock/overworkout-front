@@ -25,12 +25,6 @@ const route = useRoute()
 const navItems = [
   { name: 'home', to: { name: 'user-home' }, icon: 'home', label: 'Inicio' },
   {
-    name: 'programs',
-    to: { name: 'user-programs' },
-    icon: 'fitness_center',
-    label: 'Programas',
-  },
-  {
     name: 'explore',
     to: { name: 'user-explore' },
     icon: 'explore',
