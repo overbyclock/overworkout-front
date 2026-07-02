@@ -542,15 +542,16 @@ describe('DashboardView', () => {
     expect(wrapper.find('[data-title="Tus favoritos"]').exists()).toBe(true)
   })
 
-  it('muestra estado vacío de programas y favoritos cuando no hay programa activo ni favoritos', () => {
+  it('muestra un único estado vacío cuando no hay programa activo ni favoritos', () => {
     const { wrapper } = mountView({
       userProfile: { hasActiveProgram: false, activePrograms: [] },
       favorites: { programFavorites: [], trainingFavorites: [] },
     })
 
-    expect(wrapper.text()).toContain('Tus programas y favoritos')
-    expect(wrapper.text()).toContain('Aquí aparecerán los programas en los que estés inscrito')
-    expect(wrapper.text()).toContain('Explorar contenido')
+    expect(wrapper.findAll('.empty-state')).toHaveLength(1)
+    expect(wrapper.text()).toContain('Aún no tienes un programa')
+    expect(wrapper.text()).toContain('Explorar programas')
+    expect(wrapper.text()).toContain('Hacer cuestionario')
   })
 
   it('carga progreso, favoritos y estadísticas en paralelo al montar', async () => {

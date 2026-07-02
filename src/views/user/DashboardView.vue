@@ -23,7 +23,7 @@
       </section>
     </template>
 
-    <template v-else>
+    <template v-else-if="!hasProgramsOrFavorites">
       <div class="dashboard-view__empty empty-state">
         <div class="empty-state__icon">
           <q-icon name="fitness_center" size="64px" />
@@ -91,32 +91,6 @@
           </template>
         </HorizontalCarousel>
       </section>
-    </template>
-
-    <template v-else-if="!userProfileStore.hasActiveProgram">
-      <div class="dashboard-view__empty empty-state">
-        <div class="empty-state__icon">
-          <q-icon name="favorite_border" size="64px" />
-        </div>
-        <h2 class="empty-state__title">Tus programas y favoritos</h2>
-        <p class="empty-state__text">
-          Aquí aparecerán los programas en los que estés inscrito y los entrenamientos que guardes.
-        </p>
-        <button
-          type="button"
-          class="empty-state__cta btn-mobile btn-mobile--large btn-mobile--primary"
-          @click="navigateToExplore"
-        >
-          Explorar contenido
-        </button>
-        <button
-          type="button"
-          class="empty-state__cta btn-mobile btn-mobile--ghost"
-          @click="goToWelcome"
-        >
-          Hacer cuestionario
-        </button>
-      </div>
     </template>
   </div>
 </template>
