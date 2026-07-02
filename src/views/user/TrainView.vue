@@ -259,8 +259,16 @@ const fetchTraining = async () => {
   }
 }
 
-onMounted(() => {
-  fetchTraining()
+onMounted(async () => {
+  await fetchTraining()
+
+  if (training.value?.id) {
+    try {
+      await trainingService.start(training.value.id)
+    } catch (err) {
+      console.error('Error iniciando sesión:', err)
+    }
+  }
 })
 
 const startTraining = () => {
@@ -316,11 +324,20 @@ const openGuide = () => {
   }
 }
 
-const finishTraining = () => {
+const finishTraining = async () => {
   clearInterval(mainTimer)
   mainTimer = null
   clearInterval(exerciseTimerInterval)
   exerciseTimerInterval = null
+
+  if (training.value?.id) {
+    try {
+      await trainingService.complete(training.value.id, { durationSeconds: elapsedTime.value })
+    } catch (err) {
+      console.error('Error completando sesión:', err)
+    }
+  }
+
   router.push({ name: 'user-home' })
 }
 
