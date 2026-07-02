@@ -268,8 +268,8 @@ describe('DashboardView', () => {
             description: 'Domina tu peso corporal',
             discipline: 'calisthenics',
             difficulty: 'intermediate',
-            estimatedDurationWeeks: 8,
-            totalLevels: 4,
+            totalPhases: 8,
+            totalSessions: 4,
             progress: { percentage: 35 },
           },
         ],
@@ -282,8 +282,8 @@ describe('DashboardView', () => {
     const card = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(card.exists()).toBe(true)
     expect(card.attributes('data-level')).toBe('Intermedio')
-    expect(card.attributes('data-duration')).toBe('8 semanas')
-    expect(card.attributes('data-extra')).toBe('4 niveles')
+    expect(card.attributes('data-duration')).toBe('8 fases')
+    expect(card.attributes('data-extra')).toBe('4 sesiones')
     expect(card.attributes('data-progress')).toBe('35')
   })
 
@@ -316,8 +316,8 @@ describe('DashboardView', () => {
               description: 'Programa inicial',
               discipline: 'fitness',
               difficulty: 'beginner',
-              estimatedDurationWeeks: 4,
-              totalLevels: 2,
+              totalPhases: 4,
+              totalSessions: 2,
             },
           },
         ],
@@ -345,16 +345,16 @@ describe('DashboardView', () => {
     const programCard = wrapper.find('.poster-card-stub[data-type="program"]')
     expect(programCard.exists()).toBe(true)
     expect(programCard.attributes('data-level')).toBe('Principiante')
-    expect(programCard.attributes('data-duration')).toBe('4 semanas')
-    expect(programCard.attributes('data-extra')).toBe('2 niveles')
+    expect(programCard.attributes('data-duration')).toBe('4 fases')
+    expect(programCard.attributes('data-extra')).toBe('2 sesiones')
     expect(programCard.attributes('data-show-favorite')).toBeDefined()
     expect(programCard.attributes('data-is-favorite')).toBeDefined()
 
     const trainingCard = wrapper.find('.poster-card-stub[data-type="training"]')
     expect(trainingCard.exists()).toBe(true)
     expect(trainingCard.attributes('data-level')).toBe('HIIT')
-    expect(trainingCard.attributes('data-duration')).toBe('15-25 min')
-    expect(trainingCard.attributes('data-extra')).toBe('5 rounds')
+    expect(trainingCard.attributes('data-duration')).toBe('5 rounds')
+    expect(trainingCard.attributes('data-extra')).toBe('')
   })
 
   it('muestra el enlace "Ver todos" en el carrusel de favoritos y navega correctamente', async () => {
@@ -512,8 +512,8 @@ describe('DashboardView', () => {
             id: 'p1',
             name: 'Calistenia Master',
             difficulty: 'intermediate',
-            estimatedDurationWeeks: 8,
-            totalLevels: 4,
+            totalPhases: 8,
+            totalSessions: 4,
           },
         ],
       },

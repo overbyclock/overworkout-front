@@ -66,10 +66,8 @@
                 :item="item"
                 type="program"
                 :level="getLevelLabel(item.difficulty)"
-                :duration="
-                  item.estimatedDurationWeeks ? `${item.estimatedDurationWeeks} semanas` : ''
-                "
-                :extra="item.totalLevels ? `${item.totalLevels} niveles` : ''"
+                :duration="item.totalPhases ? `${item.totalPhases} fases` : ''"
+                :extra="item.totalSessions ? `${item.totalSessions} sesiones` : ''"
                 show-favorite
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
@@ -89,10 +87,8 @@
                 :item="item"
                 type="program"
                 :level="getLevelLabel(item.difficulty)"
-                :duration="
-                  item.estimatedDurationWeeks ? `${item.estimatedDurationWeeks} semanas` : ''
-                "
-                :extra="item.totalLevels ? `${item.totalLevels} niveles` : ''"
+                :duration="item.totalPhases ? `${item.totalPhases} fases` : ''"
+                :extra="item.totalSessions ? `${item.totalSessions} sesiones` : ''"
                 show-favorite
                 :is-favorite="favoritesStore.isProgramFavorite(item.id)"
                 @click="handleProgramClick(item)"
@@ -119,12 +115,8 @@
                 :item="item"
                 type="training"
                 :level="item.sessionType || item.target || ''"
-                :duration="
-                  item.estimatedDurationMin && item.estimatedDurationMax
-                    ? `${item.estimatedDurationMin}-${item.estimatedDurationMax} min`
-                    : ''
-                "
-                :extra="item.rounds ? `${item.rounds} rounds` : ''"
+                :duration="item.rounds ? `${item.rounds} rounds` : ''"
+                :extra="''"
                 show-favorite
                 :is-favorite="favoritesStore.isTrainingFavorite(item.id)"
                 @click="handleTrainingClick(item)"

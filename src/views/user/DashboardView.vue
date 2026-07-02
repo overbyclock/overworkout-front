@@ -173,8 +173,8 @@ const activeProgramCards = computed(() => {
     type: 'program',
     item: program,
     level: getLevelLabel(program.difficulty),
-    duration: program.estimatedDurationWeeks ? `${program.estimatedDurationWeeks} semanas` : '',
-    extra: program.totalLevels ? `${program.totalLevels} niveles` : '',
+    duration: program.totalPhases ? `${program.totalPhases} fases` : '',
+    extra: program.totalSessions ? `${program.totalSessions} sesiones` : '',
     progress: program.progress?.percentage ?? null,
     raw: program,
   }))
@@ -186,11 +186,11 @@ const favoriteCards = computed(() => {
     type: 'program',
     item: favorite.trainingProgram,
     level: getLevelLabel(favorite.trainingProgram.difficulty),
-    duration: favorite.trainingProgram.estimatedDurationWeeks
-      ? `${favorite.trainingProgram.estimatedDurationWeeks} semanas`
+    duration: favorite.trainingProgram.totalPhases
+      ? `${favorite.trainingProgram.totalPhases} fases`
       : '',
-    extra: favorite.trainingProgram.totalLevels
-      ? `${favorite.trainingProgram.totalLevels} niveles`
+    extra: favorite.trainingProgram.totalSessions
+      ? `${favorite.trainingProgram.totalSessions} sesiones`
       : '',
     showFavorite: true,
     isFavorite: true,
@@ -202,11 +202,8 @@ const favoriteCards = computed(() => {
     type: 'training',
     item: favorite.training,
     level: favorite.training.sessionType || favorite.training.target || '',
-    duration:
-      favorite.training.estimatedDurationMin && favorite.training.estimatedDurationMax
-        ? `${favorite.training.estimatedDurationMin}-${favorite.training.estimatedDurationMax} min`
-        : '',
-    extra: favorite.training.rounds ? `${favorite.training.rounds} rounds` : '',
+    duration: favorite.training.rounds ? `${favorite.training.rounds} rounds` : '',
+    extra: '',
     showFavorite: true,
     isFavorite: true,
     raw: favorite.training,
