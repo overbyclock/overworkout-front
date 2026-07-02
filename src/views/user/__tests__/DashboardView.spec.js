@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { setActivePinia } from 'pinia'
 import { useRouter } from 'vue-router'
@@ -8,6 +8,7 @@ import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStatsStore } from '@/stores/userStats'
+import { userProfileService } from '@/services/userProfile'
 
 const mockPush = vi.fn()
 
@@ -148,6 +149,7 @@ describe('DashboardView', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 5, 25))
     mockPush.mockClear()
+    vi.spyOn(userProfileService, 'getNextTraining').mockResolvedValue(null)
   })
 
   afterEach(() => {
@@ -257,6 +259,43 @@ describe('DashboardView', () => {
 
     expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
     expect(mockPush).toHaveBeenCalledWith({ name: 'user-program' })
+  })
+
+  it('muestra ContinueCard con el siguiente entrenamiento cuando existe nextSession', async () => {
+    userProfileService.getNextTraining.mockResolvedValue({
+      type: 'next',
+      training: { id: 't1', name: 'HIIT 20 min' },
+    })
+
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false },
+    })
+
+    await flushPromises()
+
+    const continueCard = wrapper.find('.continue-card-stub')
+    expect(continueCard.exists()).toBe(true)
+    expect(continueCard.attributes('data-title')).toBe('HIIT 20 min')
+    expect(continueCard.attributes('data-subtitle')).toBe('Siguiente sesión')
+  })
+
+  it('navega a user-train al continuar desde nextSession', async () => {
+    userProfileService.getNextTraining.mockResolvedValue({
+      type: 'continue',
+      training: { id: 't2', name: 'Fuerza empuje' },
+    })
+
+    const { wrapper } = mountView({
+      userProfile: { hasActiveProgram: false },
+    })
+
+    await flushPromises()
+    await wrapper.find('.continue-card-stub').trigger('click')
+
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'user-train',
+      params: { sessionId: 't2' },
+    })
   })
 
   it('muestra el carrusel de programas activos con las tarjetas correctas', () => {

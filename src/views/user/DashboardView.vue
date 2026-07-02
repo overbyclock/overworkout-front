@@ -13,11 +13,11 @@
       />
     </section>
 
-    <template v-if="userProfileStore.hasActiveProgram">
+    <template v-if="nextSession || userProfileStore.hasActiveProgram">
       <section class="dashboard-view__section">
         <ContinueCard
-          :title="userProfileStore.currentProgram.name"
-          :subtitle="continueSubtitle"
+          :title="continueCardTitle"
+          :subtitle="continueCardSubtitle"
           @continue="handleContinue"
         />
       </section>
@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HorizontalCarousel from '@/components/mobile/HorizontalCarousel.vue'
 import DailyStats from '@/components/mobile/DailyStats.vue'
@@ -106,6 +106,7 @@ import { useUserProfileStore } from '@/stores/userProfile'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStatsStore } from '@/stores/userStats'
+import { userProfileService } from '@/services/userProfile'
 import { getLevelLabel } from '@/constants/levels'
 
 const router = useRouter()
@@ -113,6 +114,8 @@ const userProfileStore = useUserProfileStore()
 const favoritesStore = useFavoritesStore()
 const authStore = useAuthStore()
 const userStatsStore = useUserStatsStore()
+
+const nextSession = ref(null)
 
 const greeting = computed(() => {
   const name = authStore.user?.nick || 'atleta'
@@ -132,14 +135,29 @@ const todayDate = computed(() => {
     .replace(/\s+/g, ' ')
 })
 
-const continueSubtitle = computed(() => {
-  const program = userProfileStore.currentProgram
-  const level = userProfileStore.currentLevel
+const continueCardTitle = computed(() => {
+  if (nextSession.value?.training?.name) {
+    return nextSession.value.training.name
+  }
 
+  return userProfileStore.currentProgram?.name || ''
+})
+
+const continueCardSubtitle = computed(() => {
+  if (nextSession.value?.type === 'continue') {
+    return 'Continúa donde lo dejaste'
+  }
+
+  if (nextSession.value?.type === 'next') {
+    return 'Siguiente sesión'
+  }
+
+  const level = userProfileStore.currentLevel
   if (level?.name) {
     return level.name
   }
 
+  const program = userProfileStore.currentProgram
   return program?.difficulty ? getLevelLabel(program.difficulty) : ''
 })
 
@@ -196,12 +214,21 @@ const hasProgramsOrFavorites = computed(
   () => activeProgramCards.value.length > 0 || favoriteCards.value.length > 0,
 )
 
+const loadNextSession = async () => {
+  try {
+    nextSession.value = await userProfileService.getNextTraining()
+  } catch {
+    nextSession.value = null
+  }
+}
+
 onMounted(async () => {
   try {
     await Promise.all([
       userProfileStore.fetchActiveProgress(),
       favoritesStore.loadFavorites(),
       userStatsStore.fetchDashboardStats(),
+      loadNextSession(),
     ])
   } catch {
     // Los stores ya gestionan su propio estado de error; no hacemos nada aquí para no bloquear la UI.
@@ -239,6 +266,14 @@ const toggleFavoriteCard = (card) => {
 }
 
 const handleContinue = () => {
+  if (nextSession.value?.training?.id) {
+    router.push({
+      name: 'user-train',
+      params: { sessionId: nextSession.value.training.id },
+    })
+    return
+  }
+
   const program = userProfileStore.currentProgram
   if (program) {
     openActiveProgram(program)
