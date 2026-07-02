@@ -255,8 +255,8 @@ describe('ExploreView', () => {
     expect(wrapper.find('[data-title="CrossFit"]').exists()).toBe(true)
   })
 
-  it('navega a user-program al pulsar un programa activo', async () => {
-    const { wrapper, userProfileStore } = mountView({
+  it('navega a user-program-detail al pulsar un programa', async () => {
+    const { wrapper } = mountView({
       programs: {
         programs: [
           {
@@ -267,42 +267,16 @@ describe('ExploreView', () => {
           },
         ],
       },
-      userProfile: {
-        activePrograms: [{ id: 'p1', name: 'Calistenia Master' }],
-      },
     })
 
     await wrapper
       .find('.poster-card-stub[data-title="Calistenia Master"] .poster-card-stub__action')
       .trigger('click')
 
-    expect(userProfileStore.selectProgram).toHaveBeenCalledWith('p1')
-    expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.PROGRAMS })
-  })
-
-  it('cambia de programa y navega a user-home al pulsar un programa no activo', async () => {
-    const { wrapper, userProfileStore } = mountView({
-      programs: {
-        programs: [
-          {
-            id: 'p2',
-            name: 'CrossFit Pro',
-            discipline: 'crossfit',
-            difficulty: 'expert',
-          },
-        ],
-      },
-      userProfile: {
-        activePrograms: [{ id: 'p1', name: 'Calistenia Master' }],
-      },
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'user-program-detail',
+      params: { programId: 'p1' },
     })
-
-    await wrapper
-      .find('.poster-card-stub[data-title="CrossFit Pro"] .poster-card-stub__action')
-      .trigger('click')
-
-    expect(userProfileStore.switchProgram).toHaveBeenCalledWith('p2')
-    expect(mockPush).toHaveBeenCalledWith({ name: EXPLORE_ROUTES.HOME })
   })
 
   it('llama a toggleProgramFavorite al pulsar el favorito de un programa', async () => {
@@ -433,12 +407,11 @@ describe('ExploreView', () => {
     expect(programsStore.fetchPrograms).toHaveBeenCalledTimes(2)
   })
 
-  it('carga programas, entrenamientos, favoritos y progreso al montar', () => {
-    const { programsStore, trainingsStore, favoritesStore, userProfileStore } = mountView()
+  it('carga programas, entrenamientos y favoritos al montar', () => {
+    const { programsStore, trainingsStore, favoritesStore } = mountView()
 
     expect(programsStore.fetchPrograms).toHaveBeenCalledTimes(1)
     expect(trainingsStore.fetchPublicTrainings).toHaveBeenCalledTimes(1)
     expect(favoritesStore.loadFavorites).toHaveBeenCalledTimes(1)
-    expect(userProfileStore.fetchActiveProgress).toHaveBeenCalledTimes(1)
   })
 })

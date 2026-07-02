@@ -60,6 +60,7 @@
             v-if="recommendedProgram"
             title="Recomendado para ti"
             :items="[recommendedProgram]"
+            loop
           >
             <template #item="{ item }">
               <PosterCard
@@ -82,6 +83,7 @@
             :key="discipline"
             :title="getDisciplineLabel(discipline)"
             :items="items"
+            loop
           >
             <template #item="{ item }">
               <PosterCard
@@ -146,7 +148,6 @@ import PosterCard from '@/components/mobile/PosterCard.vue'
 import { useProgramsStore } from '@/stores/programs'
 import { useTrainingsStore } from '@/stores/trainings'
 import { useFavoritesStore } from '@/stores/favorites'
-import { useUserProfileStore } from '@/stores/userProfile'
 import { useAuthStore } from '@/stores/auth'
 import { DISCIPLINE_LABELS, getDisciplineLabel } from '@/constants/disciplines'
 import { getLevelLabel } from '@/constants/levels'
@@ -158,7 +159,6 @@ const $q = useQuasar()
 const programsStore = useProgramsStore()
 const trainingsStore = useTrainingsStore()
 const favoritesStore = useFavoritesStore()
-const userProfileStore = useUserProfileStore()
 const authStore = useAuthStore()
 
 const activeTab = ref(EXPLORE_TABS.PROGRAMS)
@@ -172,15 +172,6 @@ const showOnboardingBanner = computed(() => {
   const user = authStore.user
   return !user?.trainingGoal || !user?.estimatedLevel
 })
-
-/**
- * Conjunto de ids de programas activos del usuario para decisiones de navegación.
- */
-const activeProgramIds = computed(() => {
-  return new Set(userProfileStore.activePrograms.map((program) => program.id))
-})
-
-const isActiveProgram = (program) => activeProgramIds.value.has(program.id)
 
 /**
  * Programa destacado en la sección "Recomendado para ti".
@@ -238,7 +229,6 @@ const loadData = async () => {
       programsStore.fetchPrograms(),
       trainingsStore.fetchPublicTrainings(),
       favoritesStore.loadFavorites(),
-      userProfileStore.fetchActiveProgress(),
     ])
   } catch {
     // Los stores gestionan su propio estado de error; no bloqueamos la UI.
@@ -256,24 +246,13 @@ const goToOnboarding = () => {
 
 /**
  * Maneja el click en una tarjeta de programa.
- * Si ya está activo, navega al detalle. Si no, lo activa y va al inicio.
+ * Navega a la vista de detalle del programa.
  */
-const handleProgramClick = async (program) => {
-  if (isActiveProgram(program)) {
-    userProfileStore.selectProgram(program.id)
-    router.push({ name: EXPLORE_ROUTES.PROGRAMS })
-    return
-  }
-
-  try {
-    await userProfileStore.switchProgram(program.id)
-    router.push({ name: EXPLORE_ROUTES.HOME })
-  } catch {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cambiar de programa',
-    })
-  }
+const handleProgramClick = (program) => {
+  router.push({
+    name: 'user-program-detail',
+    params: { programId: program.id },
+  })
 }
 
 /**
